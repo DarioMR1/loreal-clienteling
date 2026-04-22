@@ -53,6 +53,28 @@ importers:
         specifier: ^6.0.0
         version: 6.0.3
 
+  packages/domain:
+    dependencies:
+      '@loreal/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@loreal/jest-config':
+        specifier: workspace:*
+        version: link:../../tooling/jest-config
+      '@types/jest':
+        specifier: ^29.0.0
+        version: 29.5.14
+      jest:
+        specifier: ^29.0.0
+        version: 29.7.0(@types/node@25.6.0)
+      ts-jest:
+        specifier: ^29.0.0
+        version: 29.4.9(@babel/core@7.29.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.29.0))(jest-util@29.7.0)(jest@29.7.0(@types/node@25.6.0))(typescript@6.0.3)
+      typescript:
+        specifier: ^6.0.0
+        version: 6.0.3
+
   packages/utils:
     dependencies:
       date-fns:

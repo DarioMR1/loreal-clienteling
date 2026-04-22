@@ -224,9 +224,24 @@ Cada módulo tiene su `.test.ts` al lado.
 
 **Criterio de completado**:
 
-- [ ] `pnpm test --filter=@loreal/domain` pasa con todos los tests verdes
-- [ ] Cobertura alta en las funciones de segmentación, reposición y atribución (son las más críticas)
-- [ ] Ningún import de frameworks o librerías de infraestructura
+- [x] `pnpm test --filter=@loreal/domain` pasa con todos los tests verdes (69 tests)
+- [x] Cobertura alta en las funciones de segmentación, reposición y atribución (son las más críticas)
+- [x] Ningún import de frameworks o librerías de infraestructura
+
+**Estado**: COMPLETADA
+
+**Notas de implementación**:
+
+- 6 módulos en `src/`: customer-segmentation, replenishment, attribution, lifecycle-events, shade-matching, search
+- 6 archivos de lógica + 6 archivos de test = 12 archivos en total
+- 69 tests cubriendo: segmentación (14), reposición (8), atribución (10), eventos de vida (14), shade matching (9), ranking de búsqueda (9) y casos edge
+- Dependencias: solo `@loreal/contracts` (para tipos de enums). No se necesitó `@loreal/utils` ni `date-fns`
+- Todas las funciones son puras: reciben datos, retornan resultado. Sin side effects, sin I/O
+- Cada función acepta `now?: Date` opcional para facilitar testing determinístico
+- `tsconfig.json` necesita `"types": ["jest"]` para el typecheck (mismo patrón que utils)
+- `jest.config.js` usa `require("@loreal/jest-config/base")` (CommonJS, mismo patrón que utils)
+- Shade matching usa scoring compuesto: exact (100), tone_match (70), adjacent+subtone (50), adjacent (30)
+- Search ranking combina: textMatchScore + recency bonus + BA affinity + segment weight
 
 ---
 
