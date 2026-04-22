@@ -405,16 +405,50 @@ Analytics soporta scope filtering: BA ve sus métricas, manager ve tienda, super
 
 ### 7d: Seed de desarrollo
 
-- `packages/database/seed/` con datos realistas:
-  - 5+ marcas (Lancôme, Kiehl's, YSL Beauty, Maybelline, L'Oréal Paris)
-  - 10+ tiendas (Liverpool y Palacio de Hierro en CDMX, Monterrey, Guadalajara)
-  - 3+ zonas
-  - Usuarios de cada rol
-  - 50+ productos por marca con precios en MXN
-  - Plantillas de mensajes por marca
-- Script `pnpm db:seed` que ejecuta el seed
+**Archivo**: `packages/database/seed/index.ts`
 
-**Estado**: PENDIENTE
+Script idempotente (trunca todas las tablas con CASCADE antes de insertar). Se ejecuta con `pnpm db:seed`. Orden de inserción respeta FKs.
+
+**Datos insertados**:
+
+| Dato | Cantidad | Detalle |
+|---|---|---|
+| Zones | 3 | Centro (CDMX), Norte (MTY), Occidente (GDL) |
+| Brands | 5 | Lancôme, Kiehl's, YSL Beauty, Maybelline, L'Oréal Paris |
+| Brand Configs | 5 | Colores, logo, font por marca |
+| Stores | 10 | 4 Liverpool, 3 Palacio de Hierro, 3 boutiques propias |
+| Users | 19 | 1 admin, 3 supervisors (1/zona), 5 managers (1/tienda), 10 BAs (2/tienda) |
+| Products | 250 | 50/marca: 20 skincare, 20 makeup, 10 fragancias — con SKUs, precios MXN, duración estimada |
+| Product Availability | ~1,000 | Cada producto en 3-5 tiendas random, stock available/low/out_of_stock |
+| Message Templates | 17 | 3/marca (3 meses, cumpleaños, reposición) + 2 globales |
+| Customers | 120 | Nombres mexicanos, emails, teléfonos, segmentos variados (new/returning/vip/at_risk) |
+| Beauty Profiles | 95 | ~80% de clientas, con tipo de piel, tono, subtono, preocupaciones |
+| Beauty Profile Shades | ~150 | 1-3 shades por perfil (foundation, concealer, lipstick) |
+| Consents | ~250 | Privacy notice 100%, marketing_whatsapp ~70%, marketing_email ~50% |
+| Purchases | ~305 | ~609 items. VIPs 4-10 compras, returning 2-5, new 0-1. Con atribución a BA |
+| Recommendations | ~162 | 40% convertidas a compra |
+| Samples | ~60 | 30% convertidas |
+| Appointments | ~140 | Mix completed/scheduled/confirmed/cancelled/no_show |
+| Communications | ~148 | WhatsApp/email/SMS con timestamps delivered/read |
+
+**Usuarios de Better Auth**: cada usuario tiene una fila en `users` + una en `accounts` (providerId: "credential", password hasheado con scrypt). El hash usa `node:crypto.scrypt` directamente (formato `salt:hash` hex), compatible con Better Auth.
+
+**Credenciales de login** (todos los usuarios): `Password123!`
+
+| Rol | Email ejemplo |
+|---|---|
+| Admin | `admin@loreal.mx` |
+| Supervisor | `g.torres@loreal.mx` |
+| Manager | `a.martinez@loreal.mx` |
+| BA | `v.rojas@loreal.mx` |
+
+**Criterio de completado**:
+
+- [x] `pnpm db:seed` ejecuta sin errores
+- [x] ~2,500+ registros insertados en 19 tablas
+- [x] Login funcional con credenciales del seed vía Better Auth
+
+**Estado**: COMPLETADA
 
 ### 7e: Cron jobs
 
@@ -491,6 +525,6 @@ Cada fase depende de la anterior. No se salta ninguna.
 | 7a | API Bootstrap + Better Auth | ✅ COMPLETADA |
 | 7b | RBAC — ScopeService + cross-cutting | ✅ COMPLETADA |
 | 7c | 14 módulos funcionales del API | ✅ COMPLETADA |
-| 7d | Seed de desarrollo | ⏳ PENDIENTE |
+| 7d | Seed de desarrollo | ✅ COMPLETADA |
 | 7e | Cron jobs | ⏳ PENDIENTE |
 | 8 | AI Service (FastAPI) | ⏳ PENDIENTE |
