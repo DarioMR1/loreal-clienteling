@@ -1,0 +1,70 @@
+import { Injectable, Inject, NotFoundException } from "@nestjs/common";
+import { eq, and } from "drizzle-orm";
+import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
+import { samples } from "@loreal/database";
+import type { SessionUser } from "../../common/types/session";
+import { ScopeService } from "../../common/services/scope.service";
+import { AuditService } from "../../common/services/audit.service";
+import type { CreateSample } from "@loreal/contracts";
+
+@Injectable()
+export class SamplesService {
+  constructor(
+    @Inject(DATABASE_TOKEN) private db: Database,
+    private scopeService: ScopeService,
+    private auditService: AuditService,
+  ) {}
+
+  async findByCustomer(customerId: string, user: SessionUser) {
+    const storeScope = await this.scopeService.scopeByStore(
+      user,
+      samples.storeId,
+    );
+
+    const conditions = [
+      eq(samples.customerId, customerId),
+      ...(storeScope ? [storeScope] : []),
+    ];
+
+    return this.db
+      .select()
+      .from(samples)
+      .where(and(...conditions))
+      .orderBy(samples.deliveredAt);
+  }
+
+  async create(data: CreateSample, user: SessionUser) {
+    const storeId = this.scopeService.assertStore(user);
+
+    const [sample] = await this.db
+      .insert(samples)
+      .values({
+        customerId: data.customerId,
+        productId: data.productId,
+        baUserId: user.id,
+        storeId,
+      })
+      .returning();
+
+    await this.auditService.log(user, "create", "sample", sample.id, {
+      customerId: data.customerId,
+      productId: data.productId,
+    });
+
+    return sample;
+  }
+
+  async markConverted(id: string, purchaseId: string) {
+    const [updated] = await this.db
+      .update(samples)
+      .set({
+        convertedToPurchase: true,
+        conversionPurchaseId: purchaseId,
+      })
+      .where(eq(samples.id, id))
+      .returning();
+
+    if (!updated) throw new NotFoundException("Sample not found");
+    return updated;
+  }
+}

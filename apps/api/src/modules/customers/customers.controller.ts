@@ -1,0 +1,97 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+} from "@nestjs/common";
+import { Roles, Session } from "@thallesp/nestjs-better-auth";
+import { CustomersService } from "./customers.service";
+import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
+import {
+  paginationSchema,
+  createCustomerSchema,
+  updateCustomerSchema,
+  searchCustomerSchema,
+  customerFiltersSchema,
+} from "@loreal/contracts";
+import type {
+  CreateCustomer,
+  UpdateCustomer,
+  SearchCustomer,
+  Pagination,
+  CustomerFilters,
+} from "@loreal/contracts";
+import type { UserSession } from "../../common/types/session";
+
+@Controller("customers")
+export class CustomersController {
+  constructor(private customersService: CustomersService) {}
+
+  @Get()
+  @Roles(["ba", "manager", "supervisor", "admin"])
+  findAll(
+    @Query(new ZodValidationPipe(paginationSchema)) pagination: Pagination,
+    @Query(new ZodValidationPipe(customerFiltersSchema))
+    filters: CustomerFilters,
+    @Session() session: UserSession,
+  ) {
+    return this.customersService.findAll(session.user, pagination, filters);
+  }
+
+  @Get("search")
+  @Roles(["ba", "manager", "supervisor", "admin"])
+  search(
+    @Query(new ZodValidationPipe(searchCustomerSchema))
+    query: SearchCustomer,
+    @Session() session: UserSession,
+  ) {
+    return this.customersService.search(
+      query.query,
+      query.type,
+      session.user,
+    );
+  }
+
+  @Get(":id")
+  @Roles(["ba", "manager", "supervisor", "admin"])
+  findOne(@Param("id") id: string, @Session() session: UserSession) {
+    return this.customersService.findOne(id, session.user);
+  }
+
+  @Post()
+  @Roles(["ba", "manager"])
+  create(
+    @Body(new ZodValidationPipe(createCustomerSchema)) body: CreateCustomer,
+    @Session() session: UserSession,
+  ) {
+    return this.customersService.create(body, session.user);
+  }
+
+  @Patch(":id")
+  @Roles(["ba", "manager"])
+  update(
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(updateCustomerSchema)) body: UpdateCustomer,
+    @Session() session: UserSession,
+  ) {
+    return this.customersService.update(id, body, session.user);
+  }
+
+  @Delete(":id/arco")
+  @Roles(["admin"])
+  executeRightToBeForgotten(
+    @Param("id") id: string,
+    @Body("requestFolio") requestFolio: string,
+    @Session() session: UserSession,
+  ) {
+    return this.customersService.executeRightToBeForgotten(
+      id,
+      requestFolio,
+      session.user,
+    );
+  }
+}

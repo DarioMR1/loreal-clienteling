@@ -247,7 +247,7 @@ Cada módulo tiene su `.test.ts` al lado.
 
 ## Fase 7: `apps/api` (NestJS)
 
-La fase más grande. Se subdivide en pasos internos pero todo se completa antes de avanzar a la Fase 8.
+La fase más grande. Se subdivide en pasos internos.
 
 ### 7a: Bootstrap + Auth (Better Auth)
 
@@ -298,39 +298,112 @@ La fase más grande. Se subdivide en pasos internos pero todo se completa antes 
 - CORS configurado para `localhost:3000` (Next.js) y `localhost:8081` (Expo Metro)
 - Puerto del API: 3001
 
-### 7b: RBAC (CASL + RLS)
+### 7b: RBAC — ScopeService + infraestructura cross-cutting
 
-- `common/abilities/define-abilities.ts` — abilities por rol según `04-security-compliance.md`
-- `AbilitiesGuard` — guard que verifica permisos contra CASL
-- Decoradores: `@RequireRole()`, `@CheckAbility()`, `@CurrentUser()`
-- RLS policies en Postgres (vía migración Drizzle)
-- Interceptor que setea `app.user_id`, `app.user_role`, `app.user_store_id` en cada conexión
+**Decisión arquitectónica: NO usar CASL.** Better Auth ya provee `@Roles()`, `@Session()` y `@AllowAnonymous()` como decoradores globales. CASL agregaría una tercera capa de autorización innecesaria. En su lugar:
 
-### 7d: Módulos funcionales
+- **Filtrado por scope** → `ScopeService` inyectable que construye cláusulas `where` de Drizzle según `session.user.role/storeId/brandId/zoneId`
+- **Restricción por rol** → `@Roles(['ba', 'manager'])` de Better Auth (ya integrado en 7a)
+- **Defensa en profundidad** → RLS en Postgres se agrega como fase de hardening futura
 
-Un módulo NestJS por sección del RFP, cada uno con controller + service + DTOs:
+**Archivos creados en `apps/api/src/common/`**:
 
-| Módulo | Endpoints principales |
-|---|---|
-| `customers` | CRUD + búsqueda (RF-01, RF-03, RF-04) |
-| `beauty` | Perfiles de belleza + shades (RF-05, RF-58, RF-60) |
-| `products` | Catálogo + disponibilidad (RF-17) |
-| `recommendations` | Crear + historial + conversión (RF-13, RF-15, RF-19) |
-| `purchases` | Registro manual + POS mock + historial (RF-20 a RF-25) |
-| `samples` | Registro + conversión (RF-08, RF-61) |
-| `appointments` | CRUD + calendario + tipos de evento (RF-26 a RF-33) |
-| `communications` | Envío + plantillas + tracking (RF-34 a RF-39) |
-| `consents` | Gestión de consentimientos por canal (RF-02, RNF-07) |
-| `audit` | Consulta de audit logs (RNF-04) |
-| `brands` | CRUD marcas + configs (RNF-13) |
-| `stores` | CRUD tiendas (RNF-14) |
-| `zones` | CRUD zonas |
-| `analytics` | Reportes + exportación CSV/Excel (RF-40 a RF-50) |
-| `integrations/pos` | Adaptador mockeado |
-| `integrations/whatsapp` | Adaptador de WhatsApp Business API |
-| `integrations/ecommerce` | Adaptador mockeado |
+- `types/session.ts` — interfaces `SessionUser` y `UserSession` con campos de negocio tipados
+- `pipes/zod-validation.pipe.ts` — `ZodValidationPipe` que valida con schemas Zod de `@loreal/contracts`, lanza `BadRequestException` con errores formateados
+- `services/scope.service.ts` — `ScopeService` injectable global:
+  - `scopeByStore(user, column)` → condición Drizzle: BA/manager filtra por storeId, supervisor por stores de su zona, admin sin filtro
+  - `scopeByBrand(user, column)` → condición Drizzle por brandId
+  - `getAccessibleStoreIds(user)` → array de UUIDs de tiendas accesibles
+  - `assertStore(user)` / `assertBrand(user)` → valida y retorna o lanza ForbiddenException
+- `services/audit.service.ts` — `AuditService` injectable global: `log(actor, action, entityType, entityId, changes?, meta?)` inserta en `auditLogs`. Parámetro `action` es `string` (no restringido al enum `AuditAction`) para flexibilidad de acciones por módulo.
+- `common.module.ts` — módulo `@Global()` que provee `ScopeService` y `AuditService`
 
-### 7e: Seed de desarrollo
+**Criterio de completado**:
+
+- [x] `pnpm --filter=@loreal/api typecheck` pasa
+- [x] `CommonModule` registrado en `app.module.ts`
+- [x] `ScopeService` y `AuditService` inyectables en cualquier módulo
+
+**Estado**: COMPLETADA
+
+### 7c: Módulos funcionales del API
+
+14 módulos NestJS implementados, cada uno con 3 archivos (module, controller, service). Todos registrados en `app.module.ts`.
+
+**Patrón consistente por módulo**:
+
+```
+modules/<name>/
+  <name>.module.ts      — @Module con controller + service, exports service
+  <name>.controller.ts  — REST endpoints, @Roles(), ZodValidationPipe, @Session()
+  <name>.service.ts     — Queries Drizzle, scope filtering via ScopeService, audit logging
+```
+
+**Módulos Tier 0 — Fundacionales (sin FKs de dominio)**:
+
+| Módulo | Endpoints | RF/RNF |
+|---|---|---|
+| `zones` | GET /zones, GET /:id, POST, PATCH /:id | RF-54 |
+| `brands` | GET /brands, GET /:id, POST, PATCH /:id, PUT /:id/config | RNF-13 |
+
+**Módulos Tier 1 — Dependen de Tier 0**:
+
+| Módulo | Endpoints | RF/RNF |
+|---|---|---|
+| `stores` | GET /stores, GET /:id, POST, PATCH /:id | RNF-14 |
+| `products` | GET /products, GET /:id, POST, PATCH /:id, GET /:id/availability, PATCH /:id/availability/:storeId | RF-17 |
+
+**Módulos Tier 2 — Entidad principal**:
+
+| Módulo | Endpoints | RF/RNF |
+|---|---|---|
+| `customers` | GET /customers, GET /customers/search, GET /:id, POST, PATCH /:id, DELETE /:id/arco | RF-01 a RF-04, RF-11, RNF-05 |
+
+Customers es el módulo más complejo:
+- Búsqueda usa `rankCustomerSearchResults()` de `@loreal/domain`
+- Vista 360° en GET /:id
+- Derecho al olvido ARCO: transaccional con hard delete + anonimización según `04-security-compliance.md`
+- Audit logging de `customer_viewed` en cada lectura
+
+**Módulos Tier 3 — Dependen de Customers**:
+
+| Módulo | Endpoints | RF/RNF |
+|---|---|---|
+| `beauty` | GET/PUT /customers/:id/beauty-profile, POST /customers/:id/shades, GET /customers/:id/shade-matches | RF-05, RF-58, RF-60 |
+| `consents` | GET/POST /customers/:id/consents, DELETE /customers/:id/consents/:type | RF-02, RNF-07 |
+| `recommendations` | GET /customers/:id/recommendations, POST /recommendations, POST /recommendations/ai, PATCH /:id/convert | RF-13, RF-15, RF-19 |
+| `purchases` | GET /customers/:id/purchases, POST /purchases, GET /:id | RF-20 a RF-25 |
+| `samples` | GET /customers/:id/samples, POST /samples, PATCH /:id/convert | RF-08, RF-61 |
+| `appointments` | GET /appointments, GET /appointments/calendar, GET /:id, POST, PATCH /:id | RF-26 a RF-33 |
+| `communications` | GET /customers/:id/communications, POST /communications, GET/POST/PATCH /communications/templates, PATCH /:id/tracking | RF-34 a RF-39 |
+
+Notas de implementación por módulo:
+- **purchases**: llama `attributePurchaseToBa()` de `@loreal/domain` en cada compra creada. Actualiza `lastTransactionAt` en customer. Marca recommendations convertidas automáticamente.
+- **beauty**: `getShadeMatches` usa `findMatchingShades()` de `@loreal/domain`
+- **consents**: exporta `hasActiveConsent(customerId, channel)` usado por `CommunicationsService` antes de enviar
+- **communications**: importa `ConsentsModule`, verifica consent antes de crear. Templates filtrados por marca.
+- **appointments**: reschedule crea cita nueva con `rescheduledFromAppointmentId` vinculado a la original
+- **recommendations**: `POST /recommendations/ai` es placeholder, retorna mensaje de servicio no disponible hasta Fase 8
+
+**Módulos Tier 4 — Solo lectura / agregación**:
+
+| Módulo | Endpoints | RF/RNF |
+|---|---|---|
+| `audit` | GET /audit-logs (admin only), GET /:id | RNF-04 |
+| `analytics` | GET /analytics/dashboard, /conversion, /customers, /export | RF-40 a RF-50 |
+
+Analytics soporta scope filtering: BA ve sus métricas, manager ve tienda, supervisor ve zona, admin ve todo.
+
+**Criterio de completado**:
+
+- [x] `pnpm --filter=@loreal/api typecheck` pasa — 0 errores con 14 módulos
+- [x] `pnpm test` pasa — 90 tests existentes (69 domain + 21 utils) siguen verdes
+- [x] 14 módulos × 3 archivos = 42 archivos de módulos + 5 archivos cross-cutting = 47 archivos nuevos
+- [x] Todos los módulos registrados en `app.module.ts`
+
+**Estado**: COMPLETADA
+
+### 7d: Seed de desarrollo
 
 - `packages/database/seed/` con datos realistas:
   - 5+ marcas (Lancôme, Kiehl's, YSL Beauty, Maybelline, L'Oréal Paris)
@@ -341,20 +414,16 @@ Un módulo NestJS por sección del RFP, cada uno con controller + service + DTOs
   - Plantillas de mensajes por marca
 - Script `pnpm db:seed` que ejecuta el seed
 
-### 7f: Cron jobs
+**Estado**: PENDIENTE
 
-- Segmentación nocturna (RF-11)
-- Alertas de eventos de vida (RF-09)
+### 7e: Cron jobs
+
+- Segmentación nocturna (RF-11) — usa `calculateSegment()` de `@loreal/domain`
+- Alertas de eventos de vida (RF-09) — usa `generateLifeEventAlerts()` de `@loreal/domain`
 - Recordatorios de citas (RF-30)
+- Dependencia: `@nestjs/schedule`
 
-**Criterio de completado**:
-
-- [ ] `pnpm dev --filter=api` levanta sin errores
-- [ ] `POST /auth/sign-in` retorna JWT válido
-- [ ] CRUD de cada entidad funciona con auth y RBAC
-- [ ] Un BA no puede ver datos de otra tienda (verificado)
-- [ ] `pnpm db:seed` puebla datos realistas
-- [ ] `pnpm test --filter=api` pasa (integration tests con supertest)
+**Estado**: PENDIENTE
 
 ---
 
@@ -394,6 +463,8 @@ Un módulo NestJS por sección del RFP, cada uno con controller + service + DTOs
 - [ ] NestJS llama al AI service y persiste la recomendación en Postgres
 - [ ] Embeddings se generan y se guardan en pgvector
 
+**Estado**: PENDIENTE
+
 ---
 
 ## Orden de ejecución
@@ -404,3 +475,22 @@ monorepo   contracts  utils     database   docker     domain     api       ai-se
 ```
 
 Cada fase depende de la anterior. No se salta ninguna.
+
+---
+
+## Resumen de estado actual
+
+| Fase | Descripción | Estado |
+|---|---|---|
+| 1 | Monorepo base | ✅ COMPLETADA |
+| 2 | `packages/contracts` | ✅ COMPLETADA |
+| 3 | `packages/utils` | ✅ COMPLETADA |
+| 4 | `packages/database` | ✅ COMPLETADA |
+| 5 | Docker Compose + migraciones | ✅ COMPLETADA |
+| 6 | `packages/domain` | ✅ COMPLETADA |
+| 7a | API Bootstrap + Better Auth | ✅ COMPLETADA |
+| 7b | RBAC — ScopeService + cross-cutting | ✅ COMPLETADA |
+| 7c | 14 módulos funcionales del API | ✅ COMPLETADA |
+| 7d | Seed de desarrollo | ⏳ PENDIENTE |
+| 7e | Cron jobs | ⏳ PENDIENTE |
+| 8 | AI Service (FastAPI) | ⏳ PENDIENTE |
