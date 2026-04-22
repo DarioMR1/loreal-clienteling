@@ -123,7 +123,7 @@ export const verifications = pgTable(
   (table) => [index("verifications_identifier_idx").on(table.identifier)],
 );
 
-export const jwks = pgTable("jwkss", {
+export const jwkss = pgTable("jwkss", {
   id: text("id").primaryKey(),
   publicKey: text("public_key").notNull(),
   privateKey: text("private_key").notNull(),

@@ -1,10 +1,10 @@
-// Better Auth tables (users, sessions, accounts, verifications, jwks, twoFactors)
+// Better Auth tables (users, sessions, accounts, verifications, jwkss, twoFactors)
 export {
   users,
   sessions,
   accounts,
   verifications,
-  jwks,
+  jwkss,
   twoFactors,
   usersRelations,
   sessionsRelations,

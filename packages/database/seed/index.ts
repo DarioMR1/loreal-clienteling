@@ -30,14 +30,17 @@ function pickN<T>(arr: T[], n: number): T[] {
   return shuffled.slice(0, n);
 }
 
-// Better Auth uses scrypt (salt:hash hex format). Replicate it directly.
+// Better Auth uses @noble/hashes scrypt with N=16384, r=16, p=1, dkLen=64.
+// node:crypto.scrypt defaults to r=8, so we must pass r=16 explicitly.
 async function hashPassword(password: string): Promise<string> {
-  const { scrypt, randomBytes } = await import("node:crypto");
-  const { promisify } = await import("node:util");
-  const scryptAsync = promisify(scrypt);
-  const salt = randomBytes(16).toString("hex");
-  const key = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${salt}:${key.toString("hex")}`;
+  const crypto = await import("node:crypto");
+  const salt = crypto.randomBytes(16).toString("hex");
+  return new Promise((resolve, reject) => {
+    crypto.scrypt(password, salt, 64, { N: 16384, r: 16, p: 1, maxmem: 128 * 16384 * 16 * 2 }, (err, key) => {
+      if (err) reject(err);
+      else resolve(`${salt}:${key.toString("hex")}`);
+    });
+  });
 }
 
 // ─── Seed Data ──────────────────────────────────────────────────────────────
