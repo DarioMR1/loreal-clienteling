@@ -13,22 +13,23 @@
     "test:e2e": "echo 'No e2e tests configured yet'"
   },
   "dependencies": {
+    "@better-auth/expo": "^1.2.0",
+    "@loreal/contracts": "workspace:*",
+    "@loreal/database": "workspace:*",
+    "@loreal/domain": "workspace:*",
+    "@loreal/utils": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
+    "@nestjs/schedule": "^6.1.3",
     "@thallesp/nestjs-better-auth": "^2.6.0",
     "better-auth": "^1.2.0",
-    "@better-auth/expo": "^1.2.0",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.13.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0",
-    "zod": "^3.25.0",
-    "@loreal/contracts": "workspace:*",
-    "@loreal/database": "workspace:*",
-    "@loreal/domain": "workspace:*",
-    "@loreal/utils": "workspace:*"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",

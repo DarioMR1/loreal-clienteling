@@ -452,12 +452,36 @@ Script idempotente (trunca todas las tablas con CASCADE antes de insertar). Se e
 
 ### 7e: Cron jobs
 
-- Segmentación nocturna (RF-11) — usa `calculateSegment()` de `@loreal/domain`
-- Alertas de eventos de vida (RF-09) — usa `generateLifeEventAlerts()` de `@loreal/domain`
-- Recordatorios de citas (RF-30)
-- Dependencia: `@nestjs/schedule`
+3 cron jobs implementados en `apps/api/src/modules/scheduler/`, registrados vía `SchedulerModule` con `@nestjs/schedule`.
 
-**Estado**: PENDIENTE
+**Archivos creados**:
+
+- `scheduler.module.ts` — importa `ScheduleModule.forRoot()`, registra los 3 crons
+- `segmentation.cron.ts` — `SegmentationCron`: recalcula `lifecycleSegment` e `inactive` de todos los customers
+- `lifecycle-alerts.cron.ts` — `LifecycleAlertsCron`: genera alertas de cumpleaños, aniversario y reposición
+- `appointment-reminders.cron.ts` — `AppointmentRemindersCron`: marca `reminderSentAt` en citas próximas (24h)
+
+| Cron | Frecuencia | Dominio | RF |
+|---|---|---|---|
+| `SegmentationCron` | Diario 2:00 AM | `calculateSegment()` de `@loreal/domain` | RF-11 |
+| `LifecycleAlertsCron` | Diario 6:00 AM | `generateLifeEventAlerts()` + `calculateNextPurchase()` | RF-09, RF-16 |
+| `AppointmentRemindersCron` | Cada hora | Query directa sobre appointments | RF-30 |
+
+**Notas de implementación**:
+
+- Segmentación usa umbral VIP configurable por marca vía `brandConfigs.replenishmentRules.vipSpendingThreshold` (default: $15,000 MXN)
+- Alertas de vida evitan duplicados: no genera si ya existe una comunicación del mismo `followupType` en los últimos 7 días
+- Recordatorios buscan citas con status `scheduled`/`confirmed` en las próximas 24h sin `reminderSentAt`
+- En producción con múltiples instancias, se recomienda advisory lock de Postgres o variable de entorno para designar instancia scheduler
+
+**Criterio de completado**:
+
+- [x] `pnpm --filter=@loreal/api typecheck` pasa
+- [x] `pnpm typecheck` (monorepo completo) pasa — 5/5 packages
+- [x] `pnpm test` pasa — 90 tests existentes siguen verdes
+- [x] `SchedulerModule` registrado en `app.module.ts`
+
+**Estado**: COMPLETADA
 
 ---
 
@@ -526,5 +550,5 @@ Cada fase depende de la anterior. No se salta ninguna.
 | 7b | RBAC — ScopeService + cross-cutting | ✅ COMPLETADA |
 | 7c | 14 módulos funcionales del API | ✅ COMPLETADA |
 | 7d | Seed de desarrollo | ✅ COMPLETADA |
-| 7e | Cron jobs | ⏳ PENDIENTE |
+| 7e | Cron jobs | ✅ COMPLETADA |
 | 8 | AI Service (FastAPI) | ⏳ PENDIENTE |
