@@ -1,0 +1,25 @@
+# PowerSync Service configuration for local development
+# See: https://docs.powersync.com/self-hosting/configuration
+
+# Replication from Postgres
+replication:
+  connections:
+    - type: postgresql
+      uri: postgresql://loreal:loreal@postgres:5432/loreal_clienteling
+      sslmode: disable
+
+# Client auth (JWT validation)
+client_auth:
+  # For local development, use HMAC with a shared secret
+  supabase: false
+  jwks: false
+  hmac:
+    secret: local-dev-secret-change-in-production
+
+# API settings
+api:
+  port: 8080
+
+# Storage for sync state
+storage:
+  type: memory

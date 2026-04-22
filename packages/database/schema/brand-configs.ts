@@ -1,0 +1,33 @@
+import {
+  pgTable,
+  uuid,
+  varchar,
+  jsonb,
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core";
+import { brands } from "./brands";
+
+export const brandConfigs = pgTable("brand_configs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  brandId: uuid("brand_id")
+    .notNull()
+    .unique()
+    .references(() => brands.id),
+  primaryColor: varchar("primary_color", { length: 20 }),
+  secondaryColor: varchar("secondary_color", { length: 20 }),
+  accentColor: varchar("accent_color", { length: 20 }),
+  logoUrl: varchar("logo_url", { length: 500 }),
+  fontFamily: varchar("font_family", { length: 100 }),
+  messageTemplates: jsonb("message_templates"),
+  replenishmentRules: jsonb("replenishment_rules"),
+  virtualTryonEnabled: boolean("virtual_tryon_enabled")
+    .notNull()
+    .default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
