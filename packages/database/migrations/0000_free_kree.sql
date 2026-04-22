@@ -1,7 +1,7 @@
 CREATE TABLE "appointments" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"customer_id" uuid NOT NULL,
-	"ba_user_id" uuid NOT NULL,
+	"ba_user_id" text NOT NULL,
 	"store_id" uuid NOT NULL,
 	"event_type" varchar(30) NOT NULL,
 	"scheduled_at" timestamp with time zone NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE "appointments" (
 --> statement-breakpoint
 CREATE TABLE "audit_logs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"actor_user_id" uuid,
+	"actor_user_id" text,
 	"action" varchar(50) NOT NULL,
 	"entity_type" varchar(50) NOT NULL,
 	"entity_id" varchar(100) NOT NULL,
@@ -27,6 +27,82 @@ CREATE TABLE "audit_logs" (
 	"ip_address" varchar(45),
 	"user_agent" varchar(500),
 	"timestamp" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "accounts" (
+	"id" text PRIMARY KEY NOT NULL,
+	"account_id" text NOT NULL,
+	"provider_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"access_token" text,
+	"refresh_token" text,
+	"id_token" text,
+	"access_token_expires_at" timestamp with time zone,
+	"refresh_token_expires_at" timestamp with time zone,
+	"scope" text,
+	"password" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "jwkss" (
+	"id" text PRIMARY KEY NOT NULL,
+	"public_key" text NOT NULL,
+	"private_key" text NOT NULL,
+	"created_at" timestamp with time zone NOT NULL,
+	"expires_at" timestamp with time zone
+);
+--> statement-breakpoint
+CREATE TABLE "sessions" (
+	"id" text PRIMARY KEY NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"token" text NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"ip_address" text,
+	"user_agent" text,
+	"user_id" text NOT NULL,
+	"impersonated_by" text,
+	CONSTRAINT "sessions_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "two_factors" (
+	"id" text PRIMARY KEY NOT NULL,
+	"secret" text NOT NULL,
+	"backup_codes" text NOT NULL,
+	"user_id" text NOT NULL,
+	"verified" boolean DEFAULT true
+);
+--> statement-breakpoint
+CREATE TABLE "users" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"email" text NOT NULL,
+	"email_verified" boolean DEFAULT false NOT NULL,
+	"image" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"banned" boolean DEFAULT false,
+	"ban_reason" text,
+	"ban_expires" timestamp with time zone,
+	"two_factor_enabled" boolean DEFAULT false,
+	"role" text DEFAULT 'ba' NOT NULL,
+	"full_name" text NOT NULL,
+	"store_id" text,
+	"zone_id" text,
+	"brand_id" text,
+	"active" boolean DEFAULT true NOT NULL,
+	"last_login_at" timestamp with time zone,
+	CONSTRAINT "users_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
+CREATE TABLE "verifications" (
+	"id" text PRIMARY KEY NOT NULL,
+	"identifier" text NOT NULL,
+	"value" text NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "beauty_profile_shades" (
@@ -37,7 +113,7 @@ CREATE TABLE "beauty_profile_shades" (
 	"product_id" uuid NOT NULL,
 	"shade_code" varchar(50) NOT NULL,
 	"captured_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"captured_by_user_id" uuid NOT NULL
+	"captured_by_user_id" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "beauty_profiles" (
@@ -88,7 +164,7 @@ CREATE TABLE "brands" (
 CREATE TABLE "communications" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"customer_id" uuid NOT NULL,
-	"sent_by_user_id" uuid NOT NULL,
+	"sent_by_user_id" text NOT NULL,
 	"channel" varchar(20) NOT NULL,
 	"template_id" uuid,
 	"subject" varchar(200),
@@ -123,8 +199,8 @@ CREATE TABLE "customers" (
 	"gender" varchar(20),
 	"birth_date" date,
 	"registered_at_store_id" uuid NOT NULL,
-	"registered_by_user_id" uuid NOT NULL,
-	"last_ba_user_id" uuid,
+	"registered_by_user_id" text NOT NULL,
+	"last_ba_user_id" text,
 	"customer_since" timestamp with time zone DEFAULT now() NOT NULL,
 	"last_contact_at" timestamp with time zone,
 	"last_transaction_at" timestamp with time zone,
@@ -196,7 +272,7 @@ CREATE TABLE "purchases" (
 	"total_amount" numeric(12, 2) NOT NULL,
 	"pos_transaction_id" varchar(100),
 	"source" varchar(20) NOT NULL,
-	"attributed_ba_user_id" uuid,
+	"attributed_ba_user_id" text,
 	"attribution_reason" varchar(30),
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -206,7 +282,7 @@ CREATE TABLE "recommendations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"customer_id" uuid NOT NULL,
 	"product_id" uuid NOT NULL,
-	"ba_user_id" uuid NOT NULL,
+	"ba_user_id" text NOT NULL,
 	"store_id" uuid NOT NULL,
 	"recommended_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"source" varchar(30) NOT NULL,
@@ -223,7 +299,7 @@ CREATE TABLE "samples" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"customer_id" uuid NOT NULL,
 	"product_id" uuid NOT NULL,
-	"ba_user_id" uuid NOT NULL,
+	"ba_user_id" text NOT NULL,
 	"store_id" uuid NOT NULL,
 	"delivered_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"converted_to_purchase" boolean DEFAULT false NOT NULL,
@@ -246,22 +322,6 @@ CREATE TABLE "stores" (
 	CONSTRAINT "stores_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
-CREATE TABLE "users" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"email" varchar(320) NOT NULL,
-	"full_name" varchar(200) NOT NULL,
-	"password_hash" varchar(500),
-	"role" varchar(20) NOT NULL,
-	"store_id" uuid,
-	"zone_id" uuid,
-	"brand_id" uuid,
-	"active" boolean DEFAULT true NOT NULL,
-	"last_login_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "users_email_unique" UNIQUE("email")
-);
---> statement-breakpoint
 CREATE TABLE "zones" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"code" varchar(50) NOT NULL,
@@ -275,6 +335,9 @@ CREATE TABLE "zones" (
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_customer_id_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_ba_user_id_users_id_fk" FOREIGN KEY ("ba_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_store_id_stores_id_fk" FOREIGN KEY ("store_id") REFERENCES "public"."stores"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "two_factors" ADD CONSTRAINT "two_factors_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "beauty_profile_shades" ADD CONSTRAINT "beauty_profile_shades_beauty_profile_id_beauty_profiles_id_fk" FOREIGN KEY ("beauty_profile_id") REFERENCES "public"."beauty_profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "beauty_profile_shades" ADD CONSTRAINT "beauty_profile_shades_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "public"."brands"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "beauty_profile_shades" ADD CONSTRAINT "beauty_profile_shades_captured_by_user_id_users_id_fk" FOREIGN KEY ("captured_by_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -304,15 +367,17 @@ ALTER TABLE "samples" ADD CONSTRAINT "samples_product_id_products_id_fk" FOREIGN
 ALTER TABLE "samples" ADD CONSTRAINT "samples_ba_user_id_users_id_fk" FOREIGN KEY ("ba_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "samples" ADD CONSTRAINT "samples_store_id_stores_id_fk" FOREIGN KEY ("store_id") REFERENCES "public"."stores"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "stores" ADD CONSTRAINT "stores_zone_id_zones_id_fk" FOREIGN KEY ("zone_id") REFERENCES "public"."zones"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_store_id_stores_id_fk" FOREIGN KEY ("store_id") REFERENCES "public"."stores"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_zone_id_zones_id_fk" FOREIGN KEY ("zone_id") REFERENCES "public"."zones"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "users" ADD CONSTRAINT "users_brand_id_brands_id_fk" FOREIGN KEY ("brand_id") REFERENCES "public"."brands"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "appointments_ba_idx" ON "appointments" USING btree ("ba_user_id");--> statement-breakpoint
 CREATE INDEX "appointments_store_idx" ON "appointments" USING btree ("store_id");--> statement-breakpoint
 CREATE INDEX "appointments_scheduled_idx" ON "appointments" USING btree ("scheduled_at");--> statement-breakpoint
 CREATE INDEX "audit_logs_actor_idx" ON "audit_logs" USING btree ("actor_user_id");--> statement-breakpoint
 CREATE INDEX "audit_logs_entity_idx" ON "audit_logs" USING btree ("entity_type","entity_id");--> statement-breakpoint
 CREATE INDEX "audit_logs_timestamp_idx" ON "audit_logs" USING btree ("timestamp");--> statement-breakpoint
+CREATE INDEX "accounts_userId_idx" ON "accounts" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "sessions_userId_idx" ON "sessions" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "twoFactors_secret_idx" ON "two_factors" USING btree ("secret");--> statement-breakpoint
+CREATE INDEX "twoFactors_userId_idx" ON "two_factors" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "verifications_identifier_idx" ON "verifications" USING btree ("identifier");--> statement-breakpoint
 CREATE INDEX "communications_customer_idx" ON "communications" USING btree ("customer_id");--> statement-breakpoint
 CREATE INDEX "consents_customer_idx" ON "consents" USING btree ("customer_id");--> statement-breakpoint
 CREATE INDEX "consents_type_idx" ON "consents" USING btree ("customer_id","type");--> statement-breakpoint

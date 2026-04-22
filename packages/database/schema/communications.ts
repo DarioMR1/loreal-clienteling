@@ -7,7 +7,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { customers } from "./customers";
-import { users } from "./users";
+import { users } from "./auth";
 
 export const communications = pgTable(
   "communications",
@@ -16,7 +16,7 @@ export const communications = pgTable(
     customerId: uuid("customer_id")
       .notNull()
       .references(() => customers.id),
-    sentByUserId: uuid("sent_by_user_id")
+    sentByUserId: text("sent_by_user_id")
       .notNull()
       .references(() => users.id),
     channel: varchar("channel", { length: 20 }).notNull(), // whatsapp | sms | email

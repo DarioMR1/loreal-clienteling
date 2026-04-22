@@ -1,13 +1,14 @@
 import {
   pgTable,
   uuid,
+  text,
   varchar,
   jsonb,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { customers } from "./customers";
 import { brands } from "./brands";
-import { users } from "./users";
+import { users } from "./auth";
 
 export const beautyProfiles = pgTable("beauty_profiles", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -47,7 +48,7 @@ export const beautyProfileShades = pgTable("beauty_profile_shades", {
   capturedAt: timestamp("captured_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
-  capturedByUserId: uuid("captured_by_user_id")
+  capturedByUserId: text("captured_by_user_id")
     .notNull()
     .references(() => users.id),
 });

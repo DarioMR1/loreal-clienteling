@@ -1,6 +1,7 @@
 import {
   pgTable,
   uuid,
+  text,
   varchar,
   numeric,
   integer,
@@ -9,7 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { customers } from "./customers";
 import { stores } from "./stores";
-import { users } from "./users";
+import { users } from "./auth";
 import { products } from "./products";
 
 export const purchases = pgTable(
@@ -28,7 +29,7 @@ export const purchases = pgTable(
     totalAmount: numeric("total_amount", { precision: 12, scale: 2 }).notNull(),
     posTransactionId: varchar("pos_transaction_id", { length: 100 }),
     source: varchar("source", { length: 20 }).notNull(), // pos_integration | manual | ecommerce
-    attributedBaUserId: uuid("attributed_ba_user_id").references(
+    attributedBaUserId: text("attributed_ba_user_id").references(
       () => users.id,
     ),
     attributionReason: varchar("attribution_reason", { length: 30 }), // last_consultation | active_recommendation | direct_assistance

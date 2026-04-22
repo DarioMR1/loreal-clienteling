@@ -1,8 +1,22 @@
+// Better Auth tables (users, sessions, accounts, verifications, jwks, twoFactors)
+export {
+  users,
+  sessions,
+  accounts,
+  verifications,
+  jwks,
+  twoFactors,
+  usersRelations,
+  sessionsRelations,
+  accountsRelations,
+  twoFactorsRelations,
+} from "./auth";
+
+// Domain tables
 export { brands } from "./brands";
 export { brandConfigs } from "./brand-configs";
 export { zones } from "./zones";
 export { stores } from "./stores";
-export { users } from "./users";
 export { customers } from "./customers";
 export { beautyProfiles, beautyProfileShades } from "./beauty-profiles";
 export { products, productAvailability } from "./products";

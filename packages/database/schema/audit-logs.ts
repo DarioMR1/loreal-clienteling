@@ -1,6 +1,7 @@
 import {
   pgTable,
   uuid,
+  text,
   varchar,
   jsonb,
   timestamp,
@@ -11,7 +12,7 @@ export const auditLogs = pgTable(
   "audit_logs",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    actorUserId: uuid("actor_user_id"), // null = system action
+    actorUserId: text("actor_user_id"), // null = system action; text to match Better Auth users.id
     action: varchar("action", { length: 50 }).notNull(),
     entityType: varchar("entity_type", { length: 50 }).notNull(),
     entityId: varchar("entity_id", { length: 100 }).notNull(),

@@ -161,10 +161,10 @@ Backend funcional con auth, RBAC, todas las entidades del dominio, lógica de ne
 
 - 19 tablas en 16 archivos de schema (beauty-profiles y products tienen tablas secundarias en el mismo archivo)
 - `tsconfig.json` necesita `"types": ["node"]` para que `process.env` compile
-- Migración generada: `migrations/0000_eminent_namorita.sql`
+- Migración generada: `migrations/0000_free_kree.sql` (regenerada en Fase 7a al agregar tablas de Better Auth)
 - `drizzle.config.ts` URL por defecto apunta a `localhost:5433` (puerto mapeado, ver Fase 5)
 - `beauty_profile_shades.product_id` no tiene FK explícita para evitar imports circulares — se puede agregar después con una migración manual si se necesita
-- Dependencias: `drizzle-orm@^0.44.0`, `pg@^8.13.0`, `drizzle-kit@^0.31.0`, `tsx@^4.19.0`
+- Dependencias: `drizzle-orm@^0.45.2` (actualizado en Fase 7a por peer dep de Better Auth), `pg@^8.13.0`, `drizzle-kit@^0.31.0`, `tsx@^4.19.0`
 
 ---
 
@@ -249,23 +249,56 @@ Cada módulo tiene su `.test.ts` al lado.
 
 La fase más grande. Se subdivide en pasos internos pero todo se completa antes de avanzar a la Fase 8.
 
-### 7a: Bootstrap
+### 7a: Bootstrap + Auth (Better Auth)
 
-- Scaffold de NestJS con `@nestjs/cli`
-- `app.module.ts` con configuración base (`@nestjs/config`)
-- Conexión a Postgres via Drizzle (provider custom)
-- `tsconfig.json` extendiendo `tooling/typescript-config/node.json`
-- Health check endpoint (`GET /health`)
+- Scaffold de NestJS: `app.module.ts`, `main.ts`, `health.controller.ts`, `database.module.ts`, `database.provider.ts`
+- Conexión a Postgres via Drizzle (provider custom, módulo global `DATABASE_TOKEN`)
+- `tsconfig.json` extendiendo `tooling/typescript-config/node.json` con `ignoreDeprecations: "6.0"`, `declaration: false`
+- Health check endpoint (`GET /health`) con `@AllowAnonymous()`
+- Dev script usa `tsx watch` (no `nest start`) para resolver imports de workspace packages `.ts`
+- Integración de Better Auth siguiendo la implementación oficial (`better-auth.com/docs/integrations/nestjs`)
+- Paquete `@thallesp/nestjs-better-auth` v2.6.0 — `AuthModule.forRoot({ auth })` registra guard global
+- `bodyParser: false` en `NestFactory.create()` (requerido por Better Auth)
+- Adapter: `drizzleAdapter(db, { provider: "pg", usePlural: true })` de `better-auth/adapters/drizzle`
+- Plugins configurados:
+  - `expo()` — soporte React Native con `trustedOrigins` para scheme `lorealclienteling://`
+  - `jwt()` — tokens JWT para PowerSync, payload custom con `sub`, `email`, `role`, `storeId`, `brandId`, `zoneId`, expiración 1h
+  - `admin({ defaultRole: "ba" })` — gestión de usuarios, `defaultRole` sobrescrito de `"user"` a `"ba"`
+  - `twoFactor({ issuer: "L'Oréal Clienteling" })` — MFA con TOTP
+  - `customSession()` — inyecta `role`, `storeId`, `brandId`, `zoneId`, `active`, `fullName` en la sesión
+- `user.additionalFields`: `role`, `storeId`, `zoneId`, `brandId`, `active`, `fullName`
+- Schema de auth generado con `npx @better-auth/cli generate` → `packages/database/schema/auth.ts`
+  - Tablas: `users` (con campos de negocio), `sessions`, `accounts`, `verifications`, `jwks`, `twoFactors`
+  - Relaciones Drizzle definidas
+  - `users.storeId/zoneId/brandId` son `text` sin FK a nivel de DB (tablas de dominio usan UUID, Better Auth usa text IDs); referencia lógica enforced en app
+- Eliminado `schema/users.ts` — reemplazado por `schema/auth.ts`
+- Todas las FKs de tablas de dominio a `users.id` cambiadas de `uuid()` a `text()` (7 archivos)
+- Migración regenerada desde cero (24 tablas), publicación PowerSync recreada
 
-### 7b: Auth (Better Auth)
+**Criterio de completado**:
 
-- Integración de Better Auth como módulo de NestJS
-- Endpoints: `POST /auth/sign-in`, `POST /auth/sign-up`, `POST /auth/refresh`, `POST /auth/sign-out`
-- JWT con claims: `user_id`, `role`, `brand_id`, `store_id`, `zone_id`
-- Guard `AuthGuard` que valida JWT en cada request
-- Reset de password, invitación de usuarios
+- [x] `pnpm --filter=@loreal/api typecheck` pasa
+- [x] `pnpm typecheck` (monorepo completo) pasa — 5/5 packages
+- [x] `pnpm test` (monorepo completo) pasa — 90 tests (69 domain + 21 utils)
+- [x] `GET /health` → `{ status: "ok" }`
+- [x] `GET /api/auth/ok` → `{ ok: true }`
+- [x] `POST /api/auth/sign-up/email` crea usuario con campos custom
+- [x] `POST /api/auth/sign-in/email` retorna sesión + token
+- [x] Guard global protege rutas por defecto, `@AllowAnonymous()` las exceptúa
+- [x] 24 tablas en Postgres (19 dominio + 5 auth: sessions, accounts, verifications, jwks, two_factors)
 
-### 7c: RBAC (CASL + RLS)
+**Estado**: COMPLETADA
+
+**Notas de implementación**:
+
+- Better Auth v1.6.6, `@thallesp/nestjs-better-auth` v2.6.0
+- `drizzle-orm` actualizado de `^0.44.0` a `^0.45.2` (peer dependency de Better Auth)
+- Peer warning de `better-call` pidiendo `zod@^4.0.0` es inocuo — `zod@3.25` es bridge version compatible
+- `@nestjs/core` build scripts ignorados en `pnpm-workspace.yaml` (no necesarios)
+- CORS configurado para `localhost:3000` (Next.js) y `localhost:8081` (Expo Metro)
+- Puerto del API: 3001
+
+### 7b: RBAC (CASL + RLS)
 
 - `common/abilities/define-abilities.ts` — abilities por rol según `04-security-compliance.md`
 - `AbilitiesGuard` — guard que verifica permisos contra CASL

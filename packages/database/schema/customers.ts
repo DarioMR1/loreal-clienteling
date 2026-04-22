@@ -1,6 +1,7 @@
 import {
   pgTable,
   uuid,
+  text,
   varchar,
   date,
   boolean,
@@ -8,7 +9,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { stores } from "./stores";
-import { users } from "./users";
+import { users } from "./auth";
 
 export const customers = pgTable(
   "customers",
@@ -23,10 +24,10 @@ export const customers = pgTable(
     registeredAtStoreId: uuid("registered_at_store_id")
       .notNull()
       .references(() => stores.id),
-    registeredByUserId: uuid("registered_by_user_id")
+    registeredByUserId: text("registered_by_user_id")
       .notNull()
       .references(() => users.id),
-    lastBaUserId: uuid("last_ba_user_id").references(() => users.id),
+    lastBaUserId: text("last_ba_user_id").references(() => users.id),
     customerSince: timestamp("customer_since", { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -9,7 +9,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { customers } from "./customers";
-import { users } from "./users";
+import { users } from "./auth";
 import { stores } from "./stores";
 
 export const appointments = pgTable(
@@ -19,7 +19,7 @@ export const appointments = pgTable(
     customerId: uuid("customer_id")
       .notNull()
       .references(() => customers.id),
-    baUserId: uuid("ba_user_id")
+    baUserId: text("ba_user_id")
       .notNull()
       .references(() => users.id),
     storeId: uuid("store_id")

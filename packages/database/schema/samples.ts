@@ -1,12 +1,13 @@
 import {
   pgTable,
   uuid,
+  text,
   boolean,
   timestamp,
 } from "drizzle-orm/pg-core";
 import { customers } from "./customers";
 import { products } from "./products";
-import { users } from "./users";
+import { users } from "./auth";
 import { stores } from "./stores";
 
 export const samples = pgTable("samples", {
@@ -17,7 +18,7 @@ export const samples = pgTable("samples", {
   productId: uuid("product_id")
     .notNull()
     .references(() => products.id),
-  baUserId: uuid("ba_user_id")
+  baUserId: text("ba_user_id")
     .notNull()
     .references(() => users.id),
   storeId: uuid("store_id")
