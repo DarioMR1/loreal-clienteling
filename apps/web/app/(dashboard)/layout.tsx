@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
+import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { DashboardHeader } from "@/components/dashboard/header";
 
 export default async function DashboardLayout({
   children,
@@ -19,22 +21,10 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar — placeholder for future implementation */}
-      <aside className="hidden w-64 border-r bg-card md:block">
-        <div className="border-b p-4 font-semibold">L&apos;Oréal Clienteling</div>
-        <nav className="p-4 text-sm text-muted-foreground">
-          <p>Panel en construcción</p>
-        </nav>
-      </aside>
+      <DashboardSidebar user={session.user} />
 
-      <div className="flex flex-1 flex-col">
-        {/* Header */}
-        <header className="flex h-14 items-center justify-between border-b px-6">
-          <span className="text-sm text-muted-foreground">
-            {session.user.fullName} — {session.user.role}
-          </span>
-        </header>
-
+      <div className="flex flex-1 flex-col bg-muted/40">
+        <DashboardHeader user={session.user} />
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
