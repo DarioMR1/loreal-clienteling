@@ -4,7 +4,7 @@ import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { products, productAvailability } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
-import type { Pagination } from "@loreal/contracts";
+import type { PaginationDto } from "../../dtos/common.dto";
 
 @Injectable()
 export class ProductsService {
@@ -13,7 +13,7 @@ export class ProductsService {
     @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
-  async findAll(user: SessionUser, pagination: Pagination, filters?: { category?: string; search?: string }) {
+  async findAll(user: SessionUser, pagination: PaginationDto, filters?: { category?: string; search?: string }) {
     const brandScope = this.scopeService.scopeByBrand(user, products.brandId);
 
     const conditions = [
@@ -46,7 +46,7 @@ export class ProductsService {
     return product;
   }
 
-  async create(data: Record<string, unknown>) {
+  async create(data: Record<string, any>) {
     const [product] = await this.db
       .insert(products)
       .values(data as any)
@@ -54,7 +54,7 @@ export class ProductsService {
     return product;
   }
 
-  async update(id: string, data: Record<string, unknown>) {
+  async update(id: string, data: Record<string, any>) {
     const [product] = await this.db
       .update(products)
       .set({ ...data, updatedAt: new Date() } as any)

@@ -6,7 +6,7 @@ import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import { AuditService } from "../../common/services/audit.service";
 import { ConsentsService } from "../consents/consents.service";
-import type { CreateCommunication } from "@loreal/contracts";
+import type { CreateCommunicationDto } from "../../dtos/communications.dto";
 
 @Injectable()
 export class CommunicationsService {
@@ -39,7 +39,7 @@ export class CommunicationsService {
       .where(eq(communications.customerId, customerId));
   }
 
-  async create(data: CreateCommunication, user: SessionUser) {
+  async create(data: CreateCommunicationDto, user: SessionUser) {
     // Verify consent before sending
     const hasConsent = await this.consentsService.hasActiveConsent(
       data.customerId,

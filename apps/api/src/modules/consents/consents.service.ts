@@ -2,7 +2,7 @@ import { Injectable, Inject } from "@nestjs/common";
 import { eq, and, isNull } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { consents } from "@loreal/database";
-import type { GrantConsent } from "@loreal/contracts";
+import type { GrantConsentDto } from "../../dtos/consents.dto";
 import type { SessionUser } from "../../common/types/session";
 import { AuditService } from "../../common/services/audit.service";
 
@@ -31,7 +31,7 @@ export class ConsentsService {
       );
   }
 
-  async grant(data: GrantConsent, user: SessionUser) {
+  async grant(data: GrantConsentDto, user: SessionUser) {
     const [consent] = await this.db
       .insert(consents)
       .values(data)

@@ -1,8 +1,12 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { StoresService } from "./stores.service";
+import { CreateStoreDto, UpdateStoreDto } from "../../dtos/stores.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Stores")
+@ApiBearerAuth()
 @Controller("stores")
 export class StoresController {
   constructor(@Inject(StoresService) private storesService: StoresService) {}
@@ -19,24 +23,13 @@ export class StoresController {
 
   @Post()
   @Roles(["admin"])
-  create(
-    @Body()
-    body: {
-      code: string;
-      displayName: string;
-      chain: string;
-      zoneId?: string;
-      address?: string;
-      city?: string;
-      state?: string;
-    },
-  ) {
+  create(@Body() body: CreateStoreDto) {
     return this.storesService.create(body);
   }
 
   @Patch(":id")
   @Roles(["admin"])
-  update(@Param("id") id: string, @Body() body: Record<string, unknown>) {
-    return this.storesService.update(id, body as any);
+  update(@Param("id") id: string, @Body() body: UpdateStoreDto) {
+    return this.storesService.update(id, body);
   }
 }

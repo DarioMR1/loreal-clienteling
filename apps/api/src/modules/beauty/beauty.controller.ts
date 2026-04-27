@@ -1,15 +1,12 @@
 import { Controller, Get, Put, Post, Param, Body, Query, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { BeautyService } from "./beauty.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import {
-  upsertBeautyProfileSchema,
-  createShadeSchema,
-  type UpsertBeautyProfile,
-  type CreateShade,
-} from "@loreal/contracts";
+import { UpsertBeautyProfileDto, CreateShadeDto } from "../../dtos/beauty.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Beauty Profiles")
+@ApiBearerAuth()
 @Controller("customers/:customerId")
 export class BeautyController {
   constructor(@Inject(BeautyService) private beautyService: BeautyService) {}
@@ -22,8 +19,7 @@ export class BeautyController {
   @Put("beauty-profile")
   upsertProfile(
     @Param("customerId") customerId: string,
-    @Body(new ZodValidationPipe(upsertBeautyProfileSchema))
-    body: UpsertBeautyProfile,
+    @Body() body: UpsertBeautyProfileDto,
     @Session() session: UserSession,
   ) {
     return this.beautyService.upsertProfile(
@@ -34,7 +30,7 @@ export class BeautyController {
 
   @Post("shades")
   addShade(
-    @Body(new ZodValidationPipe(createShadeSchema)) body: CreateShade,
+    @Body() body: CreateShadeDto,
     @Session() session: UserSession,
   ) {
     return this.beautyService.addShade(body, session.user);

@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Patch, Param, Body, Query, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { AppointmentsService } from "./appointments.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import { createAppointmentSchema, updateAppointmentSchema } from "@loreal/contracts";
-import type { CreateAppointment, UpdateAppointment } from "@loreal/contracts";
+import { CreateAppointmentDto, UpdateAppointmentDto } from "../../dtos/appointments.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Appointments")
+@ApiBearerAuth()
 @Controller("appointments")
 export class AppointmentsController {
   constructor(@Inject(AppointmentsService) private appointmentsService: AppointmentsService) {}
@@ -39,7 +40,7 @@ export class AppointmentsController {
   @Post()
   @Roles(["ba", "manager"])
   create(
-    @Body(new ZodValidationPipe(createAppointmentSchema)) body: CreateAppointment,
+    @Body() body: CreateAppointmentDto,
     @Session() session: UserSession,
   ) {
     return this.appointmentsService.create(body, session.user);
@@ -48,7 +49,7 @@ export class AppointmentsController {
   @Patch(":id")
   update(
     @Param("id") id: string,
-    @Body(new ZodValidationPipe(updateAppointmentSchema)) body: UpdateAppointment,
+    @Body() body: UpdateAppointmentDto,
     @Session() session: UserSession,
   ) {
     return this.appointmentsService.update(id, body, session.user);

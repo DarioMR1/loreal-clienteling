@@ -1,10 +1,12 @@
 import { Controller, Get, Post, Delete, Param, Body, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Session } from "@thallesp/nestjs-better-auth";
 import { ConsentsService } from "./consents.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import { grantConsentSchema, type GrantConsent } from "@loreal/contracts";
+import { GrantConsentDto } from "../../dtos/consents.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Consents")
+@ApiBearerAuth()
 @Controller("customers/:customerId/consents")
 export class ConsentsController {
   constructor(@Inject(ConsentsService) private consentsService: ConsentsService) {}
@@ -17,7 +19,7 @@ export class ConsentsController {
   @Post()
   grant(
     @Param("customerId") customerId: string,
-    @Body(new ZodValidationPipe(grantConsentSchema)) body: GrantConsent,
+    @Body() body: GrantConsentDto,
     @Session() session: UserSession,
   ) {
     return this.consentsService.grant(

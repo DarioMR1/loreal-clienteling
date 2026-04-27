@@ -1,13 +1,12 @@
 import { Controller, Get, Post, Param, Body, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { PurchasesService } from "./purchases.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import {
-  createPurchaseSchema,
-  type CreatePurchase,
-} from "@loreal/contracts";
+import { CreatePurchaseDto } from "../../dtos/purchases.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Purchases")
+@ApiBearerAuth()
 @Controller()
 export class PurchasesController {
   constructor(@Inject(PurchasesService) private purchasesService: PurchasesService) {}
@@ -23,8 +22,7 @@ export class PurchasesController {
   @Post("purchases")
   @Roles(["ba", "manager"])
   create(
-    @Body(new ZodValidationPipe(createPurchaseSchema))
-    body: CreatePurchase,
+    @Body() body: CreatePurchaseDto,
     @Session() session: UserSession,
   ) {
     return this.purchasesService.create(body, session.user);

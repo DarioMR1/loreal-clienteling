@@ -5,7 +5,7 @@ import { recommendations } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import { AuditService } from "../../common/services/audit.service";
-import type { CreateRecommendation } from "@loreal/contracts";
+import type { CreateRecommendationDto } from "../../dtos/recommendations.dto";
 
 @Injectable()
 export class RecommendationsService {
@@ -33,7 +33,7 @@ export class RecommendationsService {
       .orderBy(recommendations.recommendedAt);
   }
 
-  async create(data: CreateRecommendation, user: SessionUser) {
+  async create(data: CreateRecommendationDto, user: SessionUser) {
     const storeId = this.scopeService.assertStore(user);
 
     const [recommendation] = await this.db

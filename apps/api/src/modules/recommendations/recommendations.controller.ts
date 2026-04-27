@@ -1,15 +1,12 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { RecommendationsService } from "./recommendations.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import {
-  createRecommendationSchema,
-  aiRecommendationRequestSchema,
-  type CreateRecommendation,
-  type AiRecommendationRequest,
-} from "@loreal/contracts";
+import { CreateRecommendationDto, AiRecommendationRequestDto } from "../../dtos/recommendations.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Recommendations")
+@ApiBearerAuth()
 @Controller()
 export class RecommendationsController {
   constructor(@Inject(RecommendationsService) private recommendationsService: RecommendationsService) {}
@@ -28,8 +25,7 @@ export class RecommendationsController {
   @Post("recommendations")
   @Roles(["ba"])
   create(
-    @Body(new ZodValidationPipe(createRecommendationSchema))
-    body: CreateRecommendation,
+    @Body() body: CreateRecommendationDto,
     @Session() session: UserSession,
   ) {
     return this.recommendationsService.create(body, session.user);
@@ -38,8 +34,7 @@ export class RecommendationsController {
   @Post("recommendations/ai")
   @Roles(["ba"])
   requestAi(
-    @Body(new ZodValidationPipe(aiRecommendationRequestSchema))
-    body: AiRecommendationRequest,
+    @Body() body: AiRecommendationRequestDto,
     @Session() session: UserSession,
   ) {
     return this.recommendationsService.requestAiRecommendation(

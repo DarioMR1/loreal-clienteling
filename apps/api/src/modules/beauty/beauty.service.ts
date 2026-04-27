@@ -3,7 +3,7 @@ import { eq, and } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { beautyProfiles, beautyProfileShades, products } from "@loreal/database";
 import { findMatchingShades } from "@loreal/domain";
-import type { UpsertBeautyProfile, CreateShade } from "@loreal/contracts";
+import type { UpsertBeautyProfileDto, CreateShadeDto } from "../../dtos/beauty.dto";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 
@@ -30,7 +30,7 @@ export class BeautyService {
     return { ...profile, shades };
   }
 
-  async upsertProfile(data: UpsertBeautyProfile, user: SessionUser) {
+  async upsertProfile(data: UpsertBeautyProfileDto, user: SessionUser) {
     const [existing] = await this.db
       .select()
       .from(beautyProfiles)
@@ -53,7 +53,7 @@ export class BeautyService {
     return created;
   }
 
-  async addShade(data: CreateShade, user: SessionUser) {
+  async addShade(data: CreateShadeDto, user: SessionUser) {
     const [shade] = await this.db
       .insert(beautyProfileShades)
       .values({

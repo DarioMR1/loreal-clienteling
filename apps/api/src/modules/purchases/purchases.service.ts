@@ -10,7 +10,7 @@ import {
   attributePurchaseToBa,
   type RecommendationRecord,
 } from "@loreal/domain";
-import type { CreatePurchase } from "@loreal/contracts";
+import type { CreatePurchaseDto } from "../../dtos/purchases.dto";
 
 @Injectable()
 export class PurchasesService {
@@ -68,7 +68,7 @@ export class PurchasesService {
     return { ...purchase, items };
   }
 
-  async create(data: CreatePurchase, user: SessionUser) {
+  async create(data: CreatePurchaseDto, user: SessionUser) {
     const storeId = this.scopeService.assertStore(user);
 
     // a. Fetch customer

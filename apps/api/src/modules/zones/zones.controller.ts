@@ -1,8 +1,12 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { ZonesService } from "./zones.service";
+import { CreateZoneDto, UpdateZoneDto } from "../../dtos/zones.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Zones")
+@ApiBearerAuth()
 @Controller("zones")
 export class ZonesController {
   constructor(@Inject(ZonesService) private zonesService: ZonesService) {}
@@ -21,16 +25,13 @@ export class ZonesController {
 
   @Post()
   @Roles(["admin"])
-  create(@Body() body: { code: string; displayName: string; region?: string }) {
+  create(@Body() body: CreateZoneDto) {
     return this.zonesService.create(body);
   }
 
   @Patch(":id")
   @Roles(["admin"])
-  update(
-    @Param("id") id: string,
-    @Body() body: Partial<{ code: string; displayName: string; region: string }>,
-  ) {
+  update(@Param("id") id: string, @Body() body: UpdateZoneDto) {
     return this.zonesService.update(id, body);
   }
 }

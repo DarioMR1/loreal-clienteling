@@ -15,12 +15,8 @@ import {
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import { AuditService } from "../../common/services/audit.service";
-import type {
-  CreateCustomer,
-  UpdateCustomer,
-  Pagination,
-  CustomerFilters,
-} from "@loreal/contracts";
+import type { CreateCustomerDto, UpdateCustomerDto, CustomerFiltersDto } from "../../dtos/customers.dto";
+import type { PaginationDto } from "../../dtos/common.dto";
 import { rankCustomerSearchResults } from "@loreal/domain";
 
 @Injectable()
@@ -33,8 +29,8 @@ export class CustomersService {
 
   async findAll(
     user: SessionUser,
-    pagination: Pagination,
-    filters?: CustomerFilters,
+    pagination: PaginationDto,
+    filters?: CustomerFiltersDto,
   ) {
     const scope = await this.scopeService.scopeByStore(
       user,
@@ -81,7 +77,7 @@ export class CustomersService {
     return customer;
   }
 
-  async create(data: CreateCustomer, user: SessionUser) {
+  async create(data: CreateCustomerDto, user: SessionUser) {
     const storeId = this.scopeService.assertStore(user);
 
     const [customer] = await this.db
@@ -100,7 +96,7 @@ export class CustomersService {
     return customer;
   }
 
-  async update(id: string, data: UpdateCustomer, user: SessionUser) {
+  async update(id: string, data: UpdateCustomerDto, user: SessionUser) {
     const [existing] = await this.db
       .select()
       .from(customers)
@@ -121,7 +117,7 @@ export class CustomersService {
 
     // Build changes diff
     const changes: Record<string, { from: unknown; to: unknown }> = {};
-    for (const key of Object.keys(data) as (keyof UpdateCustomer)[]) {
+    for (const key of Object.keys(data) as (keyof UpdateCustomerDto)[]) {
       if (data[key] !== undefined && data[key] !== (existing as any)[key]) {
         changes[key] = { from: (existing as any)[key], to: data[key] };
       }

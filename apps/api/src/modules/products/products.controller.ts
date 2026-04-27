@@ -1,17 +1,20 @@
 import { Controller, Get, Post, Patch, Param, Body, Query, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { ProductsService } from "./products.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import { paginationSchema } from "@loreal/contracts";
+import { CreateProductDto, UpdateProductDto, UpdateAvailabilityDto } from "../../dtos/products.dto";
+import { PaginationDto } from "../../dtos/common.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Products")
+@ApiBearerAuth()
 @Controller("products")
 export class ProductsController {
   constructor(@Inject(ProductsService) private productsService: ProductsService) {}
 
   @Get()
   findAll(
-    @Query(new ZodValidationPipe(paginationSchema)) pagination: { page: number; limit: number },
+    @Query() pagination: PaginationDto,
     @Query("category") category: string | undefined,
     @Query("search") search: string | undefined,
     @Session() session: UserSession,
@@ -26,13 +29,13 @@ export class ProductsController {
 
   @Post()
   @Roles(["admin"])
-  create(@Body() body: Record<string, unknown>) {
+  create(@Body() body: CreateProductDto) {
     return this.productsService.create(body);
   }
 
   @Patch(":id")
   @Roles(["admin"])
-  update(@Param("id") id: string, @Body() body: Record<string, unknown>) {
+  update(@Param("id") id: string, @Body() body: UpdateProductDto) {
     return this.productsService.update(id, body);
   }
 
@@ -46,8 +49,8 @@ export class ProductsController {
   updateAvailability(
     @Param("id") id: string,
     @Param("storeId") storeId: string,
-    @Body("stockStatus") stockStatus: string,
+    @Body() body: UpdateAvailabilityDto,
   ) {
-    return this.productsService.updateAvailability(id, storeId, stockStatus);
+    return this.productsService.updateAvailability(id, storeId, body.stockStatus);
   }
 }

@@ -1,30 +1,26 @@
 import { Controller, Get, Param, Query, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles } from "@thallesp/nestjs-better-auth";
 import { AuditQueryService } from "./audit.service";
+import { AuditQueryDto } from "../../dtos/audit.dto";
 
+@ApiTags("Audit")
+@ApiBearerAuth()
 @Controller("audit-logs")
 @Roles(["admin"])
 export class AuditController {
   constructor(@Inject(AuditQueryService) private auditQueryService: AuditQueryService) {}
 
   @Get()
-  findAll(
-    @Query("page") page: string = "1",
-    @Query("limit") limit: string = "20",
-    @Query("action") action?: string,
-    @Query("entityType") entityType?: string,
-    @Query("actorUserId") actorUserId?: string,
-    @Query("from") from?: string,
-    @Query("to") to?: string,
-  ) {
+  findAll(@Query() query: AuditQueryDto) {
     return this.auditQueryService.findAll({
-      page: parseInt(page, 10) || 1,
-      limit: Math.min(parseInt(limit, 10) || 20, 100),
-      action,
-      entityType,
-      actorUserId,
-      from: from ? new Date(from) : undefined,
-      to: to ? new Date(to) : undefined,
+      page: query.page,
+      limit: query.limit,
+      action: query.action,
+      entityType: query.entityType,
+      actorUserId: query.actorUserId,
+      from: query.from,
+      to: query.to,
     });
   }
 

@@ -4,7 +4,7 @@ import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { appointments } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
-import type { CreateAppointment, UpdateAppointment } from "@loreal/contracts";
+import type { CreateAppointmentDto, UpdateAppointmentDto } from "../../dtos/appointments.dto";
 
 @Injectable()
 export class AppointmentsService {
@@ -40,7 +40,7 @@ export class AppointmentsService {
     return appt;
   }
 
-  async create(data: CreateAppointment, user: SessionUser) {
+  async create(data: CreateAppointmentDto, user: SessionUser) {
     const storeId = this.scopeService.assertStore(user);
     const [appt] = await this.db
       .insert(appointments)
@@ -59,7 +59,7 @@ export class AppointmentsService {
     return appt;
   }
 
-  async update(id: string, data: UpdateAppointment, user: SessionUser) {
+  async update(id: string, data: UpdateAppointmentDto, user: SessionUser) {
     const existing = await this.findOne(id);
 
     // If rescheduling: create new appointment linked to old one

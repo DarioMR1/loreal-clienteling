@@ -9,25 +9,20 @@ import {
   Query,
   Inject,
 } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { CustomersService } from "./customers.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
 import {
-  paginationSchema,
-  createCustomerSchema,
-  updateCustomerSchema,
-  searchCustomerSchema,
-  customerFiltersSchema,
-} from "@loreal/contracts";
-import type {
-  CreateCustomer,
-  UpdateCustomer,
-  SearchCustomer,
-  Pagination,
-  CustomerFilters,
-} from "@loreal/contracts";
+  CreateCustomerDto,
+  UpdateCustomerDto,
+  SearchCustomerDto,
+  CustomerFiltersDto,
+} from "../../dtos/customers.dto";
+import { PaginationDto } from "../../dtos/common.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Customers")
+@ApiBearerAuth()
 @Controller("customers")
 export class CustomersController {
   constructor(@Inject(CustomersService) private customersService: CustomersService) {}
@@ -35,9 +30,8 @@ export class CustomersController {
   @Get()
   @Roles(["ba", "manager", "supervisor", "admin"])
   findAll(
-    @Query(new ZodValidationPipe(paginationSchema)) pagination: Pagination,
-    @Query(new ZodValidationPipe(customerFiltersSchema))
-    filters: CustomerFilters,
+    @Query() pagination: PaginationDto,
+    @Query() filters: CustomerFiltersDto,
     @Session() session: UserSession,
   ) {
     return this.customersService.findAll(session.user, pagination, filters);
@@ -46,8 +40,7 @@ export class CustomersController {
   @Get("search")
   @Roles(["ba", "manager", "supervisor", "admin"])
   search(
-    @Query(new ZodValidationPipe(searchCustomerSchema))
-    query: SearchCustomer,
+    @Query() query: SearchCustomerDto,
     @Session() session: UserSession,
   ) {
     return this.customersService.search(
@@ -66,7 +59,7 @@ export class CustomersController {
   @Post()
   @Roles(["ba", "manager"])
   create(
-    @Body(new ZodValidationPipe(createCustomerSchema)) body: CreateCustomer,
+    @Body() body: CreateCustomerDto,
     @Session() session: UserSession,
   ) {
     return this.customersService.create(body, session.user);
@@ -76,7 +69,7 @@ export class CustomersController {
   @Roles(["ba", "manager"])
   update(
     @Param("id") id: string,
-    @Body(new ZodValidationPipe(updateCustomerSchema)) body: UpdateCustomer,
+    @Body() body: UpdateCustomerDto,
     @Session() session: UserSession,
   ) {
     return this.customersService.update(id, body, session.user);

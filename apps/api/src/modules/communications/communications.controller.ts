@@ -1,11 +1,17 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { CommunicationsService } from "./communications.service";
-import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
-import { createCommunicationSchema } from "@loreal/contracts";
-import type { CreateCommunication } from "@loreal/contracts";
+import {
+  CreateCommunicationDto,
+  CreateTemplateDto,
+  UpdateTemplateDto,
+  UpdateTrackingDto,
+} from "../../dtos/communications.dto";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Communications")
+@ApiBearerAuth()
 @Controller()
 export class CommunicationsController {
   constructor(@Inject(CommunicationsService) private communicationsService: CommunicationsService) {}
@@ -24,7 +30,7 @@ export class CommunicationsController {
   @Post("communications")
   @Roles(["ba", "manager"])
   create(
-    @Body(new ZodValidationPipe(createCommunicationSchema)) body: CreateCommunication,
+    @Body() body: CreateCommunicationDto,
     @Session() session: UserSession,
   ) {
     return this.communicationsService.create(body, session.user);
@@ -37,24 +43,22 @@ export class CommunicationsController {
 
   @Post("communications/templates")
   @Roles(["admin", "manager"])
-  createTemplate(
-    @Body() body: { brandId?: string; name: string; channel: string; body: string; followupType: string },
-  ) {
+  createTemplate(@Body() body: CreateTemplateDto) {
     return this.communicationsService.createTemplate(body);
   }
 
   @Patch("communications/templates/:id")
   @Roles(["admin", "manager"])
-  updateTemplate(@Param("id") id: string, @Body() body: Record<string, unknown>) {
-    return this.communicationsService.updateTemplate(id, body as any);
+  updateTemplate(@Param("id") id: string, @Body() body: UpdateTemplateDto) {
+    return this.communicationsService.updateTemplate(id, body);
   }
 
   @Patch("communications/:id/tracking")
-  updateTracking(@Param("id") id: string, @Body() body: { deliveredAt?: string; readAt?: string; respondedAt?: string }) {
+  updateTracking(@Param("id") id: string, @Body() body: UpdateTrackingDto) {
     return this.communicationsService.updateTracking(id, {
-      deliveredAt: body.deliveredAt ? new Date(body.deliveredAt) : undefined,
-      readAt: body.readAt ? new Date(body.readAt) : undefined,
-      respondedAt: body.respondedAt ? new Date(body.respondedAt) : undefined,
+      deliveredAt: body.deliveredAt,
+      readAt: body.readAt,
+      respondedAt: body.respondedAt,
     });
   }
 }

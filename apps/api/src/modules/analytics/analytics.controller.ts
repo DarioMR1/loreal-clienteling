@@ -1,8 +1,11 @@
 import { Controller, Get, Query, Inject } from "@nestjs/common";
+import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { AnalyticsService } from "./analytics.service";
 import type { UserSession } from "../../common/types/session";
 
+@ApiTags("Analytics")
+@ApiBearerAuth()
 @Controller("analytics")
 @Roles(["manager", "supervisor", "admin"])
 export class AnalyticsController {
