@@ -33,6 +33,7 @@ const PERMISSIONS = {
 
   // Appointments
   "appointment.create": ["ba", "manager"],
+  "appointment.edit": ["ba", "manager", "admin"],
 
   // Communications
   "communication.create": ["ba", "manager"],

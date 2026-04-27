@@ -10,6 +10,12 @@ import type { UserSession } from "../../common/types/session";
 export class CommunicationsController {
   constructor(private communicationsService: CommunicationsService) {}
 
+  @Get("communications")
+  @Roles(["ba", "manager", "admin"])
+  findAll(@Session() session: UserSession) {
+    return this.communicationsService.findAll(session.user);
+  }
+
   @Get("customers/:customerId/communications")
   findByCustomer(@Param("customerId") customerId: string) {
     return this.communicationsService.findByCustomer(customerId);

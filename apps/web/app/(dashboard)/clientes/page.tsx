@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
-import { AnalyticsPage } from "./_components/analytics-page";
+import { CustomersPage } from "./_components/customers-page";
 
-export default async function ReportesPage() {
+export default async function ClientesPage() {
   const session = await getSession();
   if (!session?.user) redirect(ROUTES.SIGN_IN);
 
-  return <AnalyticsPage user={session.user} />;
+  return <CustomersPage user={session.user} />;
 }

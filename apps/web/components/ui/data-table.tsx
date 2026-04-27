@@ -18,6 +18,7 @@ interface DataTableProps<T> {
   emptyDescription?: string
   emptyIcon?: React.ReactNode
   emptyAction?: React.ReactNode
+  onRowClick?: (row: T) => void
   className?: string
 }
 
@@ -51,6 +52,7 @@ function DataTable<T extends { id?: string }>({
   emptyDescription,
   emptyIcon,
   emptyAction,
+  onRowClick,
   className,
 }: DataTableProps<T>) {
   if (!isLoading && data.length === 0) {
@@ -95,7 +97,11 @@ function DataTable<T extends { id?: string }>({
                 return (
                 <tr
                   key={record.id as string ?? rowIndex}
-                  className="border-b border-border transition-colors hover:bg-muted/50"
+                  className={cn(
+                    "border-b border-border transition-colors hover:bg-muted/50",
+                    onRowClick && "cursor-pointer",
+                  )}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {columns.map((col) => (
                     <td

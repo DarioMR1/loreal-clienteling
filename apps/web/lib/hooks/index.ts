@@ -7,3 +7,6 @@ export * from "./use-audit-logs";
 export * from "./use-analytics";
 export * from "./use-templates";
 export * from "./use-users";
+export * from "./use-customer-detail";
+export * from "./use-appointments";
+export * from "./use-communications";

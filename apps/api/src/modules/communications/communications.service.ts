@@ -1,5 +1,5 @@
 import { Injectable, Inject, ForbiddenException, NotFoundException } from "@nestjs/common";
-import { eq, and, or, isNull } from "drizzle-orm";
+import { eq, and, or, isNull, desc } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { communications, messageTemplates } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
@@ -16,6 +16,21 @@ export class CommunicationsService {
     private auditService: AuditService,
     private consentsService: ConsentsService,
   ) {}
+
+  async findAll(user: SessionUser) {
+    // BA/manager: only their own sent communications
+    // Admin: all communications
+    const conditions =
+      user.role === "admin"
+        ? []
+        : [eq(communications.sentByUserId, user.id)];
+    return this.db
+      .select()
+      .from(communications)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(communications.sentAt))
+      .limit(100);
+  }
 
   async findByCustomer(customerId: string) {
     return this.db
