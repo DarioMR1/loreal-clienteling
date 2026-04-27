@@ -30,12 +30,7 @@ struct AppShellView: View {
         case .customers:
             CustomerListView()
         case .appointments:
-            // Phase 4 — placeholder
-            LorealEmptyState(
-                icon: "calendar",
-                title: "Citas",
-                subtitle: "Próximamente"
-            )
+            AppointmentListView()
         case .catalog:
             // Phase 8 — placeholder
             LorealEmptyState(
@@ -82,11 +77,15 @@ struct AppShellView: View {
                 )
             }
         case .appointments:
-            LorealEmptyState(
-                icon: "calendar.badge.clock",
-                title: "Selecciona una cita",
-                subtitle: "Toca una cita para ver su detalle."
-            )
+            if let appointmentId = router.selectedItemID {
+                AppointmentDetailPlaceholder(appointmentId: appointmentId)
+            } else {
+                LorealEmptyState(
+                    icon: "calendar.badge.clock",
+                    title: "Selecciona una cita",
+                    subtitle: "Toca una cita para ver su detalle."
+                )
+            }
         case .catalog:
             LorealEmptyState(
                 icon: "sparkles",
