@@ -16,7 +16,7 @@ const CHANNEL_TO_CONSENT: Record<string, string> = {
 export class ConsentsService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private auditService: AuditService,
+    @Inject(AuditService) private auditService: AuditService,
   ) {}
 
   async findByCustomer(customerId: string) {

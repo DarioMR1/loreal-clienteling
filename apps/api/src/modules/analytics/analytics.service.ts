@@ -16,7 +16,7 @@ import { ScopeService } from "../../common/services/scope.service";
 export class AnalyticsService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
+    @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
   async getDashboard(user: SessionUser) {

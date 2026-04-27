@@ -11,7 +11,7 @@ import { ScopeService } from "../../common/services/scope.service";
 export class BeautyService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
+    @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
   async findProfile(customerId: string) {

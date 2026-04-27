@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  Inject,
 } from "@nestjs/common";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { CustomersService } from "./customers.service";
@@ -29,7 +30,7 @@ import type { UserSession } from "../../common/types/session";
 
 @Controller("customers")
 export class CustomersController {
-  constructor(private customersService: CustomersService) {}
+  constructor(@Inject(CustomersService) private customersService: CustomersService) {}
 
   @Get()
   @Roles(["ba", "manager", "supervisor", "admin"])

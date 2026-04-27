@@ -22,7 +22,7 @@ export class LifecycleAlertsCron {
 
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private auditService: AuditService,
+    @Inject(AuditService) private auditService: AuditService,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_6AM)

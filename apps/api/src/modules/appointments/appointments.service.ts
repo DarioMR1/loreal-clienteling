@@ -10,7 +10,7 @@ import type { CreateAppointment, UpdateAppointment } from "@loreal/contracts";
 export class AppointmentsService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
+    @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
   async findAll(user: SessionUser, filters?: { from?: Date; to?: Date }) {

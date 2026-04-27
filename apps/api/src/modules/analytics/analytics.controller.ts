@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Query, Inject } from "@nestjs/common";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { AnalyticsService } from "./analytics.service";
 import type { UserSession } from "../../common/types/session";
@@ -6,7 +6,7 @@ import type { UserSession } from "../../common/types/session";
 @Controller("analytics")
 @Roles(["manager", "supervisor", "admin"])
 export class AnalyticsController {
-  constructor(private analyticsService: AnalyticsService) {}
+  constructor(@Inject(AnalyticsService) private analyticsService: AnalyticsService) {}
 
   @Get("dashboard")
   getDashboard(@Session() session: UserSession) {

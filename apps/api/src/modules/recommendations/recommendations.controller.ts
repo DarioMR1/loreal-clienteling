@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { RecommendationsService } from "./recommendations.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -12,7 +12,7 @@ import type { UserSession } from "../../common/types/session";
 
 @Controller()
 export class RecommendationsController {
-  constructor(private recommendationsService: RecommendationsService) {}
+  constructor(@Inject(RecommendationsService) private recommendationsService: RecommendationsService) {}
 
   @Get("customers/:customerId/recommendations")
   findByCustomer(

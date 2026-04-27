@@ -12,9 +12,9 @@ import type { CreateCommunication } from "@loreal/contracts";
 export class CommunicationsService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
-    private auditService: AuditService,
-    private consentsService: ConsentsService,
+    @Inject(ScopeService) private scopeService: ScopeService,
+    @Inject(AuditService) private auditService: AuditService,
+    @Inject(ConsentsService) private consentsService: ConsentsService,
   ) {}
 
   async findAll(user: SessionUser) {

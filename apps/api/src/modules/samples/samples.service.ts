@@ -11,8 +11,8 @@ import type { CreateSample } from "@loreal/contracts";
 export class SamplesService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
-    private auditService: AuditService,
+    @Inject(ScopeService) private scopeService: ScopeService,
+    @Inject(AuditService) private auditService: AuditService,
   ) {}
 
   async findByCustomer(customerId: string, user: SessionUser) {

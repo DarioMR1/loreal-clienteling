@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Patch, Param, Body } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { StoresService } from "./stores.service";
 import type { UserSession } from "../../common/types/session";
 
 @Controller("stores")
 export class StoresController {
-  constructor(private storesService: StoresService) {}
+  constructor(@Inject(StoresService) private storesService: StoresService) {}
 
   @Get()
   findAll(@Session() session: UserSession) {

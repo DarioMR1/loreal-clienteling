@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Post, Param, Body, Query } from "@nestjs/common";
+import { Controller, Get, Put, Post, Param, Body, Query, Inject } from "@nestjs/common";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { BeautyService } from "./beauty.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -12,7 +12,7 @@ import type { UserSession } from "../../common/types/session";
 
 @Controller("customers/:customerId")
 export class BeautyController {
-  constructor(private beautyService: BeautyService) {}
+  constructor(@Inject(BeautyService) private beautyService: BeautyService) {}
 
   @Get("beauty-profile")
   findProfile(@Param("customerId") customerId: string) {

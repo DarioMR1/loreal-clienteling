@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { CommunicationsService } from "./communications.service";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe";
@@ -8,7 +8,7 @@ import type { UserSession } from "../../common/types/session";
 
 @Controller()
 export class CommunicationsController {
-  constructor(private communicationsService: CommunicationsService) {}
+  constructor(@Inject(CommunicationsService) private communicationsService: CommunicationsService) {}
 
   @Get("communications")
   @Roles(["ba", "manager", "admin"])

@@ -1,11 +1,11 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Param, Query, Inject } from "@nestjs/common";
 import { Roles } from "@thallesp/nestjs-better-auth";
 import { AuditQueryService } from "./audit.service";
 
 @Controller("audit-logs")
 @Roles(["admin"])
 export class AuditController {
-  constructor(private auditQueryService: AuditQueryService) {}
+  constructor(@Inject(AuditQueryService) private auditQueryService: AuditQueryService) {}
 
   @Get()
   findAll(

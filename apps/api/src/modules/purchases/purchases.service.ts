@@ -16,9 +16,9 @@ import type { CreatePurchase } from "@loreal/contracts";
 export class PurchasesService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
-    private auditService: AuditService,
-    private recommendationsService: RecommendationsService,
+    @Inject(ScopeService) private scopeService: ScopeService,
+    @Inject(AuditService) private auditService: AuditService,
+    @Inject(RecommendationsService) private recommendationsService: RecommendationsService,
   ) {}
 
   async findByCustomer(customerId: string, user: SessionUser) {

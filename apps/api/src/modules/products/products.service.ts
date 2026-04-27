@@ -10,7 +10,7 @@ import type { Pagination } from "@loreal/contracts";
 export class ProductsService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
+    @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
   async findAll(user: SessionUser, pagination: Pagination, filters?: { category?: string; search?: string }) {

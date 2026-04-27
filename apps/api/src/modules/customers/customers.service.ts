@@ -27,8 +27,8 @@ import { rankCustomerSearchResults } from "@loreal/domain";
 export class CustomersService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
-    private scopeService: ScopeService,
-    private auditService: AuditService,
+    @Inject(ScopeService) private scopeService: ScopeService,
+    @Inject(AuditService) private auditService: AuditService,
   ) {}
 
   async findAll(
