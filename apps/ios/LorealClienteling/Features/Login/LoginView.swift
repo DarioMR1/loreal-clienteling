@@ -6,64 +6,84 @@ struct LoginView: View {
     @State private var password = ""
 
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 32) {
+        ZStack {
+            LorealColors.background
+                .ignoresSafeArea()
+
+            VStack(spacing: LorealSpacing.xl) {
                 Spacer()
 
-                VStack(spacing: 8) {
+                // Brand header
+                VStack(spacing: LorealSpacing.xs) {
                     Text("L'Oréal")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(LorealTypography.brandLargeTitle)
+                        .foregroundStyle(LorealColors.textPrimary)
                     Text("Clienteling")
-                        .font(.title2)
-                        .foregroundStyle(.secondary)
+                        .font(LorealTypography.brandHeadline)
+                        .foregroundStyle(LorealColors.textSecondary)
                 }
 
-                VStack(spacing: 16) {
-                    TextField("Email", text: $email)
-                        .textContentType(.emailAddress)
-                        .keyboardType(.emailAddress)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
-                        .padding()
-                        .background(.fill.tertiary)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                // Form
+                VStack(spacing: LorealSpacing.md) {
+                    LorealTextField(
+                        label: "Email",
+                        text: $email,
+                        keyboardType: .emailAddress,
+                        autocapitalization: .never
+                    )
+                    .textContentType(.emailAddress)
+                    .autocorrectionDisabled()
 
-                    SecureField("Contraseña", text: $password)
-                        .textContentType(.password)
-                        .padding()
-                        .background(.fill.tertiary)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    LorealTextField(
+                        label: "Contraseña",
+                        text: $password,
+                        isSecure: true
+                    )
+                    .textContentType(.password)
                 }
+                .frame(maxWidth: 400)
 
+                // Error
                 if let error = auth.errorMessage {
                     Text(error)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
+                        .font(LorealTypography.footnote)
+                        .foregroundStyle(LorealColors.error)
                         .multilineTextAlignment(.center)
                 }
 
+                // Sign in button
                 Button {
                     Task {
                         await auth.signIn(email: email, password: password)
                     }
                 } label: {
-                    if auth.isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                    } else {
-                        Text("Iniciar sesión")
-                            .frame(maxWidth: .infinity)
+                    Group {
+                        if auth.isLoading {
+                            ProgressView()
+                                .tint(LorealColors.textOnAccent)
+                        } else {
+                            Text("Iniciar sesión")
+                                .font(LorealTypography.headline)
+                        }
                     }
+                    .frame(maxWidth: 400)
+                    .frame(height: LorealSpacing.touchTarget)
+                    .foregroundStyle(LorealColors.textOnAccent)
+                    .background(
+                        isFormValid ? LorealColors.accent : LorealColors.accent.opacity(0.4)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(email.isEmpty || password.count < 8 || auth.isLoading)
+                .disabled(!isFormValid || auth.isLoading)
 
                 Spacer()
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, LorealSpacing.xl)
         }
+    }
+
+    private var isFormValid: Bool {
+        !email.isEmpty && password.count >= 8
     }
 }
 

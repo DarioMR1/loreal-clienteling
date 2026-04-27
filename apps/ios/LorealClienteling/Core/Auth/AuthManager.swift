@@ -70,17 +70,7 @@ final class AuthManager {
 
     // MARK: - Private
 
-    private var baseURL: URL {
-        if let override = ProcessInfo.processInfo.environment["API_BASE_URL"],
-           let url = URL(string: override) {
-            return url
-        }
-        #if DEBUG
-        return URL(string: "http://localhost:3001")!
-        #else
-        return URL(string: "https://api.example.com")!
-        #endif
-    }
+    private var baseURL: URL { ServerConfig.baseURL }
 
     private func fetchSession(token: String) async {
         var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/get-session"))
