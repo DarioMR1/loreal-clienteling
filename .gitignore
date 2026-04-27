@@ -47,3 +47,14 @@ packages/database/meta/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Xcode / iOS
+apps/ios/build/
+xcuserdata/
+*.xcuserstate
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.hmap
+.build/
+.swiftpm/

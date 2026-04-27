@@ -1,0 +1,12 @@
+{
+  "name": "@loreal/ios",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "xcodebuild -project LorealClienteling.xcodeproj -scheme LorealClienteling -configuration Release -destination 'generic/platform=iOS' -derivedDataPath ./build clean build | xcpretty || true",
+    "build:sim": "xcodebuild -project LorealClienteling.xcodeproj -scheme LorealClienteling -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -derivedDataPath ./build build | xcpretty || true",
+    "test": "xcodebuild -project LorealClienteling.xcodeproj -scheme LorealClienteling -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=latest' -derivedDataPath ./build test | xcpretty || true",
+    "dev": "open LorealClienteling.xcodeproj",
+    "clean": "xcodebuild -project LorealClienteling.xcodeproj -scheme LorealClienteling clean && rm -rf build/"
+  }
+}
