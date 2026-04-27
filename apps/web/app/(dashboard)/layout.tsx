@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
+import { SidebarProvider } from "@/components/dashboard/sidebar-context";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
 
@@ -20,15 +21,17 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <DashboardSidebar user={session.user} />
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden">
+        <DashboardSidebar user={session.user} />
 
-      <div className="flex flex-1 flex-col overflow-hidden bg-muted/40">
-        <DashboardHeader user={session.user} />
-        <main className="flex-1 overflow-y-auto overscroll-contain p-6">
-          {children}
-        </main>
+        <div className="flex flex-1 flex-col overflow-hidden bg-muted/40">
+          <DashboardHeader />
+          <main className="flex-1 overflow-y-auto overscroll-contain p-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

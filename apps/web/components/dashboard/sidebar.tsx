@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Tooltip } from "@base-ui/react/tooltip";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/lib/auth-client";
+import { useSidebar } from "@/components/dashboard/sidebar-context";
 import type { UserRole } from "@loreal/contracts";
 
-// ── Types ──────────────────────────────────────────────────────────
+// ── Types ─────────────────���──────────────────────────���─────────────
 
 interface NavItem {
   label: string;
@@ -26,8 +30,7 @@ interface SidebarProps {
   };
 }
 
-// ── Navigation config ──────────────────────────────────────────────
-// Single source of truth. Each item declares which roles can see it.
+// ── Navigation config ─────────────���────────────────────────────────
 
 const NAV_SECTIONS: readonly NavSection[] = [
   {
@@ -58,8 +61,6 @@ const NAV_SECTIONS: readonly NavSection[] = [
   },
 ];
 
-// ── Role labels for display ────────────────────────────────────────
-
 const ROLE_LABELS: Record<string, string> = {
   ba: "Beauty Advisor",
   manager: "Gerente",
@@ -67,28 +68,63 @@ const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
 };
 
-// ── Component ──────────────────────────────────────────────────────
+// ── Sidebar content (shared between desktop & mobile) ─────────────
 
-export function DashboardSidebar({ user }: SidebarProps) {
+function SidebarContent({ user }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { collapsed, toggleCollapsed } = useSidebar();
   const role = user.role ?? "ba";
 
+  async function handleSignOut() {
+    await signOut();
+    router.push("/sign-in");
+    router.refresh();
+  }
+
   return (
-    <aside className="hidden w-[240px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
-      {/* Logo */}
-      <div className="flex h-14 items-center gap-2 px-4">
-        <div className="flex size-7 items-center justify-center rounded-lg bg-sidebar-accent">
-          <span className="text-xs font-bold text-sidebar-accent-foreground">
-            L
-          </span>
+    <>
+      {/* Logo + collapse toggle */}
+      <div className={cn(
+        "relative flex h-14 shrink-0 items-center px-3",
+        collapsed ? "justify-center" : "justify-between"
+      )}>
+        <div className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")}>
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
+            <span className="text-xs font-bold text-sidebar-accent-foreground">L</span>
+          </div>
+          {!collapsed && (
+            <span className="truncate text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
+              L&apos;Oréal Clienteling
+            </span>
+          )}
         </div>
-        <span className="text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
-          L&apos;Oréal Clienteling
-        </span>
+        {!collapsed && (
+          <button
+            onClick={toggleCollapsed}
+            className="hidden size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:flex"
+            aria-label="Colapsar sidebar"
+          >
+            <CollapseIcon className="size-4" />
+          </button>
+        )}
       </div>
 
-      {/* Navigation — filtered by role */}
-      <nav className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-3">
+      {/* Expand button when collapsed — desktop only */}
+      {collapsed && (
+        <div className="hidden justify-center px-2 pb-1 md:flex">
+          <button
+            onClick={toggleCollapsed}
+            className="flex size-8 items-center justify-center rounded-md text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            aria-label="Expandir sidebar"
+          >
+            <CollapseIcon className="size-4 rotate-180" />
+          </button>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-2 py-3">
         {NAV_SECTIONS.map((section, i) => {
           const visibleItems = section.items.filter((item) =>
             item.roles.includes(role as UserRole),
@@ -97,10 +133,13 @@ export function DashboardSidebar({ user }: SidebarProps) {
 
           return (
             <div key={i}>
-              {section.label && (
+              {section.label && !collapsed && (
                 <p className="mb-1 px-2 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
                   {section.label}
                 </p>
+              )}
+              {section.label && collapsed && (
+                <div className="mx-auto my-1 h-px w-6 bg-sidebar-foreground/15" />
               )}
               <ul className="space-y-0.5">
                 {visibleItems.map((item) => {
@@ -109,22 +148,48 @@ export function DashboardSidebar({ user }: SidebarProps) {
                       ? pathname === "/"
                       : pathname.startsWith(item.href);
 
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-medium transition-colors",
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
-                        )}
-                      >
-                        <item.icon className="size-4 shrink-0 opacity-70" />
-                        {item.label}
-                      </Link>
-                    </li>
+                  const link = (
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "group relative flex items-center rounded-lg text-[13px] font-medium transition-colors",
+                        collapsed
+                          ? "justify-center size-9 mx-auto"
+                          : "gap-2 px-2 py-1.5",
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                      )}
+                    >
+                      {/* Active indicator bar */}
+                      {isActive && (
+                        <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-sidebar-primary" />
+                      )}
+                      <item.icon className="size-4 shrink-0 opacity-70" />
+                      {!collapsed && item.label}
+                    </Link>
                   );
+
+                  if (collapsed) {
+                    return (
+                      <li key={item.href}>
+                        <Tooltip.Provider>
+                          <Tooltip.Root>
+                            <Tooltip.Trigger render={link} />
+                            <Tooltip.Portal>
+                              <Tooltip.Positioner side="right" sideOffset={8}>
+                                <Tooltip.Popup className="rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md">
+                                  {item.label}
+                                </Tooltip.Popup>
+                              </Tooltip.Positioner>
+                            </Tooltip.Portal>
+                          </Tooltip.Root>
+                        </Tooltip.Provider>
+                      </li>
+                    );
+                  }
+
+                  return <li key={item.href}>{link}</li>;
                 })}
               </ul>
             </div>
@@ -133,26 +198,129 @@ export function DashboardSidebar({ user }: SidebarProps) {
       </nav>
 
       {/* User footer */}
-      <div className="border-t border-sidebar-border px-3 py-3">
-        <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-sidebar-foreground/70">
-          <div className="flex size-7 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-sidebar-accent-foreground">
+      <div className="border-t border-sidebar-border px-2 py-2">
+        <div className={cn(
+          "flex items-center rounded-lg",
+          collapsed ? "justify-center py-1.5" : "gap-2 px-2 py-1.5"
+        )}>
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-sidebar-accent-foreground">
             {user.fullName?.charAt(0).toUpperCase()}
           </div>
-          <div className="flex flex-col">
-            <span className="font-medium text-sidebar-foreground">
-              {user.fullName}
-            </span>
-            <span className="text-[11px] text-sidebar-foreground/50">
-              {ROLE_LABELS[role] ?? role}
-            </span>
-          </div>
+          {!collapsed && (
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+              <span className="truncate text-xs font-medium text-sidebar-foreground">
+                {user.fullName}
+              </span>
+              <span className="truncate text-[11px] text-sidebar-foreground/50">
+                {ROLE_LABELS[role] ?? role}
+              </span>
+            </div>
+          )}
+          {!collapsed && (
+            <button
+              onClick={handleSignOut}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              aria-label="Cerrar sesión"
+            >
+              <LogOutIcon className="size-3.5" />
+            </button>
+          )}
         </div>
+        {collapsed && (
+          <div className="flex justify-center pt-1">
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger
+                  render={
+                    <button
+                      onClick={handleSignOut}
+                      className="flex size-8 items-center justify-center rounded-md text-sidebar-foreground/40 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      aria-label="Cerrar sesión"
+                    />
+                  }
+                >
+                  <LogOutIcon className="size-3.5" />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Positioner side="right" sideOffset={8}>
+                    <Tooltip.Popup className="rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md">
+                      Cerrar sesión
+                    </Tooltip.Popup>
+                  </Tooltip.Positioner>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+          </div>
+        )}
       </div>
-    </aside>
+    </>
   );
 }
 
-/* ─── Inline SVG icons (Stripe-style: 16px, stroke-based) ─── */
+// ── Desktop sidebar ────────────────────���──────────────────────────
+
+export function DashboardSidebar({ user }: SidebarProps) {
+  const { collapsed, mobileOpen, setMobileOpen } = useSidebar();
+  const pathname = usePathname();
+
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, setMobileOpen]);
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside
+        className={cn(
+          "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-in-out md:flex",
+          collapsed ? "w-16" : "w-[240px]"
+        )}
+      >
+        <SidebarContent user={user} />
+      </aside>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      {/* Mobile drawer */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-[280px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-250 ease-in-out md:hidden",
+          mobileOpen ? "translate-x-0 flex" : "-translate-x-full"
+        )}
+      >
+        <SidebarContent user={user} />
+      </aside>
+    </>
+  );
+}
+
+/* ─── Inline SVG icons ─── */
+
+function LogOutIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 14H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h3" />
+      <path d="M10 11l3-3-3-3" />
+      <path d="M13 8H6" />
+    </svg>
+  );
+}
+
+function CollapseIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 3L5 8l5 5" />
+    </svg>
+  );
+}
 
 function HomeIcon({ className }: { className?: string }) {
   return (
