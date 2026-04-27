@@ -1,17 +1,19 @@
-//
-//  LorealClientelingApp.swift
-//  LorealClienteling
-//
-//  Created by Darío Mariscal  on 27/04/26.
-//
-
 import SwiftUI
 
 @main
 struct LorealClientelingApp: App {
+    @State private var authManager = AuthManager()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if authManager.isAuthenticated {
+                    HomeView()
+                } else {
+                    LoginView()
+                }
+            }
+            .environment(authManager)
         }
     }
 }

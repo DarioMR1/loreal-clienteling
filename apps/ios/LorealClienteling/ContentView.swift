@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  LorealClienteling
-//
-//  Created by Darío Mariscal  on 27/04/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
