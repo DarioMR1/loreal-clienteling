@@ -88,7 +88,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
       </div>
 
       {/* Navigation — filtered by role */}
-      <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-3">
+      <nav className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-3">
         {NAV_SECTIONS.map((section, i) => {
           const visibleItems = section.items.filter((item) =>
             item.roles.includes(role as UserRole),
