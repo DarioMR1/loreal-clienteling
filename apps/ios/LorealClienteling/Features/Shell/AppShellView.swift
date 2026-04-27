@@ -28,12 +28,7 @@ struct AppShellView: View {
         case .dashboard:
             DashboardView()
         case .customers:
-            // Phase 2 — placeholder until CustomerListView is built
-            LorealEmptyState(
-                icon: "person.2",
-                title: "Clientas",
-                subtitle: "Próximamente"
-            )
+            CustomerListView()
         case .appointments:
             // Phase 4 — placeholder
             LorealEmptyState(
@@ -77,11 +72,15 @@ struct AppShellView: View {
                 subtitle: "Toca una cita o seguimiento para ver su detalle."
             )
         case .customers:
-            LorealEmptyState(
-                icon: "person.crop.rectangle",
-                title: "Selecciona una clienta",
-                subtitle: "Toca una clienta de la lista para ver su perfil 360°."
-            )
+            if let customerId = router.selectedItemID {
+                CustomerDetailView(customerId: customerId)
+            } else {
+                LorealEmptyState(
+                    icon: "person.crop.rectangle",
+                    title: "Selecciona una clienta",
+                    subtitle: "Toca una clienta de la lista para ver su perfil 360°."
+                )
+            }
         case .appointments:
             LorealEmptyState(
                 icon: "calendar.badge.clock",
