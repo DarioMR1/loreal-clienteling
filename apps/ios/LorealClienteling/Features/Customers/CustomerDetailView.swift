@@ -110,20 +110,8 @@ struct CustomerDetailView: View {
 
     private func summaryTab(_ customer: Customer) -> some View {
         VStack(alignment: .leading, spacing: LorealSpacing.lg) {
-            // Beauty profile section — placeholder for Phase 3
-            LorealSectionHeader(title: "Perfil de belleza", actionLabel: "Editar") {}
-
-            LorealCard {
-                HStack {
-                    Image(systemName: "sparkle.magnifyingglass")
-                        .font(.title3)
-                        .foregroundStyle(LorealColors.accent)
-                    Text("Perfil de belleza — se cargará en la siguiente fase")
-                        .font(LorealTypography.callout)
-                        .foregroundStyle(LorealColors.textSecondary)
-                }
-            }
-            .padding(.horizontal, LorealSpacing.screenPadding)
+            // Beauty profile
+            BeautyProfileView(customerId: customer.id)
 
             // Contact preferences
             LorealSectionHeader(title: "Información")
