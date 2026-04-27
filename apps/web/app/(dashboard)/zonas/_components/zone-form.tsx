@@ -1,67 +1,84 @@
 "use client";
 
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createZoneSchema, type CreateZone } from "@loreal/contracts";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-export interface ZoneFormData {
-  code: string;
-  displayName: string;
-  region?: string;
-}
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface ZoneFormProps {
-  defaultValues?: ZoneFormData;
-  onSubmit: (data: ZoneFormData) => void;
+  defaultValues?: Partial<CreateZone>;
+  onSubmit: (data: CreateZone) => void;
   isPending: boolean;
 }
 
 export function ZoneForm({ defaultValues, onSubmit, isPending }: ZoneFormProps) {
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    onSubmit({
-      code: formData.get("code") as string,
-      displayName: formData.get("displayName") as string,
-      region: (formData.get("region") as string) || undefined,
-    });
-  }
+  const form = useForm<CreateZone>({
+    resolver: zodResolver(createZoneSchema),
+    defaultValues: {
+      code: defaultValues?.code ?? "",
+      displayName: defaultValues?.displayName ?? "",
+      region: defaultValues?.region ?? "",
+    },
+  });
 
   return (
-    <form id="zone-form" onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="code">Código</Label>
-        <Input
-          id="code"
+    <Form {...form}>
+      <form id="zone-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
           name="code"
-          placeholder="CENTRO"
-          defaultValue={defaultValues?.code}
-          required
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Código</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="CENTRO" disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="displayName">Nombre</Label>
-        <Input
-          id="displayName"
+        <FormField
+          control={form.control}
           name="displayName"
-          placeholder="Zona Centro"
-          defaultValue={defaultValues?.displayName}
-          required
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Zona Centro" disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="region">Región (opcional)</Label>
-        <Input
-          id="region"
+        <FormField
+          control={form.control}
           name="region"
-          placeholder="Ciudad de México y Estado de México"
-          defaultValue={defaultValues?.region ?? ""}
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Región (opcional)</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value ?? ""}
+                  placeholder="Ciudad de México y Estado de México"
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }

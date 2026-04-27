@@ -20,10 +20,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import {
-  CommunicationForm,
-  type CommunicationFormData,
-} from "./communication-form";
+import type { CommunicationFormData } from "./communication-form";
+import { CommunicationForm } from "./communication-form";
 
 // ── Label maps ─────────────────────────────────────────────────────
 

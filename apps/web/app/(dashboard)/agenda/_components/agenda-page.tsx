@@ -24,11 +24,13 @@ import {
 import {
   Select,
   SelectTrigger,
+  SelectValue,
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
 import { WeekCalendar } from "./week-calendar";
-import { AppointmentForm, type AppointmentFormData } from "./appointment-form";
+import type { AppointmentFormData } from "./appointment-form";
+import { AppointmentForm } from "./appointment-form";
 import { STATUS_LABEL, STATUS_VARIANT, EVENT_LABEL } from "./appointment-card";
 
 // ── Helpers ────────────────────────────────────────────────────────
@@ -289,10 +291,9 @@ export function AgendaPage({ user }: AgendaPageProps) {
                       value={statusUpdate}
                       onValueChange={(v) => setStatusUpdate(v ?? "")}
                     >
-                      <SelectTrigger
-                        className="flex-1"
-                        placeholder="Seleccionar estado"
-                      />
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Seleccionar estado" />
+                      </SelectTrigger>
                       <SelectContent>
                         {APPOINTMENT_STATUSES.map((s) => (
                           <SelectItem key={s} value={s}>

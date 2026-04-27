@@ -15,7 +15,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { ZoneForm, type ZoneFormData } from "./zone-form";
+import type { CreateZone } from "@loreal/contracts";
+import { ZoneForm } from "./zone-form";
 
 type DialogState = null | { mode: "create" } | { mode: "edit"; zone: Zone };
 
@@ -54,7 +55,7 @@ export function ZonesPage({ user }: ZonesPageProps) {
       : []),
   ];
 
-  function handleSubmit(data: ZoneFormData) {
+  function handleSubmit(data: CreateZone) {
     if (dialog?.mode === "edit") {
       updateZone.mutate(
         { id: dialog.zone.id, ...data },

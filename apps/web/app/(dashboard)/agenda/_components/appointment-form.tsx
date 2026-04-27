@@ -1,17 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { APPOINTMENT_EVENT_TYPES } from "@loreal/contracts";
+import { z } from "zod";
+import { useState } from "react";
 import { useCustomerSearch, type Customer } from "@/lib/hooks";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 const EVENT_LABELS: Record<string, string> = {
   cabin_service: "Servicio cabina",
@@ -22,19 +34,23 @@ const EVENT_LABELS: Record<string, string> = {
   custom: "Personalizado",
 };
 
-export interface AppointmentFormData {
-  customerId: string;
-  eventType: string;
-  scheduledAt: string;
-  durationMinutes: number;
-  comments?: string;
-  isVirtual: boolean;
-  videoLink?: string;
-}
+const appointmentFormSchema = z.object({
+  customerId: z.string().min(1, "Clienta requerida"),
+  eventType: z.enum(APPOINTMENT_EVENT_TYPES as [string, ...string[]]),
+  scheduledAt: z.string().min(1, "Fecha requerida"),
+  durationMinutes: z.coerce.number().min(1).max(480),
+  comments: z.string().max(1000).optional(),
+  isVirtual: z.boolean(),
+  videoLink: z.string().url().optional().or(z.literal("")),
+});
+
+type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
+
+export type AppointmentFormData = AppointmentFormValues;
 
 interface AppointmentFormProps {
-  defaultValues?: Partial<AppointmentFormData>;
-  onSubmit: (data: AppointmentFormData) => void;
+  defaultValues?: Partial<AppointmentFormValues>;
+  onSubmit: (data: AppointmentFormValues) => void;
   isPending: boolean;
 }
 
@@ -44,163 +60,211 @@ export function AppointmentForm({
   isPending,
 }: AppointmentFormProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
-    null,
-  );
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [isVirtual, setIsVirtual] = useState(defaultValues?.isVirtual ?? false);
 
   const { data: searchResults = [] } = useCustomerSearch(searchQuery);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const customerId =
-      selectedCustomer?.id ?? defaultValues?.customerId ?? "";
-    if (!customerId) return;
+  const form = useForm<AppointmentFormValues>({
+    resolver: zodResolver(appointmentFormSchema),
+    defaultValues: {
+      customerId: defaultValues?.customerId ?? "",
+      eventType: defaultValues?.eventType ?? APPOINTMENT_EVENT_TYPES[0],
+      scheduledAt: defaultValues?.scheduledAt?.slice(0, 16) ?? "",
+      durationMinutes: defaultValues?.durationMinutes ?? 60,
+      comments: defaultValues?.comments ?? "",
+      isVirtual: defaultValues?.isVirtual ?? false,
+      videoLink: defaultValues?.videoLink ?? "",
+    },
+  });
 
+  const isVirtual = form.watch("isVirtual");
+
+  function handleSubmit(data: AppointmentFormValues) {
     onSubmit({
-      customerId,
-      eventType: fd.get("eventType") as string,
-      scheduledAt: fd.get("scheduledAt") as string,
-      durationMinutes: Number(fd.get("durationMinutes")),
-      comments: (fd.get("comments") as string) || undefined,
-      isVirtual,
-      videoLink: isVirtual
-        ? (fd.get("videoLink") as string) || undefined
-        : undefined,
+      ...data,
+      comments: data.comments || undefined,
+      videoLink: data.isVirtual ? (data.videoLink || undefined) : undefined,
     });
   }
 
   return (
-    <form id="appointment-form" onSubmit={handleSubmit} className="space-y-4">
-      {/* Customer search */}
-      {!defaultValues?.customerId && (
-        <div className="relative space-y-2">
-          <Label>Clienta</Label>
-          <Input
-            placeholder="Buscar clienta..."
-            value={
-              selectedCustomer
-                ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
-                : searchQuery
-            }
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setSelectedCustomer(null);
-              setShowResults(true);
-            }}
-            onFocus={() => setShowResults(true)}
-            disabled={isPending}
-          />
-          {showResults && searchResults.length > 0 && !selectedCustomer && (
-            <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
-              {searchResults.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-muted/50"
-                  onClick={() => {
-                    setSelectedCustomer(c);
-                    setShowResults(false);
-                    setSearchQuery("");
-                  }}
-                >
-                  {c.firstName} {c.lastName}
-                  {c.email && (
-                    <span className="ml-2 text-muted-foreground">
-                      {c.email}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+    <Form {...form}>
+      <form id="appointment-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {!defaultValues?.customerId && (
+          <div className="relative space-y-2">
+            <FormField
+              control={form.control}
+              name="customerId"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Clienta</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Buscar clienta..."
+                      value={
+                        selectedCustomer
+                          ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
+                          : searchQuery
+                      }
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setSelectedCustomer(null);
+                        setShowResults(true);
+                      }}
+                      onFocus={() => setShowResults(true)}
+                      disabled={isPending}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {showResults && searchResults.length > 0 && !selectedCustomer && (
+              <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+                {searchResults.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted/50"
+                    onClick={() => {
+                      setSelectedCustomer(c);
+                      setShowResults(false);
+                      setSearchQuery("");
+                      form.setValue("customerId", c.id);
+                    }}
+                  >
+                    {c.firstName} {c.lastName}
+                    {c.email && (
+                      <span className="ml-2 text-muted-foreground">{c.email}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-      <div className="space-y-2">
-        <Label>Tipo de evento</Label>
-        <Select
-          defaultValue={defaultValues?.eventType ?? APPOINTMENT_EVENT_TYPES[0]}
+        <FormField
+          control={form.control}
           name="eventType"
-          disabled={isPending}
-        >
-          <SelectTrigger placeholder="Seleccionar tipo" />
-          <SelectContent>
-            {APPOINTMENT_EVENT_TYPES.map((et) => (
-              <SelectItem key={et} value={et}>
-                {EVENT_LABELS[et] ?? et}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tipo de evento</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger disabled={isPending}>
+                    <SelectValue placeholder="Seleccionar tipo" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {APPOINTMENT_EVENT_TYPES.map((et) => (
+                    <SelectItem key={et} value={et}>
+                      {EVENT_LABELS[et] ?? et}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="scheduledAt">Fecha y hora</Label>
-          <Input
-            id="scheduledAt"
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
             name="scheduledAt"
-            type="datetime-local"
-            defaultValue={defaultValues?.scheduledAt?.slice(0, 16)}
-            required
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fecha y hora</FormLabel>
+                <FormControl>
+                  <Input {...field} type="datetime-local" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="durationMinutes">Duración (min)</Label>
-          <Input
-            id="durationMinutes"
+          <FormField
+            control={form.control}
             name="durationMinutes"
-            type="number"
-            min="15"
-            max="480"
-            step="15"
-            defaultValue={defaultValues?.durationMinutes ?? 60}
-            required
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Duración (min)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min="15"
+                    max="480"
+                    step="15"
+                    disabled={isPending}
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="comments">Comentarios</Label>
-        <Textarea
-          id="comments"
+        <FormField
+          control={form.control}
           name="comments"
-          placeholder="Notas sobre la cita..."
-          defaultValue={defaultValues?.comments}
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Comentarios</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  value={field.value ?? ""}
+                  placeholder="Notas sobre la cita..."
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          id="isVirtual"
-          checked={isVirtual}
-          onChange={(e) => setIsVirtual(e.target.checked)}
-          disabled={isPending}
-          className="size-4 rounded border-border"
+        <FormField
+          control={form.control}
+          name="isVirtual"
+          render={({ field }) => (
+            <FormItem className="flex items-center gap-2 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormLabel>Cita virtual</FormLabel>
+            </FormItem>
+          )}
         />
-        <Label htmlFor="isVirtual">Cita virtual</Label>
-      </div>
 
-      {isVirtual && (
-        <div className="space-y-2">
-          <Label htmlFor="videoLink">Link de videollamada</Label>
-          <Input
-            id="videoLink"
+        {isVirtual && (
+          <FormField
+            control={form.control}
             name="videoLink"
-            type="url"
-            placeholder="https://zoom.us/j/..."
-            defaultValue={defaultValues?.videoLink}
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Link de videollamada</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    type="url"
+                    placeholder="https://zoom.us/j/..."
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-      )}
-    </form>
+        )}
+      </form>
+    </Form>
   );
 }

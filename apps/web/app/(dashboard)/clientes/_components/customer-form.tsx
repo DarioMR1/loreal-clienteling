@@ -1,23 +1,25 @@
 "use client";
 
-import { GENDERS } from "@loreal/contracts";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type CreateCustomer, GENDERS } from "@loreal/contracts";
+import { z } from "zod";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
-
-export interface CustomerFormData {
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  gender?: string;
-  birthDate?: string;
-}
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 const GENDER_LABELS: Record<string, string> = {
   female: "Femenino",
@@ -26,10 +28,28 @@ const GENDER_LABELS: Record<string, string> = {
   prefer_not_say: "Prefiere no decir",
 };
 
+const customerFormSchema = z.object({
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().min(10).max(15).optional().or(z.literal("")),
+  gender: z.enum(GENDERS as [string, ...string[]]).optional().or(z.literal("")),
+  birthDate: z.string().optional(),
+});
+
+type CustomerFormValues = z.infer<typeof customerFormSchema>;
+
 interface CustomerFormProps {
-  defaultValues?: CustomerFormData;
-  onSubmit: (data: CustomerFormData) => void;
+  defaultValues?: Record<string, unknown>;
+  onSubmit: (data: CreateCustomer) => void;
   isPending: boolean;
+}
+
+function toBirthDateStr(value: unknown): string {
+  if (!value) return "";
+  if (value instanceof Date) return value.toISOString().split("T")[0];
+  if (typeof value === "string") return value.split("T")[0];
+  return "";
 }
 
 export function CustomerForm({
@@ -37,107 +57,152 @@ export function CustomerForm({
   onSubmit,
   isPending,
 }: CustomerFormProps) {
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data: CustomerFormData = {
-      firstName: formData.get("firstName") as string,
-      lastName: formData.get("lastName") as string,
+  const birthDateStr = toBirthDateStr(defaultValues?.birthDate);
+
+  const form = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerFormSchema),
+    defaultValues: {
+      firstName: (defaultValues?.firstName as string) ?? "",
+      lastName: (defaultValues?.lastName as string) ?? "",
+      email: (defaultValues?.email as string) ?? "",
+      phone: (defaultValues?.phone as string) ?? "",
+      gender: (defaultValues?.gender as string) ?? "",
+      birthDate: birthDateStr,
+    },
+  });
+
+  function handleSubmit(data: CustomerFormValues) {
+    const cleaned: Record<string, unknown> = {
+      firstName: data.firstName,
+      lastName: data.lastName,
     };
-    const email = formData.get("email") as string;
-    if (email) data.email = email;
-    const phone = formData.get("phone") as string;
-    if (phone) data.phone = phone;
-    const gender = formData.get("gender") as string;
-    if (gender) data.gender = gender;
-    const birthDate = formData.get("birthDate") as string;
-    if (birthDate) data.birthDate = birthDate;
-    onSubmit(data);
+    if (data.email) cleaned.email = data.email;
+    if (data.phone) cleaned.phone = data.phone;
+    if (data.gender) cleaned.gender = data.gender;
+    if (data.birthDate) cleaned.birthDate = data.birthDate;
+    onSubmit(cleaned as CreateCustomer);
   }
 
   return (
-    <form id="customer-form" onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="firstName">Nombre</Label>
-          <Input
-            id="firstName"
+    <Form {...form}>
+      <form id="customer-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
             name="firstName"
-            placeholder="María"
-            defaultValue={defaultValues?.firstName}
-            required
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="María" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="lastName">Apellido</Label>
-          <Input
-            id="lastName"
+          <FormField
+            control={form.control}
             name="lastName"
-            placeholder="García"
-            defaultValue={defaultValues?.lastName}
-            required
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Apellido</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="García" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
             name="email"
-            type="email"
-            placeholder="maria@ejemplo.com"
-            defaultValue={defaultValues?.email}
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    type="email"
+                    placeholder="maria@ejemplo.com"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Teléfono</Label>
-          <Input
-            id="phone"
+          <FormField
+            control={form.control}
             name="phone"
-            placeholder="5512345678"
-            defaultValue={defaultValues?.phone}
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Teléfono</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    value={field.value ?? ""}
+                    placeholder="5512345678"
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Género</Label>
-          <Select
-            defaultValue={defaultValues?.gender ?? ""}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
             name="gender"
-            disabled={isPending}
-          >
-            <SelectTrigger placeholder="Seleccionar" />
-            <SelectContent>
-              {GENDERS.map((g) => (
-                <SelectItem key={g} value={g}>
-                  {GENDER_LABELS[g] ?? g}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Género</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {GENDERS.map((g) => (
+                      <SelectItem key={g} value={g}>
+                        {GENDER_LABELS[g] ?? g}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="space-y-2">
-          <Label htmlFor="birthDate">Fecha de nacimiento</Label>
-          <Input
-            id="birthDate"
+          <FormField
+            control={form.control}
             name="birthDate"
-            type="date"
-            defaultValue={defaultValues?.birthDate?.split("T")[0]}
-            disabled={isPending}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Fecha de nacimiento</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={toBirthDateStr(field.value)}
+                    onChange={field.onChange}
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }

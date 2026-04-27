@@ -3,30 +3,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-/**
- * Alert — L'Oréal Clienteling
- *
- * Design principles (from Stripe):
- * - Semantic feedback variants: default, info, success, warning, destructive
- * - Subtle tinted backgrounds (not saturated)
- * - Left accent border for quick visual scanning
- * - Consistent icon placement
- */
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border-l-[3px] px-3 py-2.5 text-left text-sm shadow-[var(--shadow-xs)] has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default:
-          "border-l-border bg-card text-card-foreground",
-        info:
-          "border-l-info bg-info/5 text-info *:data-[slot=alert-description]:text-info/80",
-        success:
-          "border-l-success bg-success/5 text-success *:data-[slot=alert-description]:text-success/80",
-        warning:
-          "border-l-warning bg-warning/10 text-warning-foreground *:data-[slot=alert-description]:text-warning-foreground/80",
+        default: "bg-card text-card-foreground",
         destructive:
-          "border-l-destructive bg-destructive/5 text-destructive *:data-[slot=alert-description]:text-destructive/80",
+          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+        info: "border-info/30 bg-info/5 text-info *:data-[slot=alert-description]:text-info/90",
+        success:
+          "border-success/30 bg-success/5 text-success *:data-[slot=alert-description]:text-success/90",
+        warning:
+          "border-warning/30 bg-warning/5 text-warning *:data-[slot=alert-description]:text-warning/90",
       },
     },
     defaultVariants: {
@@ -55,7 +44,7 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="alert-title"
       className={cn(
-        "font-semibold group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground",
+        "font-medium group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground",
         className
       )}
       {...props}
@@ -71,7 +60,7 @@ function AlertDescription({
     <div
       data-slot="alert-description"
       className={cn(
-        "text-sm text-balance md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+        "text-sm text-balance text-muted-foreground md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
         className
       )}
       {...props}
@@ -83,7 +72,7 @@ function AlertAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="alert-action"
-      className={cn("absolute top-2.5 right-2.5", className)}
+      className={cn("absolute top-2 right-2", className)}
       {...props}
     />
   )

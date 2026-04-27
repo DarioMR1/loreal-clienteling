@@ -14,10 +14,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import {
-  CustomerForm,
-  type CustomerFormData,
-} from "../../_components/customer-form";
+import type { CreateCustomer } from "@loreal/contracts";
+import { CustomerForm } from "../../_components/customer-form";
 
 const GENDER_LABELS: Record<string, string> = {
   female: "Femenino",
@@ -35,7 +33,7 @@ export function ProfileSection({ customer, role }: ProfileSectionProps) {
   const [editing, setEditing] = useState(false);
   const updateCustomer = useUpdateCustomer();
 
-  function handleSubmit(data: CustomerFormData) {
+  function handleSubmit(data: CreateCustomer) {
     updateCustomer.mutate(
       {
         id: customer.id,

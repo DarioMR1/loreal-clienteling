@@ -1,15 +1,24 @@
 "use client";
 
-import { BRAND_TIERS } from "@loreal/contracts";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createBrandSchema, type CreateBrand, BRAND_TIERS } from "@loreal/contracts";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
-
-export interface BrandFormData {
-  code: string;
-  displayName: string;
-  tier: string;
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 const TIER_LABELS: Record<string, string> = {
   luxury: "Lujo",
@@ -18,61 +27,77 @@ const TIER_LABELS: Record<string, string> = {
 };
 
 interface BrandFormProps {
-  defaultValues?: BrandFormData;
-  onSubmit: (data: BrandFormData) => void;
+  defaultValues?: Partial<CreateBrand>;
+  onSubmit: (data: CreateBrand) => void;
   isPending: boolean;
 }
 
 export function BrandForm({ defaultValues, onSubmit, isPending }: BrandFormProps) {
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    onSubmit({
-      code: formData.get("code") as string,
-      displayName: formData.get("displayName") as string,
-      tier: formData.get("tier") as string,
-    });
-  }
+  const form = useForm<CreateBrand>({
+    resolver: zodResolver(createBrandSchema),
+    defaultValues: {
+      code: defaultValues?.code ?? "",
+      displayName: defaultValues?.displayName ?? "",
+      tier: defaultValues?.tier ?? BRAND_TIERS[0],
+    },
+  });
 
   return (
-    <form id="brand-form" onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="code">Código</Label>
-        <Input
-          id="code"
+    <Form {...form}>
+      <form id="brand-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
           name="code"
-          placeholder="LANCOME"
-          defaultValue={defaultValues?.code}
-          required
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Código</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="LANCOME" disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="displayName">Nombre</Label>
-        <Input
-          id="displayName"
+        <FormField
+          control={form.control}
           name="displayName"
-          placeholder="Lancôme"
-          defaultValue={defaultValues?.displayName}
-          required
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Lancôme" disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label>Segmento</Label>
-        <Select defaultValue={defaultValues?.tier ?? BRAND_TIERS[0]} name="tier" disabled={isPending}>
-          <SelectTrigger placeholder="Seleccionar segmento" />
-          <SelectContent>
-            {BRAND_TIERS.map((tier) => (
-              <SelectItem key={tier} value={tier}>
-                {TIER_LABELS[tier] ?? tier}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </form>
+        <FormField
+          control={form.control}
+          name="tier"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Segmento</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger disabled={isPending}>
+                    <SelectValue placeholder="Seleccionar segmento" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {BRAND_TIERS.map((tier) => (
+                    <SelectItem key={tier} value={tier}>
+                      {TIER_LABELS[tier] ?? tier}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
   );
 }

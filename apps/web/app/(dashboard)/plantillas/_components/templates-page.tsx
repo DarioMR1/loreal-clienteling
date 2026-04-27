@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
-import { TemplateForm, type TemplateFormData } from "./template-form";
+import type { CreateTemplate } from "@loreal/contracts";
+import { TemplateForm } from "./template-form";
 
 type DialogState = null | { mode: "create" } | { mode: "edit"; template: MessageTemplate };
 
@@ -70,7 +71,7 @@ export function TemplatesPage({ user }: TemplatesPageProps) {
       : []),
   ];
 
-  function handleSubmit(data: TemplateFormData) {
+  function handleSubmit(data: CreateTemplate) {
     if (dialog?.mode === "edit") {
       updateTemplate.mutate({ id: dialog.template.id, ...data }, { onSuccess: () => setDialog(null) });
     } else {

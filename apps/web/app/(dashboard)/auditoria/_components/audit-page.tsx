@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pagination } from "@/components/ui/pagination";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import type { AuditLog } from "@/lib/hooks/use-audit-logs";
 
 const ACTION_LABEL: Record<string, string> = {
@@ -104,7 +104,7 @@ export function AuditPage() {
         <div className="space-y-1">
           <Label className="text-xs">Acción</Label>
           <Select value={action} onValueChange={(v) => { setAction(v as string); setPage(1); }}>
-            <SelectTrigger placeholder="Todas" className="w-44" />
+            <SelectTrigger className="w-44"><SelectValue placeholder="Todas" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="">Todas</SelectItem>
               {AUDIT_ACTIONS.map((a) => (

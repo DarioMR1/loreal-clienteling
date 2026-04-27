@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
-import { UserForm, type UserFormData } from "./user-form";
+import type { UserFormData } from "./user-form";
+import { UserForm } from "./user-form";
 
 type DialogState = null | { mode: "create" };
 

@@ -16,7 +16,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { BrandForm, type BrandFormData } from "./brand-form";
+import type { CreateBrand } from "@loreal/contracts";
+import { BrandForm } from "./brand-form";
 
 type DialogState = null | { mode: "create" } | { mode: "edit"; brand: Brand };
 
@@ -87,7 +88,7 @@ export function BrandsPage({ user }: BrandsPageProps) {
       : []),
   ];
 
-  function handleSubmit(data: BrandFormData) {
+  function handleSubmit(data: CreateBrand) {
     if (dialog?.mode === "edit") {
       updateBrand.mutate(
         { id: dialog.brand.id, ...data },

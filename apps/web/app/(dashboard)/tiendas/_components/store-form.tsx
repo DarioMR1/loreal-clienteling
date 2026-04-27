@@ -1,20 +1,25 @@
 "use client";
 
-import { STORE_CHAINS } from "@loreal/contracts";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createStoreSchema, type CreateStore, STORE_CHAINS } from "@loreal/contracts";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import type { Zone } from "@/lib/hooks";
-
-export interface StoreFormData {
-  code: string;
-  displayName: string;
-  chain: string;
-  zoneId?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-}
 
 const CHAIN_LABELS: Record<string, string> = {
   liverpool: "Liverpool",
@@ -23,84 +28,163 @@ const CHAIN_LABELS: Record<string, string> = {
 };
 
 interface StoreFormProps {
-  // Accepts API shape (null) and form shape (undefined) for optional fields
-  defaultValues?: Record<string, unknown>;
+  defaultValues?: Partial<CreateStore>;
   zones: Zone[];
-  onSubmit: (data: StoreFormData) => void;
+  onSubmit: (data: CreateStore) => void;
   isPending: boolean;
 }
 
-export function StoreForm({ defaultValues: dv, zones, onSubmit, isPending }: StoreFormProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const defaultValues = dv as any;
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+export function StoreForm({ defaultValues, zones, onSubmit, isPending }: StoreFormProps) {
+  const form = useForm<CreateStore>({
+    resolver: zodResolver(createStoreSchema),
+    defaultValues: {
+      code: defaultValues?.code ?? "",
+      displayName: defaultValues?.displayName ?? "",
+      chain: defaultValues?.chain ?? STORE_CHAINS[0],
+      zoneId: defaultValues?.zoneId ?? "",
+      address: defaultValues?.address ?? "",
+      city: defaultValues?.city ?? "",
+      state: defaultValues?.state ?? "",
+    },
+  });
+
+  function handleSubmit(data: CreateStore) {
     onSubmit({
-      code: fd.get("code") as string,
-      displayName: fd.get("displayName") as string,
-      chain: fd.get("chain") as string,
-      zoneId: (fd.get("zoneId") as string) || undefined,
-      address: (fd.get("address") as string) || undefined,
-      city: (fd.get("city") as string) || undefined,
-      state: (fd.get("state") as string) || undefined,
+      ...data,
+      zoneId: data.zoneId || undefined,
+      address: data.address || undefined,
+      city: data.city || undefined,
+      state: data.state || undefined,
     });
   }
 
   return (
-    <form id="store-form" onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="code">Código</Label>
-          <Input id="code" name="code" placeholder="LIV_POLANCO" defaultValue={defaultValues?.code} required disabled={isPending} />
+    <Form {...form}>
+      <form id="store-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Código</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="LIV_POLANCO" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Liverpool Polanco" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="displayName">Nombre</Label>
-          <Input id="displayName" name="displayName" placeholder="Liverpool Polanco" defaultValue={defaultValues?.displayName} required disabled={isPending} />
-        </div>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Cadena</Label>
-          <Select defaultValue={defaultValues?.chain ?? STORE_CHAINS[0]} name="chain" disabled={isPending}>
-            <SelectTrigger placeholder="Seleccionar cadena" />
-            <SelectContent>
-              {STORE_CHAINS.map((chain) => (
-                <SelectItem key={chain} value={chain}>{CHAIN_LABELS[chain] ?? chain}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="chain"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cadena</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Seleccionar cadena" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {STORE_CHAINS.map((chain) => (
+                      <SelectItem key={chain} value={chain}>
+                        {CHAIN_LABELS[chain] ?? chain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="zoneId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Zona</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Seleccionar zona" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">Sin zona</SelectItem>
+                    {zones.map((z) => (
+                      <SelectItem key={z.id} value={z.id}>
+                        {z.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="space-y-2">
-          <Label>Zona</Label>
-          <Select defaultValue={defaultValues?.zoneId ?? ""} name="zoneId" disabled={isPending}>
-            <SelectTrigger placeholder="Seleccionar zona" />
-            <SelectContent>
-              <SelectItem value="">Sin zona</SelectItem>
-              {zones.map((z) => (
-                <SelectItem key={z.id} value={z.id}>{z.displayName}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="address">Dirección</Label>
-        <Input id="address" name="address" placeholder="Av. Molière 222" defaultValue={defaultValues?.address ?? ""} disabled={isPending} />
-      </div>
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dirección</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value ?? ""} placeholder="Av. Molière 222" disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="city">Ciudad</Label>
-          <Input id="city" name="city" placeholder="Ciudad de México" defaultValue={defaultValues?.city ?? ""} disabled={isPending} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="city"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ciudad</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value ?? ""} placeholder="Ciudad de México" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="state"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Estado</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value ?? ""} placeholder="CDMX" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="state">Estado</Label>
-          <Input id="state" name="state" placeholder="CDMX" defaultValue={defaultValues?.state ?? ""} disabled={isPending} />
-        </div>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }

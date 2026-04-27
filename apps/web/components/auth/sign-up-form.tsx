@@ -2,13 +2,36 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createUserSchema, USER_ROLES } from "@loreal/contracts";
+import { z } from "zod";
 import { signUp } from "@/lib/auth-client";
-import { USER_ROLES } from "@loreal/contracts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { ROUTES } from "@/lib/constants";
+
+const signUpSchema = createUserSchema
+  .pick({ fullName: true, email: true, role: true })
+  .extend({ password: z.string().min(8, "Mínimo 8 caracteres") });
+
+type SignUpForm = z.infer<typeof signUpSchema>;
 
 const ROLE_LABELS: Record<string, string> = {
   ba: "Beauty Advisor",
@@ -21,28 +44,22 @@ export function SignUpForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    password: "",
-    role: "ba",
+
+  const form = useForm<SignUpForm>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { fullName: "", email: "", password: "", role: "ba" },
   });
 
-  function updateField(field: string, value: string) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(data: SignUpForm) {
     setError(null);
     setLoading(true);
 
     const { error: authError } = await signUp.email({
-      email: formData.email,
-      password: formData.password,
-      name: formData.fullName,
-      fullName: formData.fullName,
-      role: formData.role,
+      email: data.email,
+      password: data.password,
+      name: data.fullName,
+      fullName: data.fullName,
+      role: data.role,
     });
 
     if (authError) {
@@ -56,63 +73,85 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      <div className="space-y-2">
-        <Label htmlFor="fullName">Nombre completo</Label>
-        <Input
-          id="fullName"
-          type="text"
-          placeholder="Ana García López"
-          value={formData.fullName}
-          onChange={(e) => updateField("fullName", e.target.value)}
-          required
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <FormField
+          control={form.control}
+          name="fullName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre completo</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Ana García López" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">Correo electrónico</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="usuario@loreal.mx"
-          value={formData.email}
-          onChange={(e) => updateField("email", e.target.value)}
-          required
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Correo electrónico</FormLabel>
+              <FormControl>
+                <Input {...field} type="email" placeholder="usuario@loreal.mx" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Contraseña</Label>
-        <Input
-          id="password"
-          type="password"
-          value={formData.password}
-          onChange={(e) => updateField("password", e.target.value)}
-          required
-          minLength={8}
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Contraseña</FormLabel>
+              <FormControl>
+                <Input {...field} type="password" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="role">Rol</Label>
-        <select
-          id="role"
-          value={formData.role}
-          onChange={(e) => updateField("role", e.target.value)}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        >
-          {USER_ROLES.map((role) => (
-            <option key={role} value={role}>
-              {ROLE_LABELS[role] ?? role}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Creando..." : "Crear Usuario"}
-      </Button>
-    </form>
+
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Rol</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar rol" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {USER_ROLES.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {ROLE_LABELS[role] ?? role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Creando..." : "Crear Usuario"}
+        </Button>
+      </form>
+    </Form>
   );
 }

@@ -1,5 +1,13 @@
 import { cn } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table"
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -26,24 +34,18 @@ interface DataTableProps<T> {
 
 function SkeletonRow({ cols }: { cols: number }) {
   return (
-    <tr className="border-b border-border">
+    <TableRow>
       {Array.from({ length: cols }).map((_, i) => (
-        <td key={i} className="px-3 py-2.5">
+        <TableCell key={i}>
           <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-        </td>
+        </TableCell>
       ))}
-    </tr>
+    </TableRow>
   )
 }
 
 // ── Component ──────────────────────────────────────────────────────
 
-/**
- * DataTable — L'Oréal Clienteling
- *
- * Simple styled table. Stripe principle: subtle dividers, no heavy borders.
- * Each page defines its own columns and passes data — no magic.
- */
 function DataTable<T extends { id?: string }>({
   columns,
   data,
@@ -67,58 +69,47 @@ function DataTable<T extends { id?: string }>({
   }
 
   return (
-    <div
-      data-slot="data-table"
-      className={cn("w-full overflow-x-auto", className)}
-    >
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-border">
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                className={cn(
-                  "px-3 py-2 text-left text-xs font-medium text-muted-foreground",
-                  col.className,
-                )}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading
-            ? Array.from({ length: 5 }).map((_, i) => (
-                <SkeletonRow key={i} cols={columns.length} />
-              ))
-            : data.map((row, rowIndex) => {
-                const record = row as Record<string, unknown>
-                return (
-                <tr
-                  key={record.id as string ?? rowIndex}
-                  className={cn(
-                    "border-b border-border transition-colors hover:bg-muted/50",
-                    onRowClick && "cursor-pointer",
-                  )}
+    <Table className={className}>
+      <TableHeader>
+        <TableRow>
+          {columns.map((col) => (
+            <TableHead
+              key={col.key}
+              className={cn(
+                "text-xs font-medium text-muted-foreground",
+                col.className,
+              )}
+            >
+              {col.label}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <SkeletonRow key={i} cols={columns.length} />
+            ))
+          : data.map((row, rowIndex) => {
+              const record = row as Record<string, unknown>
+              return (
+                <TableRow
+                  key={(record.id as string) ?? rowIndex}
+                  className={cn(onRowClick && "cursor-pointer")}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                 >
                   {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={cn("px-3 py-2.5", col.className)}
-                    >
+                    <TableCell key={col.key} className={col.className}>
                       {col.render
                         ? col.render(record[col.key], row)
                         : (record[col.key] as React.ReactNode) ?? "—"}
-                    </td>
+                    </TableCell>
                   ))}
-                </tr>
-                )
-              })}
-        </tbody>
-      </table>
-    </div>
+                </TableRow>
+              )
+            })}
+      </TableBody>
+    </Table>
   )
 }
 

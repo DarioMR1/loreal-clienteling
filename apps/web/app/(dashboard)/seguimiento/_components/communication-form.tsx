@@ -1,20 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  createCommunicationSchema,
+  type CreateCommunication,
   COMMUNICATION_CHANNELS,
   FOLLOWUP_TYPES,
 } from "@loreal/contracts";
 import { useCustomerSearch, useTemplates, type Customer } from "@/lib/hooks";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 
 const CHANNEL_LABELS: Record<string, string> = {
   whatsapp: "WhatsApp",
@@ -31,17 +43,10 @@ const FOLLOWUP_LABELS: Record<string, string> = {
   custom: "Personalizado",
 };
 
-export interface CommunicationFormData {
-  customerId: string;
-  channel: string;
-  templateId?: string;
-  subject?: string;
-  body: string;
-  followupType: string;
-}
+export type CommunicationFormData = CreateCommunication;
 
 interface CommunicationFormProps {
-  onSubmit: (data: CommunicationFormData) => void;
+  onSubmit: (data: CreateCommunication) => void;
   isPending: boolean;
 }
 
@@ -52,155 +57,194 @@ export function CommunicationForm({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [body, setBody] = useState("");
 
   const { data: searchResults = [] } = useCustomerSearch(searchQuery);
   const { data: templates = [] } = useTemplates();
 
+  const form = useForm<CreateCommunication>({
+    resolver: zodResolver(createCommunicationSchema),
+    defaultValues: {
+      customerId: "",
+      channel: COMMUNICATION_CHANNELS[0],
+      followupType: FOLLOWUP_TYPES[0],
+      subject: "",
+      body: "",
+    },
+  });
+
   function handleTemplateChange(templateId: string | null) {
     if (!templateId) return;
     const tpl = templates.find((t) => t.id === templateId);
-    if (tpl) setBody(tpl.body);
+    if (tpl) form.setValue("body", tpl.body);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    if (!selectedCustomer) return;
-
+  function handleSubmit(data: CreateCommunication) {
     onSubmit({
-      customerId: selectedCustomer.id,
-      channel: fd.get("channel") as string,
-      subject: (fd.get("subject") as string) || undefined,
-      body,
-      followupType: fd.get("followupType") as string,
+      ...data,
+      subject: data.subject || undefined,
     });
   }
 
   return (
-    <form id="communication-form" onSubmit={handleSubmit} className="space-y-4">
-      {/* Customer search */}
-      <div className="relative space-y-2">
-        <Label>Clienta</Label>
-        <Input
-          placeholder="Buscar clienta..."
-          value={
-            selectedCustomer
-              ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
-              : searchQuery
-          }
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setSelectedCustomer(null);
-            setShowResults(true);
-          }}
-          onFocus={() => setShowResults(true)}
-          disabled={isPending}
-        />
-        {showResults && searchResults.length > 0 && !selectedCustomer && (
-          <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
-            {searchResults.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                className="w-full px-3 py-2 text-left text-sm hover:bg-muted/50"
-                onClick={() => {
-                  setSelectedCustomer(c);
-                  setShowResults(false);
-                  setSearchQuery("");
-                }}
-              >
-                {c.firstName} {c.lastName}
-                {c.email && (
-                  <span className="ml-2 text-muted-foreground">{c.email}</span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+    <Form {...form}>
+      <form id="communication-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="relative space-y-2">
+          <FormField
+            control={form.control}
+            name="customerId"
+            render={() => (
+              <FormItem>
+                <FormLabel>Clienta</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Buscar clienta..."
+                    value={
+                      selectedCustomer
+                        ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}`
+                        : searchQuery
+                    }
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSelectedCustomer(null);
+                      setShowResults(true);
+                    }}
+                    onFocus={() => setShowResults(true)}
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {showResults && searchResults.length > 0 && !selectedCustomer && (
+            <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+              {searchResults.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-muted/50"
+                  onClick={() => {
+                    setSelectedCustomer(c);
+                    setShowResults(false);
+                    setSearchQuery("");
+                    form.setValue("customerId", c.id);
+                  }}
+                >
+                  {c.firstName} {c.lastName}
+                  {c.email && (
+                    <span className="ml-2 text-muted-foreground">{c.email}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Canal</Label>
-          <Select
-            defaultValue={COMMUNICATION_CHANNELS[0]}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
             name="channel"
-            disabled={isPending}
-          >
-            <SelectTrigger placeholder="Seleccionar canal" />
-            <SelectContent>
-              {COMMUNICATION_CHANNELS.map((ch) => (
-                <SelectItem key={ch} value={ch}>
-                  {CHANNEL_LABELS[ch] ?? ch}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Canal</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Seleccionar canal" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {COMMUNICATION_CHANNELS.map((ch) => (
+                      <SelectItem key={ch} value={ch}>
+                        {CHANNEL_LABELS[ch] ?? ch}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <div className="space-y-2">
-          <Label>Tipo de seguimiento</Label>
-          <Select
-            defaultValue={FOLLOWUP_TYPES[0]}
+          <FormField
+            control={form.control}
             name="followupType"
-            disabled={isPending}
-          >
-            <SelectTrigger placeholder="Seleccionar tipo" />
-            <SelectContent>
-              {FOLLOWUP_TYPES.map((ft) => (
-                <SelectItem key={ft} value={ft}>
-                  {FOLLOWUP_LABELS[ft] ?? ft}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de seguimiento</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Seleccionar tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {FOLLOWUP_TYPES.map((ft) => (
+                      <SelectItem key={ft} value={ft}>
+                        {FOLLOWUP_LABELS[ft] ?? ft}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-      </div>
 
-      {/* Template selector */}
-      {templates.length > 0 && (
-        <div className="space-y-2">
-          <Label>Plantilla (opcional)</Label>
-          <Select
-            onValueChange={(v) => handleTemplateChange(v as string | null)}
-            disabled={isPending}
-          >
-            <SelectTrigger placeholder="Seleccionar plantilla" />
-            <SelectContent>
-              {templates.map((tpl) => (
-                <SelectItem key={tpl.id} value={tpl.id}>
-                  {tpl.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+        {templates.length > 0 && (
+          <FormItem>
+            <FormLabel>Plantilla (opcional)</FormLabel>
+            <Select onValueChange={handleTemplateChange}>
+              <FormControl>
+                <SelectTrigger disabled={isPending}>
+                  <SelectValue placeholder="Seleccionar plantilla" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {templates.map((tpl) => (
+                  <SelectItem key={tpl.id} value={tpl.id}>
+                    {tpl.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
 
-      <div className="space-y-2">
-        <Label htmlFor="subject">Asunto (solo email)</Label>
-        <Input
-          id="subject"
+        <FormField
+          control={form.control}
           name="subject"
-          placeholder="Asunto del mensaje..."
-          disabled={isPending}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Asunto (solo email)</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value ?? ""} placeholder="Asunto del mensaje..." disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="body">Mensaje</Label>
-        <Textarea
-          id="body"
+        <FormField
+          control={form.control}
           name="body"
-          placeholder="Escribe el mensaje..."
-          required
-          disabled={isPending}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={4}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Mensaje</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Escribe el mensaje..."
+                  disabled={isPending}
+                  rows={4}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }

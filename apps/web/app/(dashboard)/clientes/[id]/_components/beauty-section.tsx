@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectTrigger,
+  SelectValue,
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
@@ -267,7 +268,7 @@ export function BeautySection({ customerId }: BeautySectionProps) {
                   name="skinType"
                   disabled={isPending}
                 >
-                  <SelectTrigger placeholder="Seleccionar" />
+                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(SKIN_TYPE_LABELS).map(([val, label]) => (
                       <SelectItem key={val} value={val}>
@@ -285,7 +286,7 @@ export function BeautySection({ customerId }: BeautySectionProps) {
                     name="skinTone"
                     disabled={isPending}
                   >
-                    <SelectTrigger placeholder="Seleccionar" />
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                     <SelectContent>
                       {Object.entries(SKIN_TONE_LABELS).map(([val, label]) => (
                         <SelectItem key={val} value={val}>
@@ -302,7 +303,7 @@ export function BeautySection({ customerId }: BeautySectionProps) {
                     name="skinSubtone"
                     disabled={isPending}
                   >
-                    <SelectTrigger placeholder="Seleccionar" />
+                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                     <SelectContent>
                       {Object.entries(SUBTONE_LABELS).map(([val, label]) => (
                         <SelectItem key={val} value={val}>
@@ -358,7 +359,7 @@ export function BeautySection({ customerId }: BeautySectionProps) {
               <div className="space-y-2">
                 <Label>Categoría</Label>
                 <Select name="category" disabled={isPending}>
-                  <SelectTrigger placeholder="Seleccionar categoría" />
+                  <SelectTrigger><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(SHADE_CATEGORY_LABELS).map(([val, label]) => (
                       <SelectItem key={val} value={val}>

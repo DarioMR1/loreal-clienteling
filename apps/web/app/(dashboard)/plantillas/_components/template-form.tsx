@@ -1,19 +1,32 @@
 "use client";
 
-import { COMMUNICATION_CHANNELS, FOLLOWUP_TYPES } from "@loreal/contracts";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createTemplateSchema,
+  type CreateTemplate,
+  COMMUNICATION_CHANNELS,
+  FOLLOWUP_TYPES,
+} from "@loreal/contracts";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+  FormMessage,
+} from "@/components/ui/form";
 import type { Brand } from "@/lib/hooks";
-
-export interface TemplateFormData {
-  name: string;
-  brandId?: string;
-  channel: string;
-  followupType: string;
-  body: string;
-}
 
 const CHANNEL_LABELS: Record<string, string> = { whatsapp: "WhatsApp", sms: "SMS", email: "Email" };
 const FOLLOWUP_LABELS: Record<string, string> = {
@@ -22,87 +35,146 @@ const FOLLOWUP_LABELS: Record<string, string> = {
 };
 
 interface TemplateFormProps {
-  defaultValues?: Record<string, unknown>;
+  defaultValues?: Partial<CreateTemplate>;
   brands: Brand[];
-  onSubmit: (data: TemplateFormData) => void;
+  onSubmit: (data: CreateTemplate) => void;
   isPending: boolean;
 }
 
-export function TemplateForm({ defaultValues: dv, brands, onSubmit, isPending }: TemplateFormProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const defaultValues = dv as any;
+export function TemplateForm({ defaultValues, brands, onSubmit, isPending }: TemplateFormProps) {
+  const form = useForm<CreateTemplate>({
+    resolver: zodResolver(createTemplateSchema),
+    defaultValues: {
+      name: defaultValues?.name ?? "",
+      brandId: defaultValues?.brandId ?? "",
+      channel: defaultValues?.channel ?? COMMUNICATION_CHANNELS[0],
+      followupType: defaultValues?.followupType ?? FOLLOWUP_TYPES[0],
+      body: defaultValues?.body ?? "",
+    },
+  });
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+  function handleSubmit(data: CreateTemplate) {
     onSubmit({
-      name: fd.get("name") as string,
-      brandId: (fd.get("brandId") as string) || undefined,
-      channel: fd.get("channel") as string,
-      followupType: fd.get("followupType") as string,
-      body: fd.get("body") as string,
+      ...data,
+      brandId: data.brandId || undefined,
     });
   }
 
   return (
-    <form id="template-form" onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Nombre</Label>
-        <Input id="name" name="name" placeholder="Seguimiento 3 meses" defaultValue={defaultValues?.name} required disabled={isPending} />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label>Marca</Label>
-          <Select defaultValue={defaultValues?.brandId ?? ""} name="brandId" disabled={isPending}>
-            <SelectTrigger placeholder="Global" />
-            <SelectContent>
-              <SelectItem value="">Global (todas)</SelectItem>
-              {brands.map((b) => (
-                <SelectItem key={b.id} value={b.id}>{b.displayName}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Canal</Label>
-          <Select defaultValue={defaultValues?.channel ?? COMMUNICATION_CHANNELS[0]} name="channel" disabled={isPending}>
-            <SelectTrigger placeholder="Canal" />
-            <SelectContent>
-              {COMMUNICATION_CHANNELS.map((ch) => (
-                <SelectItem key={ch} value={ch}>{CHANNEL_LABELS[ch] ?? ch}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Tipo de seguimiento</Label>
-          <Select defaultValue={defaultValues?.followupType ?? FOLLOWUP_TYPES[0]} name="followupType" disabled={isPending}>
-            <SelectTrigger placeholder="Tipo" />
-            <SelectContent>
-              {FOLLOWUP_TYPES.map((ft) => (
-                <SelectItem key={ft} value={ft}>{FOLLOWUP_LABELS[ft] ?? ft}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="body">Contenido del mensaje</Label>
-        <Textarea
-          id="body"
-          name="body"
-          rows={5}
-          placeholder="Hola {{customer.first_name}}, ..."
-          defaultValue={defaultValues?.body}
-          required
-          disabled={isPending}
+    <Form {...form}>
+      <form id="template-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Nombre</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Seguimiento 3 meses" disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <p className="text-xs text-muted-foreground">
-          Usa {"{{customer.first_name}}"}, {"{{product.name}}"}, {"{{appointment.date}}"} como variables.
-        </p>
-      </div>
-    </form>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField
+            control={form.control}
+            name="brandId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Marca</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Global" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">Global (todas)</SelectItem>
+                    {brands.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="channel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Canal</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Canal" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {COMMUNICATION_CHANNELS.map((ch) => (
+                      <SelectItem key={ch} value={ch}>
+                        {CHANNEL_LABELS[ch] ?? ch}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="followupType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de seguimiento</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger disabled={isPending}>
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {FOLLOWUP_TYPES.map((ft) => (
+                      <SelectItem key={ft} value={ft}>
+                        {FOLLOWUP_LABELS[ft] ?? ft}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="body"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Contenido del mensaje</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  rows={5}
+                  placeholder="Hola {{customer.first_name}}, ..."
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormDescription>
+                Usa {"{{customer.first_name}}"}, {"{{product.name}}"}, {"{{appointment.date}}"} como variables.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </form>
+    </Form>
   );
 }

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectTrigger,
+  SelectValue,
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
@@ -32,7 +33,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { CustomerForm, type CustomerFormData } from "./customer-form";
+import type { CreateCustomer } from "@loreal/contracts";
+import { CustomerForm } from "./customer-form";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -160,7 +162,7 @@ export function CustomersPage({ user }: CustomersPageProps) {
       : []),
   ];
 
-  function handleSubmit(data: CustomerFormData) {
+  function handleSubmit(data: CreateCustomer) {
     if (dialog?.mode === "edit") {
       updateCustomer.mutate(
         {
@@ -225,7 +227,7 @@ export function CustomersPage({ user }: CustomersPageProps) {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-44" placeholder="Todos los segmentos" />
+          <SelectTrigger className="w-44"><SelectValue placeholder="Todos los segmentos" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todos</SelectItem>
             {LIFECYCLE_SEGMENTS.map((seg) => (

@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
-import { StoreForm, type StoreFormData } from "./store-form";
+import type { CreateStore } from "@loreal/contracts";
+import { StoreForm } from "./store-form";
 
 type DialogState = null | { mode: "create" } | { mode: "edit"; store: Store };
 
@@ -73,7 +74,7 @@ export function StoresPage({ user }: StoresPageProps) {
       : []),
   ];
 
-  function handleSubmit(data: StoreFormData) {
+  function handleSubmit(data: CreateStore) {
     if (dialog?.mode === "edit") {
       updateStore.mutate({ id: dialog.store.id, ...data }, { onSuccess: () => setDialog(null) });
     } else {

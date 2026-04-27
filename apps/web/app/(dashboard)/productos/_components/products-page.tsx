@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
-import { ProductForm, type ProductFormData } from "./product-form";
+import type { CreateProduct } from "@loreal/contracts";
+import { ProductForm } from "./product-form";
 
 type DialogState = null | { mode: "create" } | { mode: "edit"; product: Product };
 
@@ -95,7 +96,7 @@ export function ProductsPage({ user }: ProductsPageProps) {
       : []),
   ];
 
-  function handleSubmit(data: ProductFormData) {
+  function handleSubmit(data: CreateProduct) {
     if (dialog?.mode === "edit") {
       updateProduct.mutate({ id: dialog.product.id, ...data } as Record<string, unknown> & { id: string }, { onSuccess: () => setDialog(null) });
     } else {
@@ -126,7 +127,7 @@ export function ProductsPage({ user }: ProductsPageProps) {
           className="max-w-xs"
         />
         <Select value={category} onValueChange={(v) => { setCategory(v as string); setPage(1); }}>
-          <SelectTrigger placeholder="Todas las categorías" className="w-48" />
+          <SelectTrigger className="w-48"><SelectValue placeholder="Todas las categorías" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todas</SelectItem>
             {PRODUCT_CATEGORIES.map((cat) => (
