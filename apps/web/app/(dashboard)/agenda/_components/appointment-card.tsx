@@ -46,7 +46,7 @@ export function AppointmentCard({ appointment, onClick }: AppointmentCardProps) 
   return (
     <button
       onClick={onClick}
-      className="w-full rounded-lg border border-border bg-card p-2 text-left text-xs transition-colors hover:bg-muted/50"
+      className="w-full rounded-xl border border-border/50 bg-card p-2 text-left text-xs transition-all duration-200 hover:bg-muted/40 hover:shadow-sm"
     >
       <div className="mb-1 font-medium tabular-nums">{time}</div>
       <div className="mb-1.5 flex flex-wrap gap-1">

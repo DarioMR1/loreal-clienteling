@@ -41,7 +41,7 @@ export function ConsentsSection({ customerId }: ConsentsSectionProps) {
         <CardContent className="py-8">
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-4 w-48 animate-pulse rounded bg-muted" />
+              <div key={i} className="h-4 w-48 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         </CardContent>
@@ -63,7 +63,7 @@ export function ConsentsSection({ customerId }: ConsentsSectionProps) {
             return (
               <div
                 key={type}
-                className="flex items-center justify-between rounded-lg border border-border p-3"
+                className="flex items-center justify-between rounded-xl border border-border/50 p-3"
               >
                 <div className="space-y-0.5">
                   <p className="text-sm font-medium">{label}</p>

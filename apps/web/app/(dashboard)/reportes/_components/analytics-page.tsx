@@ -110,8 +110,8 @@ export function AnalyticsPage({ user }: AnalyticsPageProps) {
           <CardContent>
             {loadingConversion ? (
               <div className="space-y-3">
-                <div className="h-4 w-48 animate-pulse rounded bg-muted" />
-                <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+                <div className="h-4 w-48 animate-pulse rounded-lg bg-muted" />
+                <div className="h-4 w-40 animate-pulse rounded-lg bg-muted" />
               </div>
             ) : (
               <dl className="space-y-3 text-sm">
@@ -159,7 +159,7 @@ export function AnalyticsPage({ user }: AnalyticsPageProps) {
                 {[1, 2, 3, 4].map((i) => (
                   <div
                     key={i}
-                    className="h-4 w-32 animate-pulse rounded bg-muted"
+                    className="h-4 w-32 animate-pulse rounded-lg bg-muted"
                   />
                 ))}
               </div>
@@ -320,7 +320,7 @@ function MetricCard({
       <CardHeader>
         <CardDescription>{title}</CardDescription>
         {isLoading ? (
-          <div className="h-7 w-20 animate-pulse rounded bg-muted" />
+          <div className="h-7 w-20 animate-pulse rounded-lg bg-muted" />
         ) : (
           <CardTitle className="text-2xl tabular-nums">{value}</CardTitle>
         )}

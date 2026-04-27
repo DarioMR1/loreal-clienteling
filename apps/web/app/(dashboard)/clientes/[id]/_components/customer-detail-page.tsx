@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCustomer, useDeleteCustomerArco } from "@/lib/hooks";
 import { can } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,9 +78,9 @@ export function CustomerDetailPage({
   if (isLoading) {
     return (
       <div className="mx-auto max-w-5xl space-y-6">
-        <div className="h-6 w-32 animate-pulse rounded bg-muted" />
-        <div className="h-8 w-64 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+        <div className="h-6 w-32 animate-pulse rounded-xl bg-muted" />
+        <div className="h-8 w-64 animate-pulse rounded-xl bg-muted" />
+        <div className="h-4 w-48 animate-pulse rounded-xl bg-muted" />
       </div>
     );
   }
@@ -157,19 +158,23 @@ export function CustomerDetailPage({
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-border">
+      {/* Tabs — Zen: subtle active indicator, generous spacing */}
+      <div className="flex gap-1 border-b border-border/50">
         {TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`px-3 py-2 text-sm font-medium transition-colors ${
+            className={cn(
+              "relative px-3 py-2.5 text-sm font-medium transition-all duration-200",
               activeTab === tab.key
-                ? "border-b-2 border-foreground text-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+                ? "text-foreground"
+                : "text-muted-foreground/60 hover:text-foreground",
+            )}
           >
             {tab.label}
+            {activeTab === tab.key && (
+              <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-primary" />
+            )}
           </button>
         ))}
       </div>

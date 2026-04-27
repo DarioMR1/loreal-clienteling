@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import {
   Card,
@@ -12,7 +13,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      {/* Hero section — Stripe-style onboarding prompt */}
+      {/* Hero section — Zen: clean hierarchy, generous Ma */}
       <section className="space-y-2">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Bienvenido, {session?.user?.fullName}
@@ -23,58 +24,67 @@ export default async function DashboardPage() {
         </p>
       </section>
 
-      {/* Info cards grid — 3 columns like Stripe's quick-start cards */}
+      {/* Subtle divider — Zen: single deliberate line */}
+      <div className="h-px bg-border/60" />
+
+      {/* Info cards grid — Zen: generous Ma between cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <div className="mb-1 flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <UsersSmIcon className="size-4 text-primary" />
-            </div>
-            <CardTitle>Clientes</CardTitle>
-            <CardDescription>
-              Consulta tu cartera de clientes y su historial de compras
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-xs font-medium text-accent">
-              Ver clientes →
-            </span>
-          </CardContent>
-        </Card>
+        <Link href="/clientes" className="group">
+          <Card className="h-full transition-shadow duration-200 group-hover:shadow-md">
+            <CardHeader>
+              <div className="mb-1 flex size-8 items-center justify-center rounded-xl bg-primary/10">
+                <UsersSmIcon className="size-4 text-primary" />
+              </div>
+              <CardTitle>Clientes</CardTitle>
+              <CardDescription>
+                Consulta tu cartera de clientes y su historial de compras
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <span className="text-xs font-medium text-accent transition-colors duration-200 group-hover:text-accent/80">
+                Ver clientes →
+              </span>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader>
-            <div className="mb-1 flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <CalSmIcon className="size-4 text-primary" />
-            </div>
-            <CardTitle>Agenda</CardTitle>
-            <CardDescription>
-              Programa citas y seguimientos con tus clientes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-xs font-medium text-accent">
-              Ver agenda →
-            </span>
-          </CardContent>
-        </Card>
+        <Link href="/agenda" className="group">
+          <Card className="h-full transition-shadow duration-200 group-hover:shadow-md">
+            <CardHeader>
+              <div className="mb-1 flex size-8 items-center justify-center rounded-xl bg-primary/10">
+                <CalSmIcon className="size-4 text-primary" />
+              </div>
+              <CardTitle>Agenda</CardTitle>
+              <CardDescription>
+                Programa citas y seguimientos con tus clientes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <span className="text-xs font-medium text-accent transition-colors duration-200 group-hover:text-accent/80">
+                Ver agenda →
+              </span>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader>
-            <div className="mb-1 flex size-8 items-center justify-center rounded-lg bg-primary/10">
-              <ChartSmIcon className="size-4 text-primary" />
-            </div>
-            <CardTitle>Reportes</CardTitle>
-            <CardDescription>
-              Analiza métricas de rendimiento y ventas del equipo
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <span className="text-xs font-medium text-accent">
-              Ver reportes →
-            </span>
-          </CardContent>
-        </Card>
+        <Link href="/reportes" className="group">
+          <Card className="h-full transition-shadow duration-200 group-hover:shadow-md">
+            <CardHeader>
+              <div className="mb-1 flex size-8 items-center justify-center rounded-xl bg-primary/10">
+                <ChartSmIcon className="size-4 text-primary" />
+              </div>
+              <CardTitle>Reportes</CardTitle>
+              <CardDescription>
+                Analiza métricas de rendimiento y ventas del equipo
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <span className="text-xs font-medium text-accent transition-colors duration-200 group-hover:text-accent/80">
+                Ver reportes →
+              </span>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Account info card — like Stripe's API keys panel */}

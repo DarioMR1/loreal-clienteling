@@ -121,12 +121,12 @@ export function AppointmentForm({
               )}
             />
             {showResults && searchResults.length > 0 && !selectedCustomer && (
-              <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+              <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto rounded-xl border border-border/50 bg-card shadow-lg ring-1 ring-foreground/[0.06]">
                 {searchResults.map((c) => (
                   <button
                     key={c.id}
                     type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted/50"
+                    className="w-full px-3 py-2 text-left text-sm transition-colors duration-150 hover:bg-muted/40"
                     onClick={() => {
                       setSelectedCustomer(c);
                       setShowResults(false);

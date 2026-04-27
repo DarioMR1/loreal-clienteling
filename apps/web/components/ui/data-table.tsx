@@ -37,7 +37,7 @@ function SkeletonRow({ cols }: { cols: number }) {
     <TableRow>
       {Array.from({ length: cols }).map((_, i) => (
         <TableCell key={i}>
-          <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+          <div className="h-4 w-24 animate-pulse rounded-lg bg-muted/80" />
         </TableCell>
       ))}
     </TableRow>
@@ -76,7 +76,7 @@ function DataTable<T extends { id?: string }>({
             <TableHead
               key={col.key}
               className={cn(
-                "text-xs font-medium text-muted-foreground",
+                "text-[11px] font-medium text-muted-foreground",
                 col.className,
               )}
             >

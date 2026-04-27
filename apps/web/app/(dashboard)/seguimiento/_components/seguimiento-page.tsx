@@ -244,7 +244,7 @@ export function SeguimientoPage({ user }: SeguimientoPageProps) {
                     {dialog.comm.body}
                   </dd>
                 </div>
-                <div className="border-t border-border pt-3">
+                <div className="border-t border-border/60 pt-3">
                   <dt className="mb-2 text-muted-foreground">Tracking</dt>
                   <dd className="flex flex-wrap gap-2">
                     <Badge variant="secondary" size="sm">

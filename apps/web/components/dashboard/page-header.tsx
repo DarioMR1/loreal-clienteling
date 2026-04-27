@@ -13,14 +13,18 @@ interface PageHeaderProps {
  */
 export function PageHeader({ title, description, action, className }: PageHeaderProps) {
   return (
-    <div data-slot="page-header" className={cn("flex items-start justify-between gap-4", className)}>
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
+    <div data-slot="page-header" className={cn("space-y-4", className)}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
+        </div>
+        {action}
       </div>
-      {action}
+      {/* Subtle divider — Zen: single deliberate line */}
+      <div className="h-px bg-border/60" />
     </div>
   )
 }

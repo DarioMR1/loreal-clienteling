@@ -158,10 +158,10 @@ export function AgendaPage({ user }: AgendaPageProps) {
 
       {/* Calendar */}
       {isLoading ? (
-        <div className="grid h-[300px] grid-cols-7 gap-px overflow-hidden rounded-lg border border-border bg-border">
+        <div className="grid h-[300px] grid-cols-7 gap-px overflow-hidden rounded-xl border border-border/50 bg-border/50">
           {Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="bg-card p-2">
-              <div className="h-4 w-8 animate-pulse rounded bg-muted" />
+              <div className="h-4 w-8 animate-pulse rounded-lg bg-muted" />
             </div>
           ))}
         </div>
@@ -282,7 +282,7 @@ export function AgendaPage({ user }: AgendaPageProps) {
 
               {/* Status change */}
               {can(role, "appointment.edit") && (
-                <div className="mt-4 space-y-2 border-t border-border pt-4">
+                <div className="mt-4 space-y-2 border-t border-border/60 pt-4">
                   <Label className="text-xs text-muted-foreground">
                     Cambiar estado
                   </Label>
