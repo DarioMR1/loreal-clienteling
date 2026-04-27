@@ -27,6 +27,7 @@ final class AuthManager {
             var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/sign-in/email"))
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.setValue(baseURL.absoluteString, forHTTPHeaderField: "Origin")
 
             let body = ["email": email, "password": password]
             request.httpBody = try JSONEncoder().encode(body)
@@ -84,6 +85,7 @@ final class AuthManager {
     private func fetchSession(token: String) async {
         var request = URLRequest(url: baseURL.appendingPathComponent("api/auth/get-session"))
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue(baseURL.absoluteString, forHTTPHeaderField: "Origin")
 
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               let http = response as? HTTPURLResponse,
@@ -91,9 +93,7 @@ final class AuthManager {
             return
         }
 
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        currentUser = try? decoder.decode(SessionResponse.self, from: data).user
+        currentUser = try? JSONDecoder().decode(SessionResponse.self, from: data).user
     }
 }
 
