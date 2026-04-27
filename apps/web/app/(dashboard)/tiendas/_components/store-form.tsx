@@ -100,7 +100,9 @@ export function StoreForm({ defaultValues, zones, onSubmit, isPending }: StoreFo
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar cadena" />
+                      <SelectValue placeholder="Seleccionar cadena">
+                        {field.value ? CHAIN_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -118,27 +120,32 @@ export function StoreForm({ defaultValues, zones, onSubmit, isPending }: StoreFo
           <FormField
             control={form.control}
             name="zoneId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Zona</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value ?? ""}>
-                  <FormControl>
-                    <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar zona" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="">Sin zona</SelectItem>
-                    {zones.map((z) => (
-                      <SelectItem key={z.id} value={z.id}>
-                        {z.displayName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const zoneMap = Object.fromEntries(zones.map((z) => [z.id, z.displayName]));
+              return (
+                <FormItem>
+                  <FormLabel>Zona</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                    <FormControl>
+                      <SelectTrigger disabled={isPending}>
+                        <SelectValue placeholder="Seleccionar zona">
+                          {field.value ? zoneMap[field.value] ?? field.value : "Sin zona"}
+                        </SelectValue>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Sin zona</SelectItem>
+                      {zones.map((z) => (
+                        <SelectItem key={z.id} value={z.id}>
+                          {z.displayName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
         </div>
 

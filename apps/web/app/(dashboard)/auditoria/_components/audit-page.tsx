@@ -104,7 +104,11 @@ export function AuditPage() {
         <div className="space-y-1">
           <Label className="text-xs">Acción</Label>
           <Select value={action} onValueChange={(v) => { setAction(v as string); setPage(1); }}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Todas" /></SelectTrigger>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Todas">
+                {action ? ACTION_LABEL[action] ?? action : undefined}
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Todas</SelectItem>
               {AUDIT_ACTIONS.map((a) => (

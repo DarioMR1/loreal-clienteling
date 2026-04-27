@@ -146,7 +146,9 @@ export function SignUpForm() {
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar rol" />
+                    <SelectValue placeholder="Seleccionar rol">
+                      {field.value ? ROLE_LABELS[field.value] ?? field.value : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

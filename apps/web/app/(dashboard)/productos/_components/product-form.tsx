@@ -36,6 +36,8 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ defaultValues, brands, onSubmit, isPending }: ProductFormProps) {
+  const brandMap = Object.fromEntries(brands.map((b) => [b.id, b.displayName]));
+
   const form = useForm<CreateProduct>({
     resolver: zodResolver(createProductSchema),
     defaultValues: {
@@ -92,7 +94,9 @@ export function ProductForm({ defaultValues, brands, onSubmit, isPending }: Prod
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar marca" />
+                      <SelectValue placeholder="Seleccionar marca">
+                        {field.value ? brandMap[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -116,7 +120,9 @@ export function ProductForm({ defaultValues, brands, onSubmit, isPending }: Prod
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar categoría" />
+                      <SelectValue placeholder="Seleccionar categoría">
+                        {field.value ? CATEGORY_LABEL[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

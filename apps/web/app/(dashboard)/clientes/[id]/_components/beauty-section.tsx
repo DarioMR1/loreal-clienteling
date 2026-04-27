@@ -268,7 +268,11 @@ export function BeautySection({ customerId }: BeautySectionProps) {
                   name="skinType"
                   disabled={isPending}
                 >
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar">
+                      {profile?.skinType ? SKIN_TYPE_LABELS[profile.skinType] ?? profile.skinType : undefined}
+                    </SelectValue>
+                  </SelectTrigger>
                   <SelectContent>
                     {Object.entries(SKIN_TYPE_LABELS).map(([val, label]) => (
                       <SelectItem key={val} value={val}>
@@ -286,7 +290,11 @@ export function BeautySection({ customerId }: BeautySectionProps) {
                     name="skinTone"
                     disabled={isPending}
                   >
-                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar">
+                        {profile?.skinTone ? SKIN_TONE_LABELS[profile.skinTone] ?? profile.skinTone : undefined}
+                      </SelectValue>
+                    </SelectTrigger>
                     <SelectContent>
                       {Object.entries(SKIN_TONE_LABELS).map(([val, label]) => (
                         <SelectItem key={val} value={val}>
@@ -303,7 +311,11 @@ export function BeautySection({ customerId }: BeautySectionProps) {
                     name="skinSubtone"
                     disabled={isPending}
                   >
-                    <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar">
+                        {profile?.skinSubtone ? SUBTONE_LABELS[profile.skinSubtone] ?? profile.skinSubtone : undefined}
+                      </SelectValue>
+                    </SelectTrigger>
                     <SelectContent>
                       {Object.entries(SUBTONE_LABELS).map(([val, label]) => (
                         <SelectItem key={val} value={val}>

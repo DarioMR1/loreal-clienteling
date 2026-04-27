@@ -227,7 +227,11 @@ export function CustomersPage({ user }: CustomersPageProps) {
             setPage(1);
           }}
         >
-          <SelectTrigger className="w-44"><SelectValue placeholder="Todos los segmentos" /></SelectTrigger>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Todos los segmentos">
+              {segment ? SEGMENT_LABEL[segment] ?? segment : undefined}
+            </SelectValue>
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todos</SelectItem>
             {LIFECYCLE_SEGMENTS.map((seg) => (

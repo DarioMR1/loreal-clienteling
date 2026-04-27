@@ -150,7 +150,9 @@ export function CommunicationForm({
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar canal" />
+                      <SelectValue placeholder="Seleccionar canal">
+                        {field.value ? CHANNEL_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -175,7 +177,9 @@ export function CommunicationForm({
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar tipo" />
+                      <SelectValue placeholder="Seleccionar tipo">
+                        {field.value ? FOLLOWUP_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

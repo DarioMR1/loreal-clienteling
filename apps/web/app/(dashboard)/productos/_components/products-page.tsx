@@ -127,7 +127,11 @@ export function ProductsPage({ user }: ProductsPageProps) {
           className="max-w-xs"
         />
         <Select value={category} onValueChange={(v) => { setCategory(v as string); setPage(1); }}>
-          <SelectTrigger className="w-48"><SelectValue placeholder="Todas las categorías" /></SelectTrigger>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Todas las categorías">
+              {category ? CATEGORY_LABEL[category] ?? category : undefined}
+            </SelectValue>
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todas</SelectItem>
             {PRODUCT_CATEGORIES.map((cat) => (

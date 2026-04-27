@@ -42,6 +42,8 @@ interface TemplateFormProps {
 }
 
 export function TemplateForm({ defaultValues, brands, onSubmit, isPending }: TemplateFormProps) {
+  const brandMap = Object.fromEntries(brands.map((b) => [b.id, b.displayName]));
+
   const form = useForm<CreateTemplate>({
     resolver: zodResolver(createTemplateSchema),
     defaultValues: {
@@ -87,7 +89,9 @@ export function TemplateForm({ defaultValues, brands, onSubmit, isPending }: Tem
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Global" />
+                      <SelectValue placeholder="Global">
+                        {field.value ? brandMap[field.value] ?? field.value : "Global (todas)"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -112,7 +116,9 @@ export function TemplateForm({ defaultValues, brands, onSubmit, isPending }: Tem
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Canal" />
+                      <SelectValue placeholder="Canal">
+                        {field.value ? CHANNEL_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -136,7 +142,9 @@ export function TemplateForm({ defaultValues, brands, onSubmit, isPending }: Tem
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Tipo" />
+                      <SelectValue placeholder="Tipo">
+                        {field.value ? FOLLOWUP_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

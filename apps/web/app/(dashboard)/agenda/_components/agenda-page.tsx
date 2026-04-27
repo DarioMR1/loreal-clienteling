@@ -292,7 +292,9 @@ export function AgendaPage({ user }: AgendaPageProps) {
                       onValueChange={(v) => setStatusUpdate(v ?? "")}
                     >
                       <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Seleccionar estado" />
+                        <SelectValue placeholder="Seleccionar estado">
+                          {statusUpdate ? STATUS_LABEL[statusUpdate] ?? statusUpdate : undefined}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {APPOINTMENT_STATUSES.map((s) => (

@@ -46,6 +46,10 @@ interface UserFormProps {
 }
 
 export function UserForm({ stores, brands, zones, onSubmit, isPending }: UserFormProps) {
+  const storeMap = Object.fromEntries(stores.map((s) => [s.id, s.displayName]));
+  const brandMap = Object.fromEntries(brands.map((b) => [b.id, b.displayName]));
+  const zoneMap = Object.fromEntries(zones.map((z) => [z.id, z.displayName]));
+
   const form = useForm<CreateUserForm>({
     resolver: zodResolver(createUserFormSchema),
     defaultValues: {
@@ -123,7 +127,9 @@ export function UserForm({ stores, brands, zones, onSubmit, isPending }: UserFor
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar rol" />
+                      <SelectValue placeholder="Seleccionar rol">
+                        {field.value ? ROLE_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -150,7 +156,9 @@ export function UserForm({ stores, brands, zones, onSubmit, isPending }: UserFor
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar tienda" />
+                      <SelectValue placeholder="Seleccionar tienda">
+                        {field.value ? storeMap[field.value] ?? field.value : "Sin asignar"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -175,7 +183,9 @@ export function UserForm({ stores, brands, zones, onSubmit, isPending }: UserFor
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar marca" />
+                      <SelectValue placeholder="Seleccionar marca">
+                        {field.value ? brandMap[field.value] ?? field.value : "Sin asignar"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -200,7 +210,9 @@ export function UserForm({ stores, brands, zones, onSubmit, isPending }: UserFor
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar zona" />
+                      <SelectValue placeholder="Seleccionar zona">
+                        {field.value ? zoneMap[field.value] ?? field.value : "Sin asignar"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

@@ -154,7 +154,9 @@ export function AppointmentForm({
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger disabled={isPending}>
-                    <SelectValue placeholder="Seleccionar tipo" />
+                    <SelectValue placeholder="Seleccionar tipo">
+                      {field.value ? EVENT_LABELS[field.value] ?? field.value : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

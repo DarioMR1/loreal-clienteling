@@ -167,7 +167,9 @@ export function CustomerForm({
                 <Select onValueChange={field.onChange} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger disabled={isPending}>
-                      <SelectValue placeholder="Seleccionar" />
+                      <SelectValue placeholder="Seleccionar">
+                        {field.value ? GENDER_LABELS[field.value] ?? field.value : undefined}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

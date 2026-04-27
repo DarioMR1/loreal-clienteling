@@ -82,7 +82,9 @@ export function BrandForm({ defaultValues, onSubmit, isPending }: BrandFormProps
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger disabled={isPending}>
-                    <SelectValue placeholder="Seleccionar segmento" />
+                    <SelectValue placeholder="Seleccionar segmento">
+                      {field.value ? TIER_LABELS[field.value] ?? field.value : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
