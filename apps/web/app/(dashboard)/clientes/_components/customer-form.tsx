@@ -80,7 +80,7 @@ export function CustomerForm({
     if (data.phone) cleaned.phone = data.phone;
     if (data.gender) cleaned.gender = data.gender;
     if (data.birthDate) cleaned.birthDate = data.birthDate;
-    onSubmit(cleaned as CreateCustomer);
+    onSubmit(cleaned as unknown as CreateCustomer);
   }
 
   return (

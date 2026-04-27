@@ -1,8 +1,5 @@
 import { z } from "zod";
-import {
-  APPOINTMENT_STATUSES,
-  APPOINTMENT_EVENT_TYPES,
-} from "../enums/appointment";
+import { APPOINTMENT_EVENT_TYPES, APPOINTMENT_STATUSES } from "@loreal/contracts";
 
 export const createAppointmentSchema = z.object({
   customerId: z.string().uuid(),
@@ -14,13 +11,9 @@ export const createAppointmentSchema = z.object({
   videoLink: z.string().url().optional(),
 });
 
-export type CreateAppointment = z.infer<typeof createAppointmentSchema>;
-
 export const updateAppointmentSchema = z.object({
   status: z.enum(APPOINTMENT_STATUSES as [string, ...string[]]).optional(),
   scheduledAt: z.coerce.date().optional(),
   durationMinutes: z.number().int().positive().max(480).optional(),
   comments: z.string().max(1000).optional(),
 });
-
-export type UpdateAppointment = z.infer<typeof updateAppointmentSchema>;

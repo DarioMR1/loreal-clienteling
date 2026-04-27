@@ -2,7 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createBrandSchema, type CreateBrand, BRAND_TIERS } from "@loreal/contracts";
+import { type CreateBrand, BRAND_TIERS } from "@loreal/contracts";
+import { createBrandSchema } from "@/lib/schemas/brands";
 import { Input } from "@/components/ui/input";
 import {
   Select,

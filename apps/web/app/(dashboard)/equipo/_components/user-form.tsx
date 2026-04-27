@@ -2,7 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createUserSchema, type CreateUser, USER_ROLES } from "@loreal/contracts";
+import { type CreateUser, USER_ROLES } from "@loreal/contracts";
+import { createUserSchema } from "@/lib/schemas/users";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import {

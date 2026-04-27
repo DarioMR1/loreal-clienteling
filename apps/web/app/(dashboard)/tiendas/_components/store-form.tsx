@@ -2,7 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createStoreSchema, type CreateStore, STORE_CHAINS } from "@loreal/contracts";
+import { type CreateStore, STORE_CHAINS } from "@loreal/contracts";
+import { createStoreSchema } from "@/lib/schemas/stores";
 import { Input } from "@/components/ui/input";
 import {
   Select,

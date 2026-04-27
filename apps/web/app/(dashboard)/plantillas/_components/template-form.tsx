@@ -3,11 +3,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createTemplateSchema,
   type CreateTemplate,
   COMMUNICATION_CHANNELS,
   FOLLOWUP_TYPES,
 } from "@loreal/contracts";
+import { createTemplateSchema } from "@/lib/schemas/templates";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {

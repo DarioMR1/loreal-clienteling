@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { USER_ROLES } from "../enums/roles";
+import { USER_ROLES } from "@loreal/contracts";
 
 export const createUserSchema = z.object({
   email: z.string().email(),
@@ -10,15 +10,9 @@ export const createUserSchema = z.object({
   brandId: z.string().uuid().optional(),
 });
 
-export type CreateUser = z.infer<typeof createUserSchema>;
-
 export const updateUserSchema = createUserSchema.partial().omit({ email: true });
-
-export type UpdateUser = z.infer<typeof updateUserSchema>;
 
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
 });
-
-export type Login = z.infer<typeof loginSchema>;

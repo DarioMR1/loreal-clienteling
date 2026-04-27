@@ -7,10 +7,6 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "zod": "^3.25.0",
-    "zod-openapi": "^5.4.6"
-  },
   "devDependencies": {
     "typescript": "^6.0.0"
   }

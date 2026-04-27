@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PRODUCT_CATEGORIES } from "../enums/product";
+import { PRODUCT_CATEGORIES } from "@loreal/contracts";
 
 export const createProductSchema = z.object({
   sku: z.string().min(1).max(50),
@@ -12,8 +12,4 @@ export const createProductSchema = z.object({
   estimatedDurationDays: z.coerce.number().int().positive().optional(),
 });
 
-export type CreateProduct = z.infer<typeof createProductSchema>;
-
 export const updateProductSchema = createProductSchema.partial();
-
-export type UpdateProduct = z.infer<typeof updateProductSchema>;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BRAND_TIERS } from "../enums/brand";
+import { BRAND_TIERS } from "@loreal/contracts";
 
 export const createBrandSchema = z.object({
   code: z.string().min(1).max(50),
@@ -7,8 +7,4 @@ export const createBrandSchema = z.object({
   tier: z.enum(BRAND_TIERS as [string, ...string[]]),
 });
 
-export type CreateBrand = z.infer<typeof createBrandSchema>;
-
 export const updateBrandSchema = createBrandSchema.partial();
-
-export type UpdateBrand = z.infer<typeof updateBrandSchema>;

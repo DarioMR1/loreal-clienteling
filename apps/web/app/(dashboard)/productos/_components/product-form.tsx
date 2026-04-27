@@ -2,7 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createProductSchema, type CreateProduct, PRODUCT_CATEGORIES } from "@loreal/contracts";
+import { type CreateProduct, PRODUCT_CATEGORIES } from "@loreal/contracts";
+import { createProductSchema } from "@/lib/schemas/products";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {

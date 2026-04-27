@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { COMMUNICATION_CHANNELS } from "../enums/communication";
-import { FOLLOWUP_TYPES } from "../enums/communication";
+import { COMMUNICATION_CHANNELS, FOLLOWUP_TYPES } from "@loreal/contracts";
 
 export const createTemplateSchema = z.object({
   name: z.string().min(1).max(200),
@@ -10,8 +9,4 @@ export const createTemplateSchema = z.object({
   body: z.string().min(1).max(5000),
 });
 
-export type CreateTemplate = z.infer<typeof createTemplateSchema>;
-
 export const updateTemplateSchema = createTemplateSchema.partial();
-
-export type UpdateTemplate = z.infer<typeof updateTemplateSchema>;

@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  createCommunicationSchema,
   type CreateCommunication,
   COMMUNICATION_CHANNELS,
   FOLLOWUP_TYPES,
 } from "@loreal/contracts";
+import { createCommunicationSchema } from "@/lib/schemas/communications";
 import { useCustomerSearch, useTemplates, type Customer } from "@/lib/hooks";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";

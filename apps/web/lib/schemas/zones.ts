@@ -6,8 +6,4 @@ export const createZoneSchema = z.object({
   region: z.string().max(200).optional(),
 });
 
-export type CreateZone = z.infer<typeof createZoneSchema>;
-
 export const updateZoneSchema = createZoneSchema.partial();
-
-export type UpdateZone = z.infer<typeof updateZoneSchema>;
