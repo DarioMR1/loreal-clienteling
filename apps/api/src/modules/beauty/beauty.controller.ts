@@ -1,5 +1,5 @@
 import { Controller, Get, Put, Post, Param, Body, Query, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { BeautyService } from "./beauty.service";
 import { UpsertBeautyProfileDto, CreateShadeDto } from "../../dtos/beauty.dto";
@@ -12,11 +12,14 @@ export class BeautyController {
   constructor(@Inject(BeautyService) private beautyService: BeautyService) {}
 
   @Get("beauty-profile")
+  @ApiParam({ name: "customerId", type: String })
   findProfile(@Param("customerId") customerId: string) {
     return this.beautyService.findProfile(customerId);
   }
 
   @Put("beauty-profile")
+  @ApiParam({ name: "customerId", type: String })
+  @ApiBody({ type: UpsertBeautyProfileDto })
   upsertProfile(
     @Param("customerId") customerId: string,
     @Body() body: UpsertBeautyProfileDto,
@@ -29,6 +32,8 @@ export class BeautyController {
   }
 
   @Post("shades")
+  @ApiParam({ name: "customerId", type: String })
+  @ApiBody({ type: CreateShadeDto })
   addShade(
     @Body() body: CreateShadeDto,
     @Session() session: UserSession,
@@ -37,6 +42,9 @@ export class BeautyController {
   }
 
   @Get("shade-matches")
+  @ApiParam({ name: "customerId", type: String })
+  @ApiQuery({ name: "category", type: String })
+  @ApiQuery({ name: "brandId", type: String, required: false })
   getShadeMatches(
     @Param("customerId") customerId: string,
     @Query("category") category: string,

@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Put, Param, Body, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { BrandsService } from "./brands.service";
 import { CreateBrandDto, UpdateBrandDto } from "../../dtos/brands.dto";
@@ -17,24 +17,29 @@ export class BrandsController {
   }
 
   @Get(":id")
+  @ApiParam({ name: "id", type: String })
   findOne(@Param("id") id: string) {
     return this.brandsService.findOne(id);
   }
 
   @Post()
   @Roles(["admin"])
+  @ApiBody({ type: CreateBrandDto })
   create(@Body() body: CreateBrandDto) {
     return this.brandsService.create(body);
   }
 
   @Patch(":id")
   @Roles(["admin"])
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateBrandDto })
   update(@Param("id") id: string, @Body() body: UpdateBrandDto) {
     return this.brandsService.update(id, body);
   }
 
   @Put(":id/config")
   @Roles(["admin"])
+  @ApiParam({ name: "id", type: String })
   upsertConfig(@Param("id") id: string, @Body() body: Record<string, unknown>) {
     return this.brandsService.upsertConfig(id, body);
   }

@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiParam } from "@nestjs/swagger";
 import { Roles } from "@thallesp/nestjs-better-auth";
 import { AuditQueryService } from "./audit.service";
 import { AuditQueryDto } from "../../dtos/audit.dto";
@@ -25,6 +25,7 @@ export class AuditController {
   }
 
   @Get(":id")
+  @ApiParam({ name: "id", type: String })
   findOne(@Param("id") id: string) {
     return this.auditQueryService.findOne(id);
   }

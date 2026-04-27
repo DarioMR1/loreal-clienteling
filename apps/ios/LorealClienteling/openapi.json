@@ -1,0 +1,2738 @@
+{
+    "openapi": "3.0.0",
+    "paths": {
+        "/health": {
+            "get": {
+                "operationId": "HealthController_health",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Health"
+                ]
+            }
+        },
+        "/zones": {
+            "get": {
+                "operationId": "ZonesController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Zones"
+                ]
+            },
+            "post": {
+                "operationId": "ZonesController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateZoneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Zones"
+                ]
+            }
+        },
+        "/zones/{id}": {
+            "get": {
+                "operationId": "ZonesController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Zones"
+                ]
+            },
+            "patch": {
+                "operationId": "ZonesController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateZoneDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Zones"
+                ]
+            }
+        },
+        "/brands": {
+            "get": {
+                "operationId": "BrandsController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Brands"
+                ]
+            },
+            "post": {
+                "operationId": "BrandsController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBrandDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Brands"
+                ]
+            }
+        },
+        "/brands/{id}": {
+            "get": {
+                "operationId": "BrandsController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Brands"
+                ]
+            },
+            "patch": {
+                "operationId": "BrandsController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateBrandDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Brands"
+                ]
+            }
+        },
+        "/brands/{id}/config": {
+            "put": {
+                "operationId": "BrandsController_upsertConfig",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Brands"
+                ]
+            }
+        },
+        "/stores": {
+            "get": {
+                "operationId": "StoresController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Stores"
+                ]
+            },
+            "post": {
+                "operationId": "StoresController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateStoreDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Stores"
+                ]
+            }
+        },
+        "/stores/{id}": {
+            "get": {
+                "operationId": "StoresController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Stores"
+                ]
+            },
+            "patch": {
+                "operationId": "StoresController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateStoreDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Stores"
+                ]
+            }
+        },
+        "/products": {
+            "get": {
+                "operationId": "ProductsController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Products"
+                ]
+            },
+            "post": {
+                "operationId": "ProductsController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateProductDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Products"
+                ]
+            }
+        },
+        "/products/{id}": {
+            "get": {
+                "operationId": "ProductsController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Products"
+                ]
+            },
+            "patch": {
+                "operationId": "ProductsController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateProductDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Products"
+                ]
+            }
+        },
+        "/products/{id}/availability": {
+            "get": {
+                "operationId": "ProductsController_getAvailability",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Products"
+                ]
+            }
+        },
+        "/products/{id}/availability/{storeId}": {
+            "patch": {
+                "operationId": "ProductsController_updateAvailability",
+                "parameters": [
+                    {
+                        "name": "storeId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateAvailabilityDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Products"
+                ]
+            }
+        },
+        "/customers": {
+            "get": {
+                "operationId": "CustomersController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customers"
+                ]
+            },
+            "post": {
+                "operationId": "CustomersController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCustomerDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customers"
+                ]
+            }
+        },
+        "/customers/search": {
+            "get": {
+                "operationId": "CustomersController_search",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customers"
+                ]
+            }
+        },
+        "/customers/{id}": {
+            "get": {
+                "operationId": "CustomersController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customers"
+                ]
+            },
+            "patch": {
+                "operationId": "CustomersController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateCustomerDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customers"
+                ]
+            }
+        },
+        "/customers/{id}/arco": {
+            "delete": {
+                "operationId": "CustomersController_executeRightToBeForgotten",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Customers"
+                ]
+            }
+        },
+        "/customers/{customerId}/beauty-profile": {
+            "get": {
+                "operationId": "BeautyController_findProfile",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Beauty Profiles"
+                ]
+            },
+            "put": {
+                "operationId": "BeautyController_upsertProfile",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpsertBeautyProfileDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Beauty Profiles"
+                ]
+            }
+        },
+        "/customers/{customerId}/shades": {
+            "post": {
+                "operationId": "BeautyController_addShade",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateShadeDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Beauty Profiles"
+                ]
+            }
+        },
+        "/customers/{customerId}/shade-matches": {
+            "get": {
+                "operationId": "BeautyController_getShadeMatches",
+                "parameters": [
+                    {
+                        "name": "brandId",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Beauty Profiles"
+                ]
+            }
+        },
+        "/customers/{customerId}/consents": {
+            "get": {
+                "operationId": "ConsentsController_findByCustomer",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Consents"
+                ]
+            },
+            "post": {
+                "operationId": "ConsentsController_grant",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/GrantConsentDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Consents"
+                ]
+            }
+        },
+        "/customers/{customerId}/consents/{type}": {
+            "delete": {
+                "operationId": "ConsentsController_revoke",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Consents"
+                ]
+            }
+        },
+        "/customers/{customerId}/recommendations": {
+            "get": {
+                "operationId": "RecommendationsController_findByCustomer",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Recommendations"
+                ]
+            }
+        },
+        "/recommendations": {
+            "post": {
+                "operationId": "RecommendationsController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateRecommendationDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Recommendations"
+                ]
+            }
+        },
+        "/recommendations/ai": {
+            "post": {
+                "operationId": "RecommendationsController_requestAi",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AiRecommendationRequestDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Recommendations"
+                ]
+            }
+        },
+        "/recommendations/{id}/convert": {
+            "patch": {
+                "operationId": "RecommendationsController_markConverted",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Recommendations"
+                ]
+            }
+        },
+        "/customers/{customerId}/purchases": {
+            "get": {
+                "operationId": "PurchasesController_findByCustomer",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Purchases"
+                ]
+            }
+        },
+        "/purchases": {
+            "post": {
+                "operationId": "PurchasesController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreatePurchaseDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Purchases"
+                ]
+            }
+        },
+        "/purchases/{id}": {
+            "get": {
+                "operationId": "PurchasesController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Purchases"
+                ]
+            }
+        },
+        "/customers/{customerId}/samples": {
+            "get": {
+                "operationId": "SamplesController_findByCustomer",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Samples"
+                ]
+            }
+        },
+        "/samples": {
+            "post": {
+                "operationId": "SamplesController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateSampleDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Samples"
+                ]
+            }
+        },
+        "/samples/{id}/convert": {
+            "patch": {
+                "operationId": "SamplesController_markConverted",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Samples"
+                ]
+            }
+        },
+        "/appointments": {
+            "get": {
+                "operationId": "AppointmentsController_findAll",
+                "parameters": [
+                    {
+                        "name": "to",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Appointments"
+                ]
+            },
+            "post": {
+                "operationId": "AppointmentsController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateAppointmentDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Appointments"
+                ]
+            }
+        },
+        "/appointments/calendar": {
+            "get": {
+                "operationId": "AppointmentsController_getCalendar",
+                "parameters": [
+                    {
+                        "name": "to",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "from",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Appointments"
+                ]
+            }
+        },
+        "/appointments/{id}": {
+            "get": {
+                "operationId": "AppointmentsController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Appointments"
+                ]
+            },
+            "patch": {
+                "operationId": "AppointmentsController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateAppointmentDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Appointments"
+                ]
+            }
+        },
+        "/communications": {
+            "get": {
+                "operationId": "CommunicationsController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            },
+            "post": {
+                "operationId": "CommunicationsController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCommunicationDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            }
+        },
+        "/customers/{customerId}/communications": {
+            "get": {
+                "operationId": "CommunicationsController_findByCustomer",
+                "parameters": [
+                    {
+                        "name": "customerId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            }
+        },
+        "/communications/templates": {
+            "get": {
+                "operationId": "CommunicationsController_findTemplates",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            },
+            "post": {
+                "operationId": "CommunicationsController_createTemplate",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateTemplateDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            }
+        },
+        "/communications/templates/{id}": {
+            "patch": {
+                "operationId": "CommunicationsController_updateTemplate",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTemplateDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            }
+        },
+        "/communications/{id}/tracking": {
+            "patch": {
+                "operationId": "CommunicationsController_updateTracking",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateTrackingDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Communications"
+                ]
+            }
+        },
+        "/audit-logs": {
+            "get": {
+                "operationId": "AuditController_findAll",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Audit"
+                ]
+            }
+        },
+        "/audit-logs/{id}": {
+            "get": {
+                "operationId": "AuditController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Audit"
+                ]
+            }
+        },
+        "/analytics/dashboard": {
+            "get": {
+                "operationId": "AnalyticsController_getDashboard",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Analytics"
+                ]
+            }
+        },
+        "/analytics/conversion": {
+            "get": {
+                "operationId": "AnalyticsController_getConversion",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Analytics"
+                ]
+            }
+        },
+        "/analytics/customers": {
+            "get": {
+                "operationId": "AnalyticsController_getCustomerSegments",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Analytics"
+                ]
+            }
+        },
+        "/analytics/export": {
+            "get": {
+                "operationId": "AnalyticsController_exportData",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "tags": [
+                    "Analytics"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "L'Or\u00e9al Clienteling API",
+        "description": "API for L'Or\u00e9al beauty advisor clienteling platform",
+        "version": "1.0",
+        "contact": {}
+    },
+    "tags": [],
+    "servers": [
+        {
+            "url": "http://localhost:3001",
+            "description": "Development"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "bearer": {
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "type": "http"
+            }
+        },
+        "schemas": {
+            "CreateZoneDto": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "CDMX-NOR",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "example": "CDMX Norte",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "region": {
+                        "type": "string",
+                        "example": "Centro",
+                        "maxLength": 200
+                    }
+                },
+                "required": [
+                    "code",
+                    "displayName"
+                ]
+            },
+            "UpdateZoneDto": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "CDMX-NOR",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "example": "CDMX Norte",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "region": {
+                        "type": "string",
+                        "example": "Centro",
+                        "maxLength": 200
+                    }
+                }
+            },
+            "CreateBrandDto": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "LANCOME",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "example": "Lanc\u00f4me",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "tier": {
+                        "type": "string",
+                        "enum": [
+                            "luxury",
+                            "premium",
+                            "mass"
+                        ],
+                        "example": "luxury"
+                    }
+                },
+                "required": [
+                    "code",
+                    "displayName",
+                    "tier"
+                ]
+            },
+            "UpdateBrandDto": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "LANCOME",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "example": "Lanc\u00f4me",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "tier": {
+                        "type": "string",
+                        "enum": [
+                            "luxury",
+                            "premium",
+                            "mass"
+                        ],
+                        "example": "luxury"
+                    },
+                    "active": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "CreateStoreDto": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "LIV-SANTA-FE",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "example": "Liverpool Santa Fe",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "chain": {
+                        "type": "string",
+                        "enum": [
+                            "liverpool",
+                            "palacio",
+                            "owned"
+                        ],
+                        "example": "liverpool"
+                    },
+                    "zoneId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "address": {
+                        "type": "string",
+                        "maxLength": 300
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Ciudad de M\u00e9xico",
+                        "maxLength": 100
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "CDMX",
+                        "maxLength": 100
+                    }
+                },
+                "required": [
+                    "code",
+                    "displayName",
+                    "chain"
+                ]
+            },
+            "UpdateStoreDto": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "example": "LIV-SANTA-FE",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "displayName": {
+                        "type": "string",
+                        "example": "Liverpool Santa Fe",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "chain": {
+                        "type": "string",
+                        "enum": [
+                            "liverpool",
+                            "palacio",
+                            "owned"
+                        ],
+                        "example": "liverpool"
+                    },
+                    "zoneId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "address": {
+                        "type": "string",
+                        "maxLength": 300
+                    },
+                    "city": {
+                        "type": "string",
+                        "example": "Ciudad de M\u00e9xico",
+                        "maxLength": 100
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "CDMX",
+                        "maxLength": 100
+                    }
+                }
+            },
+            "CreateProductDto": {
+                "type": "object",
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "example": "SKU-001",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Revitalift S\u00e9rum",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "brandId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "skincare",
+                            "makeup",
+                            "fragrance"
+                        ],
+                        "example": "skincare"
+                    },
+                    "subcategory": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 2000
+                    },
+                    "price": {
+                        "type": "number",
+                        "example": 1299,
+                        "minimum": 0
+                    },
+                    "estimatedDurationDays": {
+                        "type": "number",
+                        "example": 90
+                    }
+                },
+                "required": [
+                    "sku",
+                    "name",
+                    "brandId",
+                    "category",
+                    "price"
+                ]
+            },
+            "UpdateProductDto": {
+                "type": "object",
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "example": "SKU-001",
+                        "minLength": 1,
+                        "maxLength": 50
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Revitalift S\u00e9rum",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "brandId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "skincare",
+                            "makeup",
+                            "fragrance"
+                        ],
+                        "example": "skincare"
+                    },
+                    "subcategory": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 2000
+                    },
+                    "price": {
+                        "type": "number",
+                        "example": 1299,
+                        "minimum": 0
+                    },
+                    "estimatedDurationDays": {
+                        "type": "number",
+                        "example": 90
+                    }
+                }
+            },
+            "UpdateAvailabilityDto": {
+                "type": "object",
+                "properties": {
+                    "stockStatus": {
+                        "type": "string",
+                        "enum": [
+                            "available",
+                            "low",
+                            "out_of_stock"
+                        ],
+                        "example": "available"
+                    }
+                },
+                "required": [
+                    "stockStatus"
+                ]
+            },
+            "CreateCustomerDto": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "example": "Mar\u00eda",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "example": "L\u00f3pez",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "maria@example.com"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "5551234567",
+                        "minLength": 10,
+                        "maxLength": 15
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "female",
+                            "male",
+                            "non_binary",
+                            "prefer_not_say"
+                        ],
+                        "example": "female"
+                    },
+                    "birthDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "1990-05-15T00:00:00.000Z"
+                    }
+                },
+                "required": [
+                    "firstName",
+                    "lastName"
+                ]
+            },
+            "UpdateCustomerDto": {
+                "type": "object",
+                "properties": {
+                    "firstName": {
+                        "type": "string",
+                        "example": "Mar\u00eda",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "example": "L\u00f3pez",
+                        "minLength": 1,
+                        "maxLength": 100
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "maria@example.com"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "5551234567",
+                        "minLength": 10,
+                        "maxLength": 15
+                    },
+                    "gender": {
+                        "type": "string",
+                        "enum": [
+                            "female",
+                            "male",
+                            "non_binary",
+                            "prefer_not_say"
+                        ],
+                        "example": "female"
+                    },
+                    "birthDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "1990-05-15T00:00:00.000Z"
+                    }
+                }
+            },
+            "UpsertBeautyProfileDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "skinType": {
+                        "type": "string",
+                        "enum": [
+                            "dry",
+                            "oily",
+                            "combination",
+                            "sensitive",
+                            "normal"
+                        ]
+                    },
+                    "skinTone": {
+                        "type": "string",
+                        "enum": [
+                            "fair",
+                            "light",
+                            "medium",
+                            "tan",
+                            "deep"
+                        ]
+                    },
+                    "skinSubtone": {
+                        "type": "string",
+                        "enum": [
+                            "cool",
+                            "neutral",
+                            "warm"
+                        ]
+                    },
+                    "skinConcerns": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "acne",
+                                "aging",
+                                "pigmentation",
+                                "dryness",
+                                "sensitivity",
+                                "pores",
+                                "dark_circles",
+                                "redness"
+                            ]
+                        }
+                    },
+                    "preferredIngredients": {
+                        "example": [
+                            "retinol",
+                            "niacinamide"
+                        ],
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "avoidedIngredients": {
+                        "example": [
+                            "alcohol",
+                            "parabens"
+                        ],
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "fragrancePreferences": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "floral",
+                                "woody",
+                                "citrus",
+                                "oriental",
+                                "fresh",
+                                "gourmand"
+                            ]
+                        }
+                    },
+                    "makeupPreferences": {
+                        "type": "object"
+                    },
+                    "routineType": {
+                        "type": "string",
+                        "enum": [
+                            "morning",
+                            "night",
+                            "both"
+                        ]
+                    },
+                    "interests": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "skincare",
+                                "makeup",
+                                "fragrance"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "customerId"
+                ]
+            },
+            "CreateShadeDto": {
+                "type": "object",
+                "properties": {
+                    "beautyProfileId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "foundation",
+                            "concealer",
+                            "lipstick",
+                            "blush"
+                        ],
+                        "example": "foundation"
+                    },
+                    "brandId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "productId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "shadeCode": {
+                        "type": "string",
+                        "example": "N4.5",
+                        "minLength": 1,
+                        "maxLength": 50
+                    }
+                },
+                "required": [
+                    "beautyProfileId",
+                    "category",
+                    "brandId",
+                    "productId",
+                    "shadeCode"
+                ]
+            },
+            "GrantConsentDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "privacy_notice",
+                            "marketing_sms",
+                            "marketing_email",
+                            "marketing_whatsapp"
+                        ],
+                        "example": "privacy_notice"
+                    },
+                    "version": {
+                        "type": "string",
+                        "example": "1.0",
+                        "minLength": 1,
+                        "maxLength": 20
+                    },
+                    "source": {
+                        "type": "string",
+                        "example": "app",
+                        "maxLength": 100
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "type",
+                    "version",
+                    "source"
+                ]
+            },
+            "CreateRecommendationDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "productId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "manual",
+                            "ai_suggested",
+                            "replenishment_alert"
+                        ],
+                        "example": "manual"
+                    },
+                    "visitReason": {
+                        "type": "string",
+                        "enum": [
+                            "new_purchase",
+                            "rebuy",
+                            "gift",
+                            "concern",
+                            "promotion",
+                            "browsing"
+                        ]
+                    },
+                    "aiReasoning": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 1000
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "productId",
+                    "source"
+                ]
+            },
+            "AiRecommendationRequestDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "context": {
+                        "type": "string",
+                        "maxLength": 2000
+                    }
+                },
+                "required": [
+                    "customerId"
+                ]
+            },
+            "PurchaseItemDto": {
+                "type": "object",
+                "properties": {
+                    "productId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "sku": {
+                        "type": "string",
+                        "example": "SKU-001",
+                        "minLength": 1
+                    },
+                    "quantity": {
+                        "type": "number",
+                        "example": 2,
+                        "minimum": 1
+                    },
+                    "unitPrice": {
+                        "type": "number",
+                        "example": 1299,
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "productId",
+                    "sku",
+                    "quantity",
+                    "unitPrice"
+                ]
+            },
+            "CreatePurchaseDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "source": {
+                        "type": "string",
+                        "enum": [
+                            "pos_integration",
+                            "manual",
+                            "ecommerce"
+                        ],
+                        "example": "manual"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PurchaseItemDto"
+                        }
+                    },
+                    "totalAmount": {
+                        "type": "number",
+                        "example": 2598,
+                        "minimum": 0
+                    },
+                    "posTransactionId": {
+                        "type": "string",
+                        "example": "POS-12345"
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "source",
+                    "items",
+                    "totalAmount"
+                ]
+            },
+            "CreateSampleDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "productId": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "productId"
+                ]
+            },
+            "CreateAppointmentDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "eventType": {
+                        "type": "string",
+                        "enum": [
+                            "cabin_service",
+                            "facial",
+                            "anniversary_event",
+                            "vip_cabin",
+                            "product_followup",
+                            "custom"
+                        ],
+                        "example": "cabin_service"
+                    },
+                    "scheduledAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "durationMinutes": {
+                        "type": "number",
+                        "example": 60,
+                        "minimum": 1,
+                        "maximum": 480
+                    },
+                    "comments": {
+                        "type": "string",
+                        "maxLength": 1000
+                    },
+                    "isVirtual": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "videoLink": {
+                        "type": "string",
+                        "example": "https://meet.google.com/abc-defg-hij"
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "eventType",
+                    "scheduledAt",
+                    "durationMinutes"
+                ]
+            },
+            "UpdateAppointmentDto": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "scheduled",
+                            "confirmed",
+                            "rescheduled",
+                            "cancelled",
+                            "completed",
+                            "no_show"
+                        ]
+                    },
+                    "scheduledAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "durationMinutes": {
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 480
+                    },
+                    "comments": {
+                        "type": "string",
+                        "maxLength": 1000
+                    }
+                }
+            },
+            "CreateCommunicationDto": {
+                "type": "object",
+                "properties": {
+                    "customerId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "whatsapp",
+                            "sms",
+                            "email"
+                        ],
+                        "example": "whatsapp"
+                    },
+                    "templateId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "body": {
+                        "type": "string",
+                        "example": "Hola Mar\u00eda, tu cita est\u00e1 confirmada.",
+                        "minLength": 1,
+                        "maxLength": 5000
+                    },
+                    "followupType": {
+                        "type": "string",
+                        "enum": [
+                            "3_months",
+                            "6_months",
+                            "birthday",
+                            "replenishment",
+                            "special_event",
+                            "custom"
+                        ],
+                        "example": "3_months"
+                    }
+                },
+                "required": [
+                    "customerId",
+                    "channel",
+                    "body",
+                    "followupType"
+                ]
+            },
+            "CreateTemplateDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Seguimiento 3 meses",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "brandId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "whatsapp",
+                            "sms",
+                            "email"
+                        ],
+                        "example": "whatsapp"
+                    },
+                    "followupType": {
+                        "type": "string",
+                        "enum": [
+                            "3_months",
+                            "6_months",
+                            "birthday",
+                            "replenishment",
+                            "special_event",
+                            "custom"
+                        ],
+                        "example": "3_months"
+                    },
+                    "body": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 5000
+                    }
+                },
+                "required": [
+                    "name",
+                    "channel",
+                    "followupType",
+                    "body"
+                ]
+            },
+            "UpdateTemplateDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Seguimiento 3 meses",
+                        "minLength": 1,
+                        "maxLength": 200
+                    },
+                    "brandId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "channel": {
+                        "type": "string",
+                        "enum": [
+                            "whatsapp",
+                            "sms",
+                            "email"
+                        ],
+                        "example": "whatsapp"
+                    },
+                    "followupType": {
+                        "type": "string",
+                        "enum": [
+                            "3_months",
+                            "6_months",
+                            "birthday",
+                            "replenishment",
+                            "special_event",
+                            "custom"
+                        ],
+                        "example": "3_months"
+                    },
+                    "body": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 5000
+                    }
+                }
+            },
+            "UpdateTrackingDto": {
+                "type": "object",
+                "properties": {
+                    "deliveredAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "readAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "respondedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            }
+        }
+    }
+}

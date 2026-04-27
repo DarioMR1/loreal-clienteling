@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Param, Body, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { PurchasesService } from "./purchases.service";
 import { CreatePurchaseDto } from "../../dtos/purchases.dto";
@@ -12,6 +12,7 @@ export class PurchasesController {
   constructor(@Inject(PurchasesService) private purchasesService: PurchasesService) {}
 
   @Get("customers/:customerId/purchases")
+  @ApiParam({ name: "customerId", type: String })
   findByCustomer(
     @Param("customerId") customerId: string,
     @Session() session: UserSession,
@@ -21,6 +22,7 @@ export class PurchasesController {
 
   @Post("purchases")
   @Roles(["ba", "manager"])
+  @ApiBody({ type: CreatePurchaseDto })
   create(
     @Body() body: CreatePurchaseDto,
     @Session() session: UserSession,
@@ -29,6 +31,7 @@ export class PurchasesController {
   }
 
   @Get("purchases/:id")
+  @ApiParam({ name: "id", type: String })
   findOne(@Param("id") id: string) {
     return this.purchasesService.findOne(id);
   }

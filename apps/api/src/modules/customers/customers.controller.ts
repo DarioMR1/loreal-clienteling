@@ -9,7 +9,7 @@ import {
   Query,
   Inject,
 } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { CustomersService } from "./customers.service";
 import {
@@ -52,12 +52,14 @@ export class CustomersController {
 
   @Get(":id")
   @Roles(["ba", "manager", "supervisor", "admin"])
+  @ApiParam({ name: "id", type: String })
   findOne(@Param("id") id: string, @Session() session: UserSession) {
     return this.customersService.findOne(id, session.user);
   }
 
   @Post()
   @Roles(["ba", "manager"])
+  @ApiBody({ type: CreateCustomerDto })
   create(
     @Body() body: CreateCustomerDto,
     @Session() session: UserSession,
@@ -67,6 +69,8 @@ export class CustomersController {
 
   @Patch(":id")
   @Roles(["ba", "manager"])
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateCustomerDto })
   update(
     @Param("id") id: string,
     @Body() body: UpdateCustomerDto,
@@ -77,6 +81,7 @@ export class CustomersController {
 
   @Delete(":id/arco")
   @Roles(["admin"])
+  @ApiParam({ name: "id", type: String })
   executeRightToBeForgotten(
     @Param("id") id: string,
     @Body("requestFolio") requestFolio: string,

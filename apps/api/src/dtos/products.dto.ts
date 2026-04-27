@@ -9,40 +9,48 @@ import {
   IsPositive,
   IsInt,
 } from "class-validator";
-import { PartialType } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { PRODUCT_CATEGORIES, STOCK_STATUSES } from "@loreal/contracts";
 
 export class CreateProductDto {
+  @ApiProperty({ type: String, example: "SKU-001", minLength: 1, maxLength: 50 })
   @IsString()
   @MinLength(1)
   @MaxLength(50)
   sku: string;
 
+  @ApiProperty({ type: String, example: "Revitalift Sérum", minLength: 1, maxLength: 200 })
   @IsString()
   @MinLength(1)
   @MaxLength(200)
   name: string;
 
+  @ApiProperty({ type: String, format: "uuid" })
   @IsUUID()
   brandId: string;
 
+  @ApiProperty({ type: String, enum: PRODUCT_CATEGORIES, example: "skincare" })
   @IsIn(PRODUCT_CATEGORIES)
   category: string;
 
+  @ApiPropertyOptional({ type: String, maxLength: 100 })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   subcategory?: string;
 
+  @ApiPropertyOptional({ type: String, maxLength: 2000 })
   @IsOptional()
   @IsString()
   @MaxLength(2000)
   description?: string;
 
+  @ApiProperty({ type: Number, example: 1299.0, minimum: 0 })
   @IsNumber()
   @IsPositive()
   price: number;
 
+  @ApiPropertyOptional({ type: Number, example: 90 })
   @IsOptional()
   @IsInt()
   @IsPositive()
@@ -52,6 +60,7 @@ export class CreateProductDto {
 export class UpdateProductDto extends PartialType(CreateProductDto) {}
 
 export class UpdateAvailabilityDto {
+  @ApiProperty({ type: String, enum: STOCK_STATUSES, example: "available" })
   @IsIn(STOCK_STATUSES)
   stockStatus: string;
 }

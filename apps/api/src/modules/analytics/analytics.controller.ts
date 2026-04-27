@@ -1,5 +1,5 @@
 import { Controller, Get, Query, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { AnalyticsService } from "./analytics.service";
 import type { UserSession } from "../../common/types/session";
@@ -27,6 +27,7 @@ export class AnalyticsController {
   }
 
   @Get("export")
+  @ApiQuery({ name: "type", type: String })
   exportData(
     @Query("type") type: string,
     @Session() session: UserSession,

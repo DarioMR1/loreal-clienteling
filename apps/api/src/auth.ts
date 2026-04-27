@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins";
+import { bearer } from "better-auth/plugins";
 import { jwt } from "better-auth/plugins";
 import { twoFactor } from "better-auth/plugins";
 import { customSession } from "better-auth/plugins";
@@ -91,6 +92,9 @@ export const auth = betterAuth({
   ],
 
   plugins: [
+    // Bearer token support for native mobile clients (iOS)
+    bearer(),
+
     // Expo support for React Native mobile app
     expo(),
 

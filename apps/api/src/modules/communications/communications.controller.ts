@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { CommunicationsService } from "./communications.service";
 import {
@@ -23,12 +23,14 @@ export class CommunicationsController {
   }
 
   @Get("customers/:customerId/communications")
+  @ApiParam({ name: "customerId", type: String })
   findByCustomer(@Param("customerId") customerId: string) {
     return this.communicationsService.findByCustomer(customerId);
   }
 
   @Post("communications")
   @Roles(["ba", "manager"])
+  @ApiBody({ type: CreateCommunicationDto })
   create(
     @Body() body: CreateCommunicationDto,
     @Session() session: UserSession,
@@ -43,17 +45,22 @@ export class CommunicationsController {
 
   @Post("communications/templates")
   @Roles(["admin", "manager"])
+  @ApiBody({ type: CreateTemplateDto })
   createTemplate(@Body() body: CreateTemplateDto) {
     return this.communicationsService.createTemplate(body);
   }
 
   @Patch("communications/templates/:id")
   @Roles(["admin", "manager"])
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateTemplateDto })
   updateTemplate(@Param("id") id: string, @Body() body: UpdateTemplateDto) {
     return this.communicationsService.updateTemplate(id, body);
   }
 
   @Patch("communications/:id/tracking")
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateTrackingDto })
   updateTracking(@Param("id") id: string, @Body() body: UpdateTrackingDto) {
     return this.communicationsService.updateTracking(id, {
       deliveredAt: body.deliveredAt,

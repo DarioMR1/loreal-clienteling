@@ -1,35 +1,42 @@
 import { IsString, MinLength, MaxLength, IsIn, IsOptional, IsUUID } from "class-validator";
-import { PartialType } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { STORE_CHAINS } from "@loreal/contracts";
 
 export class CreateStoreDto {
+  @ApiProperty({ type: String, example: "LIV-SANTA-FE", minLength: 1, maxLength: 50 })
   @IsString()
   @MinLength(1)
   @MaxLength(50)
   code: string;
 
+  @ApiProperty({ type: String, example: "Liverpool Santa Fe", minLength: 1, maxLength: 200 })
   @IsString()
   @MinLength(1)
   @MaxLength(200)
   displayName: string;
 
+  @ApiProperty({ type: String, enum: STORE_CHAINS, example: "liverpool" })
   @IsIn(STORE_CHAINS)
   chain: string;
 
+  @ApiPropertyOptional({ type: String, format: "uuid" })
   @IsOptional()
   @IsUUID()
   zoneId?: string;
 
+  @ApiPropertyOptional({ type: String, maxLength: 300 })
   @IsOptional()
   @IsString()
   @MaxLength(300)
   address?: string;
 
+  @ApiPropertyOptional({ type: String, example: "Ciudad de México", maxLength: 100 })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   city?: string;
 
+  @ApiPropertyOptional({ type: String, example: "CDMX", maxLength: 100 })
   @IsOptional()
   @IsString()
   @MaxLength(100)

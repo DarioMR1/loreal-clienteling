@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Delete, Param, Body, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Session } from "@thallesp/nestjs-better-auth";
 import { ConsentsService } from "./consents.service";
 import { GrantConsentDto } from "../../dtos/consents.dto";
@@ -12,11 +12,14 @@ export class ConsentsController {
   constructor(@Inject(ConsentsService) private consentsService: ConsentsService) {}
 
   @Get()
+  @ApiParam({ name: "customerId", type: String })
   findByCustomer(@Param("customerId") customerId: string) {
     return this.consentsService.findByCustomer(customerId);
   }
 
   @Post()
+  @ApiParam({ name: "customerId", type: String })
+  @ApiBody({ type: GrantConsentDto })
   grant(
     @Param("customerId") customerId: string,
     @Body() body: GrantConsentDto,
@@ -29,6 +32,8 @@ export class ConsentsController {
   }
 
   @Delete(":type")
+  @ApiParam({ name: "customerId", type: String })
+  @ApiParam({ name: "type", type: String })
   revoke(
     @Param("customerId") customerId: string,
     @Param("type") type: string,

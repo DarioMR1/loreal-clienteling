@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Body, Query, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { ProductsService } from "./products.service";
 import { CreateProductDto, UpdateProductDto, UpdateAvailabilityDto } from "../../dtos/products.dto";
@@ -23,29 +23,37 @@ export class ProductsController {
   }
 
   @Get(":id")
+  @ApiParam({ name: "id", type: String })
   findOne(@Param("id") id: string) {
     return this.productsService.findOne(id);
   }
 
   @Post()
   @Roles(["admin"])
+  @ApiBody({ type: CreateProductDto })
   create(@Body() body: CreateProductDto) {
     return this.productsService.create(body);
   }
 
   @Patch(":id")
   @Roles(["admin"])
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateProductDto })
   update(@Param("id") id: string, @Body() body: UpdateProductDto) {
     return this.productsService.update(id, body);
   }
 
   @Get(":id/availability")
+  @ApiParam({ name: "id", type: String })
   getAvailability(@Param("id") id: string, @Session() session: UserSession) {
     return this.productsService.getAvailability(id, session.user);
   }
 
   @Patch(":id/availability/:storeId")
   @Roles(["admin", "manager"])
+  @ApiParam({ name: "id", type: String })
+  @ApiParam({ name: "storeId", type: String })
+  @ApiBody({ type: UpdateAvailabilityDto })
   updateAvailability(
     @Param("id") id: string,
     @Param("storeId") storeId: string,

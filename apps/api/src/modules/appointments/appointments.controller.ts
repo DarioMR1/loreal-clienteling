@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Body, Query, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam, ApiQuery } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { AppointmentsService } from "./appointments.service";
 import { CreateAppointmentDto, UpdateAppointmentDto } from "../../dtos/appointments.dto";
@@ -12,6 +12,8 @@ export class AppointmentsController {
   constructor(@Inject(AppointmentsService) private appointmentsService: AppointmentsService) {}
 
   @Get()
+  @ApiQuery({ name: "from", type: String, required: false })
+  @ApiQuery({ name: "to", type: String, required: false })
   findAll(
     @Query("from") from: string | undefined,
     @Query("to") to: string | undefined,
@@ -24,6 +26,8 @@ export class AppointmentsController {
   }
 
   @Get("calendar")
+  @ApiQuery({ name: "from", type: String, required: true })
+  @ApiQuery({ name: "to", type: String, required: true })
   getCalendar(
     @Query("from") from: string,
     @Query("to") to: string,
@@ -33,12 +37,14 @@ export class AppointmentsController {
   }
 
   @Get(":id")
+  @ApiParam({ name: "id", type: String })
   findOne(@Param("id") id: string) {
     return this.appointmentsService.findOne(id);
   }
 
   @Post()
   @Roles(["ba", "manager"])
+  @ApiBody({ type: CreateAppointmentDto })
   create(
     @Body() body: CreateAppointmentDto,
     @Session() session: UserSession,
@@ -47,6 +53,8 @@ export class AppointmentsController {
   }
 
   @Patch(":id")
+  @ApiParam({ name: "id", type: String })
+  @ApiBody({ type: UpdateAppointmentDto })
   update(
     @Param("id") id: string,
     @Body() body: UpdateAppointmentDto,

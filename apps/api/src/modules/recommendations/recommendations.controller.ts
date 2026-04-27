@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { RecommendationsService } from "./recommendations.service";
 import { CreateRecommendationDto, AiRecommendationRequestDto } from "../../dtos/recommendations.dto";
@@ -12,6 +12,7 @@ export class RecommendationsController {
   constructor(@Inject(RecommendationsService) private recommendationsService: RecommendationsService) {}
 
   @Get("customers/:customerId/recommendations")
+  @ApiParam({ name: "customerId", type: String })
   findByCustomer(
     @Param("customerId") customerId: string,
     @Session() session: UserSession,
@@ -24,6 +25,7 @@ export class RecommendationsController {
 
   @Post("recommendations")
   @Roles(["ba"])
+  @ApiBody({ type: CreateRecommendationDto })
   create(
     @Body() body: CreateRecommendationDto,
     @Session() session: UserSession,
@@ -33,6 +35,7 @@ export class RecommendationsController {
 
   @Post("recommendations/ai")
   @Roles(["ba"])
+  @ApiBody({ type: AiRecommendationRequestDto })
   requestAi(
     @Body() body: AiRecommendationRequestDto,
     @Session() session: UserSession,
@@ -45,6 +48,7 @@ export class RecommendationsController {
   }
 
   @Patch("recommendations/:id/convert")
+  @ApiParam({ name: "id", type: String })
   markConverted(
     @Param("id") id: string,
     @Body("purchaseId") purchaseId: string,

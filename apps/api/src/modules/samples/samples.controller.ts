@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Patch, Param, Body, Inject } from "@nestjs/common";
-import { ApiTags, ApiBearerAuth } from "@nestjs/swagger";
+import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { SamplesService } from "./samples.service";
 import { CreateSampleDto } from "../../dtos/samples.dto";
@@ -12,6 +12,7 @@ export class SamplesController {
   constructor(@Inject(SamplesService) private samplesService: SamplesService) {}
 
   @Get("customers/:customerId/samples")
+  @ApiParam({ name: "customerId", type: String })
   findByCustomer(
     @Param("customerId") customerId: string,
     @Session() session: UserSession,
@@ -21,6 +22,7 @@ export class SamplesController {
 
   @Post("samples")
   @Roles(["ba"])
+  @ApiBody({ type: CreateSampleDto })
   create(
     @Body() body: CreateSampleDto,
     @Session() session: UserSession,
@@ -29,6 +31,7 @@ export class SamplesController {
   }
 
   @Patch("samples/:id/convert")
+  @ApiParam({ name: "id", type: String })
   markConverted(
     @Param("id") id: string,
     @Body("purchaseId") purchaseId: string,
