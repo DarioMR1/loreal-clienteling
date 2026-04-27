@@ -74,7 +74,7 @@ export function SignUpForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -88,7 +88,11 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Nombre completo</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Ana García López" />
+                <Input
+                  {...field}
+                  placeholder="Ana García López"
+                  autoComplete="name"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -102,7 +106,12 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Correo electrónico</FormLabel>
               <FormControl>
-                <Input {...field} type="email" placeholder="usuario@loreal.mx" />
+                <Input
+                  {...field}
+                  type="email"
+                  placeholder="usuario@loreal.mx"
+                  autoComplete="email"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,7 +125,12 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>Contraseña</FormLabel>
               <FormControl>
-                <Input {...field} type="password" />
+                <Input
+                  {...field}
+                  type="password"
+                  placeholder="Mínimo 8 caracteres"
+                  autoComplete="new-password"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -131,7 +145,7 @@ export function SignUpForm() {
               <FormLabel>Rol</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Seleccionar rol" />
                   </SelectTrigger>
                 </FormControl>
@@ -148,9 +162,11 @@ export function SignUpForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Creando..." : "Crear Usuario"}
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? "Creando..." : "Crear Usuario"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

@@ -50,7 +50,7 @@ export function SignInForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
@@ -64,7 +64,12 @@ export function SignInForm() {
             <FormItem>
               <FormLabel>Correo electrónico</FormLabel>
               <FormControl>
-                <Input {...field} type="email" placeholder="usuario@loreal.mx" />
+                <Input
+                  {...field}
+                  type="email"
+                  placeholder="usuario@loreal.mx"
+                  autoComplete="email"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -78,16 +83,23 @@ export function SignInForm() {
             <FormItem>
               <FormLabel>Contraseña</FormLabel>
               <FormControl>
-                <Input {...field} type="password" />
+                <Input
+                  {...field}
+                  type="password"
+                  placeholder="Mínimo 8 caracteres"
+                  autoComplete="current-password"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Ingresando..." : "Iniciar Sesión"}
-        </Button>
+        <div className="pt-2">
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? "Ingresando..." : "Iniciar Sesión"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

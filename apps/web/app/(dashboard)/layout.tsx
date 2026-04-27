@@ -25,9 +25,9 @@ export default async function DashboardLayout({
       <div className="flex h-screen overflow-hidden">
         <DashboardSidebar user={session.user} />
 
-        <div className="flex flex-1 flex-col overflow-hidden bg-muted/40">
+        <div className="flex flex-1 flex-col overflow-hidden bg-muted/30">
           <DashboardHeader />
-          <main className="flex-1 overflow-y-auto overscroll-contain p-6">
+          <main className="flex-1 overflow-y-auto overscroll-contain px-6 py-8 lg:px-10 lg:py-10">
             {children}
           </main>
         </div>

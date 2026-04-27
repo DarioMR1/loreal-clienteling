@@ -9,7 +9,7 @@ import { signOut } from "@/lib/auth-client";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
 import type { UserRole } from "@loreal/contracts";
 
-// ── Types ─────────────────���──────────────────────────���─────────────
+// ── Types ────────────────────────────────────────────────────────
 
 interface NavItem {
   label: string;
@@ -30,7 +30,7 @@ interface SidebarProps {
   };
 }
 
-// ── Navigation config ─────────────���────────────────────────────────
+// ── Navigation config ────────────────────────────────────────────
 
 const NAV_SECTIONS: readonly NavSection[] = [
   {
@@ -68,7 +68,7 @@ const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
 };
 
-// ── Sidebar content (shared between desktop & mobile) ─────────────
+// ── Sidebar content (shared between desktop & mobile) ────────────
 
 function SidebarContent({ user }: SidebarProps) {
   const pathname = usePathname();
@@ -86,23 +86,28 @@ function SidebarContent({ user }: SidebarProps) {
     <>
       {/* Logo + collapse toggle */}
       <div className={cn(
-        "relative flex h-14 shrink-0 items-center px-3",
+        "relative flex h-16 shrink-0 items-center border-b border-sidebar-border/50 px-4",
         collapsed ? "justify-center" : "justify-between"
       )}>
-        <div className={cn("flex items-center gap-2 overflow-hidden", collapsed && "justify-center")}>
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent">
-            <span className="text-xs font-bold text-sidebar-accent-foreground">L</span>
+        <div className={cn("flex items-center gap-2.5 overflow-hidden", collapsed && "justify-center")}>
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
+            <span className="text-xs font-bold text-sidebar-primary-foreground">L</span>
           </div>
           {!collapsed && (
-            <span className="truncate text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
-              L&apos;Oréal Clienteling
-            </span>
+            <div className="flex flex-col overflow-hidden">
+              <span className="truncate text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
+                L&apos;Oréal
+              </span>
+              <span className="truncate text-[10px] tracking-widest text-sidebar-foreground/40 uppercase">
+                Clienteling
+              </span>
+            </div>
           )}
         </div>
         {!collapsed && (
           <button
             onClick={toggleCollapsed}
-            className="hidden size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:flex"
+            className="hidden size-7 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/40 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:flex"
             aria-label="Colapsar sidebar"
           >
             <CollapseIcon className="size-4" />
@@ -110,12 +115,12 @@ function SidebarContent({ user }: SidebarProps) {
         )}
       </div>
 
-      {/* Expand button when collapsed — desktop only */}
+      {/* Expand button when collapsed */}
       {collapsed && (
-        <div className="hidden justify-center px-2 pb-1 md:flex">
+        <div className="hidden justify-center px-2 pt-3 pb-1 md:flex">
           <button
             onClick={toggleCollapsed}
-            className="flex size-8 items-center justify-center rounded-md text-sidebar-foreground/50 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="flex size-8 items-center justify-center rounded-lg text-sidebar-foreground/40 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             aria-label="Expandir sidebar"
           >
             <CollapseIcon className="size-4 rotate-180" />
@@ -123,8 +128,8 @@ function SidebarContent({ user }: SidebarProps) {
         </div>
       )}
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-2 py-3">
+      {/* Navigation — generous Ma spacing between sections */}
+      <nav className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-3 py-4">
         {NAV_SECTIONS.map((section, i) => {
           const visibleItems = section.items.filter((item) =>
             item.roles.includes(role as UserRole),
@@ -134,14 +139,14 @@ function SidebarContent({ user }: SidebarProps) {
           return (
             <div key={i}>
               {section.label && !collapsed && (
-                <p className="mb-1 px-2 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
+                <p className="mb-2 px-2 text-[10px] font-medium uppercase tracking-[0.12em] text-sidebar-foreground/35">
                   {section.label}
                 </p>
               )}
               {section.label && collapsed && (
-                <div className="mx-auto my-1 h-px w-6 bg-sidebar-foreground/15" />
+                <div className="mx-auto mb-2 h-px w-5 bg-sidebar-foreground/10" />
               )}
-              <ul className="space-y-0.5">
+              <ul className="space-y-1">
                 {visibleItems.map((item) => {
                   const isActive =
                     item.href === "/"
@@ -152,20 +157,23 @@ function SidebarContent({ user }: SidebarProps) {
                     <Link
                       href={item.href}
                       className={cn(
-                        "group relative flex items-center rounded-lg text-[13px] font-medium transition-colors",
+                        "group relative flex items-center rounded-xl text-[13px] font-medium transition-all duration-200",
                         collapsed
-                          ? "justify-center size-9 mx-auto"
-                          : "gap-2 px-2 py-1.5",
+                          ? "justify-center size-10 mx-auto"
+                          : "gap-2.5 px-2.5 py-2",
                         isActive
                           ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                          : "text-sidebar-foreground/60 hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground",
                       )}
                     >
-                      {/* Active indicator bar */}
+                      {/* Active indicator — subtle gold bar */}
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-full bg-sidebar-primary" />
+                        <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-sidebar-primary" />
                       )}
-                      <item.icon className="size-4 shrink-0 opacity-70" />
+                      <item.icon className={cn(
+                        "size-[18px] shrink-0 transition-opacity duration-200",
+                        isActive ? "opacity-90" : "opacity-50 group-hover:opacity-70"
+                      )} />
                       {!collapsed && item.label}
                     </Link>
                   );
@@ -177,8 +185,8 @@ function SidebarContent({ user }: SidebarProps) {
                           <Tooltip.Root>
                             <Tooltip.Trigger render={link} />
                             <Tooltip.Portal>
-                              <Tooltip.Positioner side="right" sideOffset={8}>
-                                <Tooltip.Popup className="rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md">
+                              <Tooltip.Positioner side="right" sideOffset={10}>
+                                <Tooltip.Popup className="rounded-lg bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg">
                                   {item.label}
                                 </Tooltip.Popup>
                               </Tooltip.Positioner>
@@ -197,13 +205,13 @@ function SidebarContent({ user }: SidebarProps) {
         })}
       </nav>
 
-      {/* User footer */}
-      <div className="border-t border-sidebar-border px-2 py-2">
+      {/* User footer — refined with breathing room */}
+      <div className="border-t border-sidebar-border/50 px-3 py-3">
         <div className={cn(
-          "flex items-center rounded-lg",
-          collapsed ? "justify-center py-1.5" : "gap-2 px-2 py-1.5"
+          "flex items-center rounded-xl",
+          collapsed ? "justify-center py-1.5" : "gap-2.5 px-2.5 py-2"
         )}>
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-sidebar-accent text-[11px] font-semibold text-sidebar-accent-foreground">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-[11px] font-semibold text-sidebar-primary-foreground">
             {user.fullName?.charAt(0).toUpperCase()}
           </div>
           {!collapsed && (
@@ -211,7 +219,7 @@ function SidebarContent({ user }: SidebarProps) {
               <span className="truncate text-xs font-medium text-sidebar-foreground">
                 {user.fullName}
               </span>
-              <span className="truncate text-[11px] text-sidebar-foreground/50">
+              <span className="truncate text-[10px] text-sidebar-foreground/40">
                 {ROLE_LABELS[role] ?? role}
               </span>
             </div>
@@ -219,7 +227,7 @@ function SidebarContent({ user }: SidebarProps) {
           {!collapsed && (
             <button
               onClick={handleSignOut}
-              className="flex size-7 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/40 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground/30 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               aria-label="Cerrar sesión"
             >
               <LogOutIcon className="size-3.5" />
@@ -227,14 +235,14 @@ function SidebarContent({ user }: SidebarProps) {
           )}
         </div>
         {collapsed && (
-          <div className="flex justify-center pt-1">
+          <div className="flex justify-center pt-1.5">
             <Tooltip.Provider>
               <Tooltip.Root>
                 <Tooltip.Trigger
                   render={
                     <button
                       onClick={handleSignOut}
-                      className="flex size-8 items-center justify-center rounded-md text-sidebar-foreground/40 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      className="flex size-9 items-center justify-center rounded-lg text-sidebar-foreground/30 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                       aria-label="Cerrar sesión"
                     />
                   }
@@ -242,8 +250,8 @@ function SidebarContent({ user }: SidebarProps) {
                   <LogOutIcon className="size-3.5" />
                 </Tooltip.Trigger>
                 <Tooltip.Portal>
-                  <Tooltip.Positioner side="right" sideOffset={8}>
-                    <Tooltip.Popup className="rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md">
+                  <Tooltip.Positioner side="right" sideOffset={10}>
+                    <Tooltip.Popup className="rounded-lg bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg">
                       Cerrar sesión
                     </Tooltip.Popup>
                   </Tooltip.Positioner>
@@ -257,7 +265,7 @@ function SidebarContent({ user }: SidebarProps) {
   );
 }
 
-// ── Desktop sidebar ────────────────────���──────────────────────────
+// ── Desktop sidebar ──────────────────────────────────────────────
 
 export function DashboardSidebar({ user }: SidebarProps) {
   const { collapsed, mobileOpen, setMobileOpen } = useSidebar();
@@ -273,8 +281,8 @@ export function DashboardSidebar({ user }: SidebarProps) {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-in-out md:flex",
-          collapsed ? "w-16" : "w-[240px]"
+          "hidden shrink-0 flex-col border-r border-sidebar-border/50 bg-sidebar text-sidebar-foreground transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:flex",
+          collapsed ? "w-[68px]" : "w-[260px]"
         )}
       >
         <SidebarContent user={user} />
@@ -283,7 +291,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] transition-opacity duration-200 md:hidden"
           onClick={() => setMobileOpen(false)}
           aria-hidden
         />
@@ -292,7 +300,7 @@ export function DashboardSidebar({ user }: SidebarProps) {
       {/* Mobile drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[280px] flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-transform duration-250 ease-in-out md:hidden",
+          "fixed inset-y-0 left-0 z-50 w-[280px] flex-col border-r border-sidebar-border/50 bg-sidebar text-sidebar-foreground transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] md:hidden",
           mobileOpen ? "translate-x-0 flex" : "-translate-x-full"
         )}
       >

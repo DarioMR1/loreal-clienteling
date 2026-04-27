@@ -49,7 +49,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/15 duration-200 supports-backdrop-filter:backdrop-blur-sm data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -73,7 +73,7 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-0 rounded-xl bg-popover text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-0 rounded-2xl bg-popover text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/[0.06] duration-200 outline-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           size === "lg" ? "sm:max-w-lg" : "sm:max-w-md",
           className
         )}
@@ -105,7 +105,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 border-b border-border px-5 py-4", className)}
+      className={cn("flex flex-col gap-2 border-b border-border/60 px-6 py-5", className)}
       {...props}
     />
   )
@@ -115,7 +115,7 @@ function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-body"
-      className={cn("space-y-4 px-5 py-4", className)}
+      className={cn("space-y-5 px-6 py-5", className)}
       {...props}
     />
   )
@@ -129,7 +129,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "flex items-center justify-end gap-2 border-t border-border bg-muted/40 px-5 py-3",
+        "flex items-center justify-end gap-2.5 rounded-b-2xl border-t border-border/60 bg-muted/30 px-6 py-4",
         className
       )}
       {...props}
