@@ -6,7 +6,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 interface AvatarProps {
-  uri: string;
+  uri?: string;
   size?: number;
   borderColor?: string;
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 
 import { Avatar } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
@@ -7,11 +8,30 @@ import { Icon, type IconName } from '@/components/ui/icon';
 import { SectionHeader } from '@/components/ui/section-header';
 import { StatusBadge } from '@/components/ui/badge';
 import { Spacing, Typography } from '@/constants/theme';
-import { currentAdvisor } from '@/data/mock-advisor';
+import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/hooks/use-theme';
+
+const ROLE_LABELS: Record<string, string> = {
+  ba: 'Beauty Advisor',
+  manager: 'Store Manager',
+  supervisor: 'Zone Supervisor',
+  admin: 'Administrador',
+};
 
 export function SettingsScreen() {
   const theme = useTheme();
+  const { session, signOut } = useAuth();
+
+  const user = session?.user;
+  const userName = user?.fullName ?? user?.name ?? '';
+  const userEmail = user?.email ?? '';
+  const userRole = ROLE_LABELS[user?.role ?? 'ba'] ?? user?.role ?? '';
+  const userImage = user?.image ?? undefined;
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.replace('/login');
+  };
 
   return (
     <ScrollView
@@ -22,11 +42,11 @@ export function SettingsScreen() {
       {/* Profile */}
       <Card>
         <View style={styles.profileRow}>
-          <Avatar uri={currentAdvisor.photoUrl} size={64} />
+          <Avatar uri={userImage} size={64} />
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: theme.text }]}>{currentAdvisor.name}</Text>
-            <Text style={[styles.profileMeta, { color: theme.textSecondary }]}>{currentAdvisor.store}</Text>
-            <Text style={[styles.profileMeta, { color: theme.textSecondary }]}>{currentAdvisor.brand} · Beauty Advisor</Text>
+            <Text style={[styles.profileName, { color: theme.text }]}>{userName}</Text>
+            <Text style={[styles.profileMeta, { color: theme.textSecondary }]}>{userEmail}</Text>
+            <Text style={[styles.profileMeta, { color: theme.textSecondary }]}>{userRole}</Text>
           </View>
         </View>
       </Card>
@@ -77,12 +97,14 @@ export function SettingsScreen() {
       </View>
 
       {/* Logout */}
-      <Card style={{ backgroundColor: theme.dangerLight }}>
-        <View style={styles.logoutRow}>
-          <Icon name="log-out" size={20} color={theme.danger} />
-          <Text style={[styles.logoutText, { color: theme.danger }]}>Cerrar sesion</Text>
-        </View>
-      </Card>
+      <Pressable onPress={handleSignOut}>
+        <Card style={{ backgroundColor: theme.dangerLight }}>
+          <View style={styles.logoutRow}>
+            <Icon name="log-out" size={20} color={theme.danger} />
+            <Text style={[styles.logoutText, { color: theme.danger }]}>Cerrar sesion</Text>
+          </View>
+        </Card>
+      </Pressable>
     </ScrollView>
   );
 }

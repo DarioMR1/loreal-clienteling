@@ -85,7 +85,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     "http://localhost:3000", // Next.js web
     "http://localhost:8081", // Expo Metro
-    "lorealclienteling://", // Expo production scheme
+    "loreal-clienteling://", // Expo production scheme
     ...(process.env.NODE_ENV === "development"
       ? ["exp://", "exp://**", "exp://192.168.*.*:*/**"]
       : []),

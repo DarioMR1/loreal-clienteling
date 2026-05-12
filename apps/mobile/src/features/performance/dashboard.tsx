@@ -7,7 +7,8 @@ import { Icon } from '@/components/ui/icon';
 import { MetricCard } from '@/components/ui/metric-card';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Spacing, Typography } from '@/constants/theme';
-import { currentAdvisor, mockMetrics, monthlyTrend, salesByCategory, topBrands, weeklyAppointmentMetrics } from '@/data/mock-advisor';
+import { mockMetrics, monthlyTrend, salesByCategory, topBrands, weeklyAppointmentMetrics } from '@/data/mock-advisor';
+import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/hooks/use-theme';
 
 function formatCurrency(value: number): string {
@@ -16,6 +17,10 @@ function formatCurrency(value: number): string {
 
 export function Dashboard() {
   const theme = useTheme();
+  const { session } = useAuth();
+  const user = session?.user;
+  const firstName = (user?.fullName ?? user?.name ?? '').split(' ')[0];
+  const userImage = user?.image ?? undefined;
 
   return (
     <ScrollView
@@ -25,10 +30,10 @@ export function Dashboard() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <Avatar uri={currentAdvisor.photoUrl} size={48} />
+        <Avatar uri={userImage} size={48} />
         <View>
-          <Text style={[styles.greeting, { color: theme.text }]}>Hola, {currentAdvisor.name.split(' ')[0]}</Text>
-          <Text style={[styles.store, { color: theme.textSecondary }]}>{currentAdvisor.store} · {currentAdvisor.brand}</Text>
+          <Text style={[styles.greeting, { color: theme.text }]}>Hola, {firstName}</Text>
+          <Text style={[styles.store, { color: theme.textSecondary }]}>{user?.email ?? ''}</Text>
         </View>
       </View>
 

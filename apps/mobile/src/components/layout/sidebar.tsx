@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '@/components/ui/avatar';
 import { Icon, type IconName } from '@/components/ui/icon';
 import { Spacing, Sidebar as SidebarDimensions, Typography } from '@/constants/theme';
-import { currentAdvisor } from '@/data/mock-advisor';
+import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/hooks/use-theme';
 import type { SidebarSection } from '@/types';
 
@@ -24,7 +24,10 @@ interface SidebarProps {
 
 export function Sidebar({ active, onSelect, collapsed = false }: SidebarProps) {
   const theme = useTheme();
+  const { session } = useAuth();
   const width = collapsed ? SidebarDimensions.collapsedWidth : SidebarDimensions.expandedWidth;
+  const userName = session?.user?.fullName ?? session?.user?.name ?? '';
+  const userImage = session?.user?.image ?? undefined;
 
   return (
     <View style={[styles.container, { width, backgroundColor: theme.sidebar }]}>
@@ -72,14 +75,14 @@ export function Sidebar({ active, onSelect, collapsed = false }: SidebarProps) {
 
       {/* Advisor profile */}
       <View style={[styles.footer, collapsed && styles.footerCollapsed]}>
-        <Avatar uri={currentAdvisor.photoUrl} size={collapsed ? 32 : 36} />
+        <Avatar uri={userImage} size={collapsed ? 32 : 36} />
         {!collapsed && (
           <View style={styles.advisorInfo}>
             <Text style={[styles.advisorName, { color: theme.sidebarText }]} numberOfLines={1}>
-              {currentAdvisor.name}
+              {userName}
             </Text>
             <Text style={[styles.advisorStore, { color: theme.sidebarTextSecondary }]} numberOfLines={1}>
-              {currentAdvisor.store}
+              {session?.user?.email ?? ''}
             </Text>
           </View>
         )}

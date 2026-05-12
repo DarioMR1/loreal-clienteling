@@ -15,7 +15,7 @@ export type IconName =
   | 'person' | 'search' | 'call' | 'mail' | 'gift' | 'refresh' | 'clipboard'
   | 'heart' | 'star' | 'alert-circle' | 'checkmark-circle'
   // Beauty
-  | 'color-palette' | 'water' | 'sparkles' | 'eye' | 'flower'
+  | 'color-palette' | 'water' | 'sparkles' | 'eye' | 'eye-off' | 'flower'
   // Products
   | 'barcode' | 'camera' | 'pricetag' | 'cube'
   // Appointments

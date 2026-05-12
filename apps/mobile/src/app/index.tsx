@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Redirect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Sidebar } from '@/components/layout/sidebar';
 import { SplitView } from '@/components/layout/split-view';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/hooks/use-theme';
 import type { Appointment, Client, Product, SidebarSection } from '@/types';
 
@@ -20,12 +22,23 @@ import { SettingsScreen } from '@/features/settings/settings-screen';
 
 export default function HomeScreen() {
   const theme = useTheme();
+  const { session, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState<SidebarSection>('client-book');
-
-  // Selection state per module
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.accent} />
+      </View>
+    );
+  }
+
+  if (!session) {
+    return <Redirect href="/login" />;
+  }
 
   const renderContent = () => {
     switch (activeSection) {
@@ -133,6 +146,10 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   layout: {
     flex: 1,

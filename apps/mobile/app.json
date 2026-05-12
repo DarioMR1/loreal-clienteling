@@ -16,9 +16,13 @@
         "UISupportedInterfaceOrientations~ipad": [
           "UIInterfaceOrientationLandscapeLeft",
           "UIInterfaceOrientationLandscapeRight",
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight",
           "UIInterfaceOrientationPortrait"
         ]
-      }
+      },
+      "bundleIdentifier": "com.dariomr.loreal-clienteling"
     },
     "android": {
       "adaptiveIcon": {
