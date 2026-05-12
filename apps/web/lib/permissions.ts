@@ -42,6 +42,9 @@ const PERMISSIONS = {
   // Analytics
   "analytics.view": ["manager", "supervisor", "admin"],
 
+  // Configuration
+  "config.manage": ["admin"],
+
   // Audit
   "audit.view": ["admin"],
 } as const satisfies Record<string, readonly UserRole[]>;

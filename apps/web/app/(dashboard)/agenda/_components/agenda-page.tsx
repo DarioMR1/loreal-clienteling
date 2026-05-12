@@ -79,11 +79,18 @@ export function AgendaPage({ user }: AgendaPageProps) {
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
   const [dialog, setDialog] = useState<DialogState>(null);
   const [statusUpdate, setStatusUpdate] = useState("");
+  const [storeView, setStoreView] = useState(role !== "ba");
 
   const from = weekStart.toISOString();
   const to = addDays(weekStart, 7).toISOString();
 
-  const { data: appointments = [], isLoading } = useAppointmentCalendar(from, to);
+  const { data: calendarData = [], isLoading } = useAppointmentCalendar(
+    from,
+    to,
+    role !== "ba" ? { storeView } : undefined,
+  );
+  // Cast to Appointment[] for WeekCalendar compat (CalendarAppointment has all needed fields + extras)
+  const appointments = calendarData as unknown as Appointment[];
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
 
@@ -125,6 +132,32 @@ export function AgendaPage({ user }: AgendaPageProps) {
           ) : undefined
         }
       />
+
+      {/* Store / Mine toggle — visible for manager+ */}
+      {role !== "ba" && (
+        <div className="flex gap-1 rounded-lg border border-border p-0.5">
+          <button
+            onClick={() => setStoreView(true)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              storeView
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Tienda
+          </button>
+          <button
+            onClick={() => setStoreView(false)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              !storeView
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Mis citas
+          </button>
+        </div>
+      )}
 
       {/* Week navigation */}
       <div className="flex items-center justify-between">

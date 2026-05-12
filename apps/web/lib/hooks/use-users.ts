@@ -1,45 +1,109 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 import { authClient } from "@/lib/auth-client";
 
 // ── Types ──────────────────────────────────────────────────────────
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  emailVerified: boolean;
+  fullName: string;
   role: string;
   storeId: string | null;
+  storeName: string | null;
   zoneId: string | null;
+  zoneName: string | null;
   brandId: string | null;
+  brandName: string | null;
   active: boolean;
-  fullName: string;
+  invitationStatus: string | null;
+  invitedAt: string | null;
+  lastLoginAt: string | null;
   createdAt: string;
-  updatedAt: string;
+}
+
+interface UserFilters {
+  role?: string;
+  storeId?: string;
+  zoneId?: string;
+  brandId?: string;
+  active?: string;
+  invitationStatus?: string;
+  search?: string;
+  page?: string;
+  limit?: string;
+}
+
+interface PaginatedUsers {
+  data: User[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 // ── Query keys ─────────────────────────────────────────────────────
 
 const userKeys = {
-  all: ["users"] as const,
+  all: (filters?: UserFilters) => ["users", filters] as const,
 };
 
 // ── Queries ────────────────────────────────────────────────────────
 
-export function useUsers() {
+export function useUsers(filters?: UserFilters) {
+  const params: Record<string, string> = {};
+  if (filters) {
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) params[k] = v;
+    });
+  }
+
   return useQuery({
-    queryKey: userKeys.all,
-    queryFn: async () => {
-      const res = await authClient.admin.listUsers({
-        query: { limit: 100 },
-      });
-      return (res.data?.users ?? []) as unknown as User[];
-    },
+    queryKey: userKeys.all(filters),
+    queryFn: () =>
+      api.get<PaginatedUsers>(
+        "/users",
+        Object.keys(params).length > 0 ? params : undefined,
+      ),
   });
 }
 
 // ── Mutations ──────────────────────────────────────────────────────
 
+export function useInviteUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      email: string;
+      fullName: string;
+      role: string;
+      storeId?: string;
+      zoneId?: string;
+      brandId?: string;
+    }) => api.post<User>("/users/invite", data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: string;
+      role?: string;
+      storeId?: string | null;
+      zoneId?: string | null;
+      brandId?: string | null;
+      active?: boolean;
+      fullName?: string;
+    }) => api.patch<User>(`/users/${id}`, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+  });
+}
+
+// Keep legacy mutations for compatibility
 export function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -67,7 +131,7 @@ export function useCreateUser() {
       });
       return res.data as unknown as User;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 }
 
@@ -75,12 +139,9 @@ export function useSetUserRole() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      await authClient.admin.setRole({
-        userId,
-        role: role as "admin",
-      });
+      await authClient.admin.setRole({ userId, role: role as "admin" });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 }
 
@@ -90,7 +151,7 @@ export function useBanUser() {
     mutationFn: async (userId: string) => {
       await authClient.admin.banUser({ userId });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 }
 
@@ -100,6 +161,6 @@ export function useUnbanUser() {
     mutationFn: async (userId: string) => {
       await authClient.admin.unbanUser({ userId });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 }

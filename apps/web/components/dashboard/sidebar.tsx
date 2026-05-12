@@ -56,6 +56,7 @@ const NAV_SECTIONS: readonly NavSection[] = [
       { label: "Zonas", href: "/zonas", icon: MapIcon, roles: ["admin", "supervisor"] },
       { label: "Equipo", href: "/equipo", icon: TeamIcon, roles: ["manager", "admin"] },
       { label: "Plantillas", href: "/plantillas", icon: FileTextIcon, roles: ["admin"] },
+      { label: "Configuración", href: "/configuracion", icon: SettingsIcon, roles: ["admin"] },
       { label: "Auditoría", href: "/auditoria", icon: ShieldIcon, roles: ["admin"] },
     ],
   },
@@ -440,6 +441,15 @@ function ShieldIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.5L2.5 4v4c0 3.5 2.5 5.5 5.5 6.5 3-1 5.5-3 5.5-6.5V4L8 1.5z" />
       <path d="M6 8l1.5 1.5L10 6.5" />
+    </svg>
+  );
+}
+
+function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="2" />
+      <path d="M13.4 10a1.2 1.2 0 00.2 1.3l.04.04a1.44 1.44 0 01-1.02 2.46 1.44 1.44 0 01-1.02-.42l-.04-.04a1.2 1.2 0 00-1.3-.2 1.2 1.2 0 00-.72 1.1v.12a1.44 1.44 0 01-2.88 0v-.06a1.2 1.2 0 00-.78-1.1 1.2 1.2 0 00-1.3.2l-.04.04a1.44 1.44 0 11-2.04-2.04l.04-.04a1.2 1.2 0 00.2-1.3 1.2 1.2 0 00-1.1-.72H2.24a1.44 1.44 0 010-2.88h.06a1.2 1.2 0 001.1-.78 1.2 1.2 0 00-.2-1.3l-.04-.04A1.44 1.44 0 115.2 3.16l.04.04a1.2 1.2 0 001.3.2h.06a1.2 1.2 0 00.72-1.1V2.24a1.44 1.44 0 012.88 0v.06a1.2 1.2 0 00.72 1.1 1.2 1.2 0 001.3-.2l.04-.04a1.44 1.44 0 112.04 2.04l-.04.04a1.2 1.2 0 00-.2 1.3v.06a1.2 1.2 0 001.1.72h.12a1.44 1.44 0 010 2.88h-.06a1.2 1.2 0 00-1.1.72z" />
     </svg>
   );
 }
