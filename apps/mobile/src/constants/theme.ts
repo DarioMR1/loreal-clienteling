@@ -40,11 +40,11 @@ export const Colors = {
     border: '#E8E8E8',
     borderLight: '#F0F0F0',
 
-    // Segments (client badges)
-    vip: '#C8A96E',
-    recurrent: '#1565C0',
-    new: '#2E7D32',
-    atRisk: '#C62828',
+    // Segments (client badges) — per 07-ux-ui-guidelines.md
+    vip: '#C9A96E',
+    returning: '#6B6B6B',
+    new: '#4A7C59',
+    atRisk: '#D4A017',
 
     // Overlays
     overlay: 'rgba(0,0,0,0.4)',
@@ -81,10 +81,10 @@ export const Colors = {
     border: '#252525',
     borderLight: '#1A1A1A',
 
-    vip: '#C8A96E',
-    recurrent: '#42A5F5',
-    new: '#4CAF50',
-    atRisk: '#EF5350',
+    vip: '#C9A96E',
+    returning: '#9B9B9B',
+    new: '#4A7C59',
+    atRisk: '#D4A017',
 
     overlay: 'rgba(0,0,0,0.6)',
     cardShadow: 'rgba(0,0,0,0.3)',

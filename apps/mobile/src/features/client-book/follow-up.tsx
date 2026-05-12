@@ -1,176 +1,151 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-import { Card } from '@/components/ui/card';
-import { Icon, type IconName } from '@/components/ui/icon';
-import { IconButton } from '@/components/ui/icon-button';
-import { SectionHeader } from '@/components/ui/section-header';
-import { StatusBadge } from '@/components/ui/badge';
-import { Spacing, Typography } from '@/constants/theme';
-import { mockFollowUps, mockMessages } from '@/data/mock-clients';
-import { useTheme } from '@/hooks/use-theme';
-import type { Client, FollowUpType, MessageChannel } from '@/types';
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { IconButton } from "@/components/ui/icon-button";
+import { SectionHeader } from "@/components/ui/section-header";
+import { StatusBadge } from "@/components/ui/badge";
+import { Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import type { Customer, Consent, Communication } from "@/types";
 
-const followUpLabels: Record<FollowUpType, string> = {
-  '3-month': '3 Meses',
-  '6-month': '6 Meses',
-  birthday: 'Cumpleanos',
-  replenishment: 'Reposicion',
-  'special-event': 'Evento Especial',
-};
-
-const channelIcons: Record<MessageChannel, IconName> = {
-  whatsapp: 'chatbubble',
-  sms: 'phone-portrait',
-  email: 'mail',
+const followUpLabels: Record<string, string> = {
+  "3_months": "3 meses",
+  "6_months": "6 meses",
+  birthday: "Cumpleaños",
+  replenishment: "Reposición",
+  special_event: "Evento especial",
+  custom: "Personalizado",
 };
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "short",
+  });
 }
 
-interface FollowUpViewProps {
-  client: Client;
+interface Props {
+  customer: Customer;
+  consents: Consent[];
+  communications: Communication[];
 }
 
-export function FollowUpView({ client }: FollowUpViewProps) {
+export function FollowUpView({ customer, consents, communications }: Props) {
   const theme = useTheme();
-  const followUps = mockFollowUps.filter((f) => f.clientId === client.id);
-  const messages = mockMessages.filter((m) => m.clientId === client.id);
+
+  const hasConsent = (type: string) =>
+    consents.some((c) => c.type === type && !c.revokedAt);
+
+  const canWhatsApp = hasConsent("marketing_whatsapp");
+  const canSMS = hasConsent("marketing_sms");
+  const canEmail = hasConsent("marketing_email");
+
+  // Recent communications sorted by date
+  const recentComms = [...communications]
+    .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+    .slice(0, 10);
 
   return (
     <View style={styles.container}>
       {/* Quick actions */}
-      <View style={styles.section}>
-        <SectionHeader title="Enviar mensaje" />
-        <View style={styles.quickActions}>
-          {client.channelConsents.whatsapp && (
-            <IconButton icon="whatsapp" label="WhatsApp" variant="accent" />
-          )}
-          {client.channelConsents.sms && (
-            <IconButton icon="phone-portrait" label="SMS" variant="default" />
-          )}
-          {client.channelConsents.email && (
-            <IconButton icon="mail" label="Email" variant="default" />
-          )}
-        </View>
+      <SectionHeader title="Enviar seguimiento" />
+      <View style={styles.actionsRow}>
+        <IconButton
+          icon="chatbubble"
+          label="WhatsApp"
+          variant={canWhatsApp ? "accent" : "default"}
+          disabled={!canWhatsApp}
+        />
+        <IconButton
+          icon="chatbubble-ellipses"
+          label="SMS"
+          variant={canSMS ? "accent" : "default"}
+          disabled={!canSMS}
+        />
+        <IconButton
+          icon="mail"
+          label="Email"
+          variant={canEmail ? "accent" : "default"}
+          disabled={!canEmail}
+        />
       </View>
 
-      {/* Message templates */}
-      <View style={styles.section}>
-        <SectionHeader title="Plantillas disponibles" />
-        <View style={styles.templateGrid}>
-          {[
-            { label: 'Seguimiento post-compra', icon: 'bag' as IconName },
-            { label: 'Feliz cumpleanos', icon: 'gift' as IconName },
-            { label: 'Promocion exclusiva', icon: 'pricetag' as IconName },
-            { label: 'Reposicion de producto', icon: 'refresh' as IconName },
-          ].map((tpl) => (
-            <Pressable key={tpl.label} style={[styles.templateCard, { backgroundColor: theme.backgroundElement }]}>
-              <Icon name={tpl.icon} size={16} themeColor="textSecondary" />
-              <Text style={[styles.templateName, { color: theme.text }]}>{tpl.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-      {/* Pending follow-ups */}
-      {followUps.length > 0 && (
-        <View style={styles.section}>
-          <SectionHeader title="Seguimientos pendientes" />
-          {followUps.map((fu) => (
-            <Card key={fu.id} style={styles.fuCard}>
-              <View style={styles.fuHeader}>
-                <StatusBadge label={followUpLabels[fu.type]} color={theme.accent} />
-                <Text style={[styles.fuDate, { color: theme.textSecondary }]}>{formatDate(fu.dueDate)}</Text>
-              </View>
-              <Text style={[styles.fuNotes, { color: theme.text }]}>{fu.notes}</Text>
-            </Card>
-          ))}
-        </View>
+      {!canWhatsApp && !canSMS && !canEmail && (
+        <Text style={[styles.noConsent, { color: theme.warning }]}>
+          La clienta no tiene consentimientos activos para comunicación.
+        </Text>
       )}
 
       {/* Message history */}
-      {messages.length > 0 && (
-        <View style={styles.section}>
-          <SectionHeader title="Historial de mensajes" />
-          {messages.map((msg) => (
-            <Card key={msg.id} style={styles.msgCard}>
-              <View style={styles.msgHeader}>
-                <Icon name={channelIcons[msg.channel]} size={16} themeColor="textSecondary" />
-                <Text style={[styles.msgTemplate, { color: theme.text }]}>{msg.templateName}</Text>
-                <Text style={[styles.msgDate, { color: theme.textTertiary }]}>{formatDate(msg.sentAt)}</Text>
+      <SectionHeader title="Historial de comunicaciones" />
+      {recentComms.length === 0 ? (
+        <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+          Sin comunicaciones registradas.
+        </Text>
+      ) : (
+        recentComms.map((comm) => (
+          <Card key={comm.id}>
+            <View style={styles.commRow}>
+              <Icon
+                name={
+                  comm.channel === "whatsapp"
+                    ? "logo-whatsapp"
+                    : comm.channel === "sms"
+                      ? "chatbubble"
+                      : "mail"
+                }
+                size={18}
+                color={theme.textSecondary}
+              />
+              <View style={styles.commInfo}>
+                <View style={styles.commTitleRow}>
+                  <StatusBadge
+                    label={
+                      followUpLabels[comm.followupType ?? ""] ??
+                      comm.followupType ??
+                      "—"
+                    }
+                    color={theme.info}
+                  />
+                  <Text
+                    style={[styles.commDate, { color: theme.textTertiary }]}
+                  >
+                    {formatDate(comm.sentAt)}
+                  </Text>
+                </View>
+                <Text
+                  style={[styles.commBody, { color: theme.text }]}
+                  numberOfLines={2}
+                >
+                  {comm.body}
+                </Text>
               </View>
-              <Text style={[styles.msgContent, { color: theme.textSecondary }]} numberOfLines={2}>
-                {msg.content}
-              </Text>
-            </Card>
-          ))}
-        </View>
+            </View>
+          </Card>
+        ))
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: Spacing.xl,
+  container: { gap: Spacing.lg },
+  actionsRow: { flexDirection: "row", gap: Spacing.sm },
+  noConsent: { ...Typography.caption1, marginTop: -Spacing.sm },
+  emptyText: { ...Typography.body },
+  commRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.md,
   },
-  section: {
-    gap: Spacing.sm,
+  commInfo: { flex: 1, gap: 4 },
+  commTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  quickActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  templateGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  templateCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderRadius: 10,
-  },
-  templateName: {
-    ...Typography.subhead,
-    fontWeight: '500',
-  },
-  fuCard: {
-    gap: Spacing.sm,
-  },
-  fuHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  fuDate: {
-    ...Typography.caption1,
-  },
-  fuNotes: {
-    ...Typography.subhead,
-  },
-  msgCard: {
-    gap: Spacing.sm,
-  },
-  msgHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  msgTemplate: {
-    ...Typography.subhead,
-    fontWeight: '600',
-    flex: 1,
-  },
-  msgDate: {
-    ...Typography.caption1,
-  },
-  msgContent: {
-    ...Typography.caption1,
-  },
+  commDate: { ...Typography.caption1 },
+  commBody: { ...Typography.body },
 });

@@ -1,26 +1,46 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { Avatar } from '@/components/ui/avatar';
-import { Card } from '@/components/ui/card';
-import { Icon } from '@/components/ui/icon';
-import { MetricCard } from '@/components/ui/metric-card';
-import { SectionHeader } from '@/components/ui/section-header';
-import { Spacing, Typography } from '@/constants/theme';
-import { mockMetrics, monthlyTrend, salesByCategory, topBrands, weeklyAppointmentMetrics } from '@/data/mock-advisor';
-import { useAuth } from '@/providers/auth-provider';
-import { useTheme } from '@/hooks/use-theme';
+import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Spacing, Typography } from "@/constants/theme";
+import { useAuth } from "@/providers/auth-provider";
+import { useTheme } from "@/hooks/use-theme";
+import { useDashboard, useConversion } from "./hooks/use-analytics";
 
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('es-MX')}`;
+function formatCurrency(amount: number): string {
+  return "$" + amount.toLocaleString("es-MX", { minimumFractionDigits: 0 });
 }
 
 export function Dashboard() {
   const theme = useTheme();
   const { session } = useAuth();
-  const user = session?.user;
-  const firstName = (user?.fullName ?? user?.name ?? '').split(' ')[0];
-  const userImage = user?.image ?? undefined;
+  const { data: metrics, isLoading } = useDashboard();
+  const { data: conversion } = useConversion();
+
+  const userName = session?.user?.fullName ?? session?.user?.name ?? "";
+  const userImage = session?.user?.image ?? undefined;
+
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: theme.backgroundSecondary },
+        ]}
+      >
+        <ActivityIndicator size="large" color={theme.accent} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -29,215 +49,113 @@ export function Dashboard() {
       showsVerticalScrollIndicator={false}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={styles.headerRow}>
         <Avatar uri={userImage} size={48} />
         <View>
-          <Text style={[styles.greeting, { color: theme.text }]}>Hola, {firstName}</Text>
-          <Text style={[styles.store, { color: theme.textSecondary }]}>{user?.email ?? ''}</Text>
+          <Text style={[styles.greeting, { color: theme.text }]}>
+            Hola, {userName.split(" ")[0]}
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+            {session?.user?.email}
+          </Text>
         </View>
       </View>
 
-      {/* KPI Grid */}
-      <View style={styles.section}>
-        <SectionHeader title="KPIs del mes" />
-        <View style={styles.metricsGrid}>
-          {mockMetrics.map((m) => (
-            <MetricCard key={m.label} metric={m} />
-          ))}
-        </View>
+      {/* KPI metrics */}
+      <SectionHeader title="Métricas del periodo" />
+      <View style={styles.metricsGrid}>
+        <MetricCard
+          label="Ventas"
+          value={formatCurrency(metrics?.totalSales ?? 0)}
+        />
+        <MetricCard
+          label="Transacciones"
+          value={String(metrics?.salesCount ?? 0)}
+        />
+        <MetricCard
+          label="Clientes nuevos"
+          value={String(metrics?.newCustomers ?? 0)}
+        />
+        <MetricCard
+          label="Comunicaciones"
+          value={String(metrics?.communicationsSent ?? 0)}
+        />
+        <MetricCard
+          label="Total clientes"
+          value={String(metrics?.totalCustomers ?? 0)}
+        />
+        <MetricCard
+          label="Citas"
+          value={String(metrics?.totalAppointments ?? 0)}
+        />
       </View>
 
-      {/* Appointment metrics */}
-      <View style={styles.section}>
-        <SectionHeader title="Citas de la semana" />
-        <Card>
-          <View style={styles.aptMetrics}>
-            <AptMetric label="Meta" value={weeklyAppointmentMetrics.target} theme={theme} />
-            <AptMetric label="Total" value={weeklyAppointmentMetrics.total} theme={theme} />
-            <AptMetric label="Nuevas" value={weeklyAppointmentMetrics.new} theme={theme} />
-            <AptMetric label="Reagendadas" value={weeklyAppointmentMetrics.rescheduled} theme={theme} />
+      {/* Conversion rates */}
+      {conversion && (
+        <>
+          <SectionHeader title="Tasas de conversión" />
+          <View style={styles.metricsGrid}>
+            <MetricCard
+              label="Recomendación → Compra"
+              value={`${Math.round(conversion.recommendationToSale.rate)}%`}
+              detail={`${conversion.recommendationToSale.converted}/${conversion.recommendationToSale.total}`}
+            />
+            <MetricCard
+              label="Muestra → Compra"
+              value={`${Math.round(conversion.sampleToSale.rate)}%`}
+              detail={`${conversion.sampleToSale.converted}/${conversion.sampleToSale.total}`}
+            />
           </View>
-        </Card>
-      </View>
-
-      {/* Top brands */}
-      <View style={styles.section}>
-        <SectionHeader title="Top Marcas" />
-        <Card>
-          {topBrands.map((b, i) => (
-            <View key={b.brand} style={[styles.brandRow, i < topBrands.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.borderLight }]}>
-              <Text style={[styles.brandRank, { color: theme.textTertiary }]}>{i + 1}</Text>
-              <Text style={[styles.brandName, { color: theme.text }]}>{b.brand}</Text>
-              <Text style={[styles.brandSales, { color: theme.accent }]}>{formatCurrency(b.sales)}</Text>
-              <View style={[styles.barTrack, { backgroundColor: theme.backgroundElement }]}>
-                <View style={[styles.barFill, { width: `${b.percentage}%`, backgroundColor: theme.accent }]} />
-              </View>
-            </View>
-          ))}
-        </Card>
-      </View>
-
-      {/* Sales by category */}
-      <View style={styles.section}>
-        <SectionHeader title="Ventas por Categoria" />
-        <Card>
-          {salesByCategory.map((c, i) => (
-            <View key={c.category} style={[styles.catRow, i < salesByCategory.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.borderLight }]}>
-              <View style={styles.catInfo}>
-                <Text style={[styles.catName, { color: theme.text }]}>{c.category}</Text>
-                <Text style={[styles.catSales, { color: theme.textSecondary }]}>{formatCurrency(c.sales)}</Text>
-              </View>
-              <Text style={[styles.catPercent, { color: theme.accent }]}>{c.percentage}%</Text>
-            </View>
-          ))}
-        </Card>
-      </View>
-
-      {/* Monthly trend */}
-      <View style={styles.section}>
-        <SectionHeader title="Tendencia mensual" />
-        <Card>
-          <View style={styles.trendRow}>
-            {monthlyTrend.map((m) => {
-              const max = Math.max(...monthlyTrend.map((t) => t.value));
-              const height = (m.value / max) * 80;
-              return (
-                <View key={m.month} style={styles.trendCol}>
-                  <View style={[styles.trendBar, { height, backgroundColor: theme.accent }]} />
-                  <Text style={[styles.trendLabel, { color: theme.textSecondary }]}>{m.month}</Text>
-                  <Text style={[styles.trendValue, { color: theme.textTertiary }]}>{formatCurrency(m.value)}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
-      </View>
+        </>
+      )}
     </ScrollView>
   );
 }
 
-function AptMetric({ label, value, theme }: { label: string; value: number; theme: ReturnType<typeof useTheme> }) {
+function MetricCard({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail?: string;
+}) {
+  const theme = useTheme();
   return (
-    <View style={styles.aptMetric}>
-      <Text style={[styles.aptValue, { color: theme.text }]}>{value}</Text>
-      <Text style={[styles.aptLabel, { color: theme.textSecondary }]}>{label}</Text>
-    </View>
+    <Card style={styles.metricCard}>
+      <Text style={[styles.metricValue, { color: theme.text }]}>{value}</Text>
+      <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+        {label}
+      </Text>
+      {detail && (
+        <Text style={[styles.metricDetail, { color: theme.textTertiary }]}>
+          {detail}
+        </Text>
+      )}
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    padding: Spacing.xl,
-    gap: Spacing.xl,
-    paddingBottom: Spacing['4xl'],
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.lg,
-  },
-  greeting: {
-    ...Typography.title2,
-  },
-  store: {
-    ...Typography.subhead,
-    marginTop: 2,
-  },
-  section: {
+  container: { flex: 1 },
+  centered: { justifyContent: "center", alignItems: "center" },
+  content: { padding: Spacing.xl, gap: Spacing.xl, paddingBottom: Spacing["4xl"] },
+  headerRow: { flexDirection: "row", alignItems: "center", gap: Spacing.lg },
+  greeting: { ...Typography.title2 },
+  subtitle: { ...Typography.subhead },
+  metricsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.sm,
   },
-  metricsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.md,
+  metricCard: {
+    flexBasis: "31%",
+    flexGrow: 1,
+    alignItems: "center",
+    minWidth: 140,
   },
-  aptMetrics: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  aptMetric: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  aptValue: {
-    ...Typography.title2,
-  },
-  aptLabel: {
-    ...Typography.caption1,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    paddingVertical: Spacing.md,
-  },
-  brandRank: {
-    ...Typography.caption1,
-    fontWeight: '700',
-    width: 20,
-  },
-  brandName: {
-    ...Typography.subhead,
-    fontWeight: '500',
-    width: 120,
-  },
-  brandSales: {
-    ...Typography.subhead,
-    fontWeight: '600',
-    width: 80,
-  },
-  barTrack: {
-    flex: 1,
-    height: 6,
-    borderRadius: 3,
-  },
-  barFill: {
-    height: 6,
-    borderRadius: 3,
-  },
-  catRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-  },
-  catInfo: {
-    gap: 2,
-  },
-  catName: {
-    ...Typography.body,
-    fontWeight: '600',
-  },
-  catSales: {
-    ...Typography.caption1,
-  },
-  catPercent: {
-    ...Typography.title3,
-    fontWeight: '700',
-  },
-  trendRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 120,
-    paddingTop: Spacing.lg,
-  },
-  trendCol: {
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  trendBar: {
-    width: 32,
-    borderRadius: 4,
-  },
-  trendLabel: {
-    ...Typography.caption1,
-    fontWeight: '600',
-  },
-  trendValue: {
-    ...Typography.caption2,
-  },
+  metricValue: { ...Typography.title2 },
+  metricLabel: { ...Typography.caption1, marginTop: 2, textAlign: "center" },
+  metricDetail: { ...Typography.caption2, marginTop: 2 },
 });

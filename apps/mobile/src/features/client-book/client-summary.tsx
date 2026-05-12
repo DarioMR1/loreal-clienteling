@@ -1,215 +1,170 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-import { Card } from '@/components/ui/card';
-import { Icon, type IconName } from '@/components/ui/icon';
-import { SegmentBadge } from '@/components/ui/badge';
-import { SectionHeader } from '@/components/ui/section-header';
-import { Spacing, Typography } from '@/constants/theme';
-import { mockFollowUps } from '@/data/mock-clients';
-import { useTheme } from '@/hooks/use-theme';
-import type { Client, FollowUpType } from '@/types';
+import { Card } from "@/components/ui/card";
+import { Icon, type IconName } from "@/components/ui/icon";
+import { SectionHeader } from "@/components/ui/section-header";
+import { StatusBadge } from "@/components/ui/badge";
+import { Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import type { Customer, Purchase, Consent, Communication } from "@/types";
 
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('es-MX')}`;
+function formatCurrency(amount: number): string {
+  return "$" + amount.toLocaleString("es-MX", { minimumFractionDigits: 0 });
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' });
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  return new Date(dateStr).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
-function daysUntil(dateStr: string): number {
-  return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86_400_000);
+interface Props {
+  customer: Customer;
+  purchases: Purchase[];
+  consents: Consent[];
+  communications: Communication[];
 }
 
-const alertIcons: Record<FollowUpType, IconName> = {
-  birthday: 'gift',
-  replenishment: 'refresh',
-  'special-event': 'sparkles',
-  '3-month': 'clipboard',
-  '6-month': 'clipboard',
-};
-
-interface ClientSummaryProps {
-  client: Client;
-}
-
-export function ClientSummary({ client }: ClientSummaryProps) {
+export function ClientSummary({
+  customer,
+  purchases,
+  consents,
+  communications,
+}: Props) {
   const theme = useTheme();
-  const alerts = mockFollowUps.filter((f) => f.clientId === client.id && !f.completed);
+
+  const totalSpent = purchases.reduce(
+    (sum, p) => sum + Number(p.totalAmount),
+    0
+  );
+  const hasConsent = (type: string) =>
+    consents.some((c) => c.type === type && !c.revokedAt);
 
   return (
     <View style={styles.container}>
-      {/* Alerts */}
-      {alerts.length > 0 && (
-        <View style={styles.section}>
-          <SectionHeader title="Alertas activas" />
-          <View style={styles.alertList}>
-            {alerts.map((alert) => {
-              const days = daysUntil(alert.dueDate);
-              const isUrgent = days <= 5;
-              return (
-                <Card key={alert.id} style={[styles.alertCard, { backgroundColor: isUrgent ? theme.warningLight : theme.backgroundElement }]}>
-                  <View style={[styles.alertIconContainer, { backgroundColor: isUrgent ? theme.warning + '20' : theme.accent + '20' }]}>
-                    <Icon name={alertIcons[alert.type]} size={18} color={isUrgent ? theme.warning : theme.accent} />
-                  </View>
-                  <View style={styles.alertInfo}>
-                    <Text style={[styles.alertTitle, { color: theme.text }]}>{alert.notes}</Text>
-                    <Text style={[styles.alertDate, { color: isUrgent ? theme.warning : theme.textSecondary }]}>
-                      {days > 0 ? `En ${days} dias` : days === 0 ? 'Hoy' : `Hace ${Math.abs(days)} dias`}
-                    </Text>
-                  </View>
-                </Card>
-              );
-            })}
-          </View>
+      <SectionHeader title="Información de contacto" />
+      <Card>
+        <InfoRow icon="call" label="Teléfono" value={customer.phone ?? "—"} />
+        <InfoRow icon="mail" label="Email" value={customer.email ?? "—"} />
+        <InfoRow
+          icon="gift"
+          label="Cumpleaños"
+          value={formatDate(customer.birthDate)}
+        />
+        <InfoRow
+          icon="calendar"
+          label="Registrada"
+          value={formatDate(customer.customerSince)}
+        />
+        <InfoRow
+          icon="time"
+          label="Último contacto"
+          value={formatDate(customer.lastContactAt)}
+        />
+      </Card>
+
+      <SectionHeader title="Métricas clave" />
+      <View style={styles.metricsRow}>
+        <MiniMetric label="Total gastado" value={formatCurrency(totalSpent)} />
+        <MiniMetric label="Compras" value={String(purchases.length)} />
+        <MiniMetric
+          label="Comunicaciones"
+          value={String(communications.length)}
+        />
+      </View>
+
+      <SectionHeader title="Consentimientos" />
+      <Card>
+        <View style={styles.consentsRow}>
+          <ConsentPill channel="SMS" active={hasConsent("marketing_sms")} />
+          <ConsentPill channel="Email" active={hasConsent("marketing_email")} />
+          <ConsentPill
+            channel="WhatsApp"
+            active={hasConsent("marketing_whatsapp")}
+          />
+          <ConsentPill
+            channel="Privacidad"
+            active={hasConsent("privacy_notice")}
+          />
         </View>
-      )}
-
-      {/* Contact info */}
-      <View style={styles.section}>
-        <SectionHeader title="Informacion de contacto" />
-        <Card>
-          <InfoRow icon="call" label="Telefono" value={client.phone} />
-          <InfoRow icon="mail" label="Email" value={client.email} />
-          <InfoRow icon="calendar" label="Nacimiento" value={formatDate(client.birthDate)} />
-          <InfoRow icon="person" label="Genero" value={client.gender === 'female' ? 'Femenino' : client.gender === 'male' ? 'Masculino' : 'Prefiere no decir'} />
-          <InfoRow icon="time" label="Cliente desde" value={formatDate(client.registeredAt)} last />
-        </Card>
-      </View>
-
-      {/* Key metrics */}
-      <View style={styles.section}>
-        <SectionHeader title="Resumen" />
-        <View style={styles.metricsRow}>
-          <MiniMetric icon="pricetag" label="Total gastado" value={formatCurrency(client.totalSpent)} theme={theme} />
-          <MiniMetric icon="people" label="Visitas" value={`${client.visitCount}`} theme={theme} />
-          <MiniMetric icon="star" label="Marca preferida" value={client.preferredBrand} theme={theme} />
-        </View>
-      </View>
-
-      {/* Consents */}
-      <View style={styles.section}>
-        <SectionHeader title="Consentimientos" />
-        <Card>
-          <InfoRow icon="shield-checkmark" label="Aviso de privacidad" value={`v${client.privacyConsent.version} · ${formatDate(client.privacyConsent.date)}`} />
-          <View style={styles.consentsRow}>
-            <ConsentPill label="SMS" active={client.channelConsents.sms} theme={theme} />
-            <ConsentPill label="Email" active={client.channelConsents.email} theme={theme} />
-            <ConsentPill label="WhatsApp" active={client.channelConsents.whatsapp} theme={theme} />
-          </View>
-        </Card>
-      </View>
+      </Card>
     </View>
   );
 }
 
-function InfoRow({ icon, label, value, last }: { icon: IconName; label: string; value: string; last?: boolean }) {
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+}) {
   const theme = useTheme();
   return (
-    <View style={[styles.infoRow, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.borderLight }]}>
-      <Icon name={icon} size={16} themeColor="textSecondary" />
-      <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{label}</Text>
-      <Text style={[styles.infoValue, { color: theme.text }]}>{value}</Text>
-    </View>
-  );
-}
-
-function MiniMetric({ icon, label, value, theme }: { icon: IconName; label: string; value: string; theme: ReturnType<typeof useTheme> }) {
-  return (
-    <Card style={styles.miniMetric}>
-      <Icon name={icon} size={18} color={theme.accent} />
-      <Text style={[styles.miniValue, { color: theme.text }]}>{value}</Text>
-      <Text style={[styles.miniLabel, { color: theme.textSecondary }]}>{label}</Text>
-    </Card>
-  );
-}
-
-function ConsentPill({ label, active, theme }: { label: string; active: boolean; theme: ReturnType<typeof useTheme> }) {
-  return (
-    <View style={[styles.consentPill, { backgroundColor: active ? theme.successLight : theme.backgroundElement }]}>
-      <Icon name={active ? 'checkmark-circle' : 'close'} size={14} color={active ? theme.success : theme.textTertiary} />
-      <Text style={{ color: active ? theme.success : theme.textTertiary, fontSize: 13, fontWeight: '600' }}>
+    <View style={styles.infoRow}>
+      <Icon name={icon} size={16} color={theme.textTertiary} />
+      <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>
         {label}
+      </Text>
+      <Text
+        style={[styles.infoValue, { color: theme.text }]}
+        numberOfLines={1}
+      >
+        {value}
       </Text>
     </View>
   );
 }
 
+function MiniMetric({ label, value }: { label: string; value: string }) {
+  const theme = useTheme();
+  return (
+    <Card style={styles.miniMetric}>
+      <Text style={[styles.miniMetricValue, { color: theme.text }]}>
+        {value}
+      </Text>
+      <Text style={[styles.miniMetricLabel, { color: theme.textSecondary }]}>
+        {label}
+      </Text>
+    </Card>
+  );
+}
+
+function ConsentPill({
+  channel,
+  active,
+}: {
+  channel: string;
+  active: boolean;
+}) {
+  const theme = useTheme();
+  return (
+    <StatusBadge
+      label={channel}
+      color={active ? theme.success : theme.textTertiary}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    gap: Spacing.xl,
-  },
-  section: {
-    gap: Spacing.sm,
-  },
-  alertList: {
-    gap: Spacing.sm,
-  },
-  alertCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  alertIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  alertInfo: {
-    flex: 1,
-  },
-  alertTitle: {
-    ...Typography.subhead,
-    fontWeight: '500',
-  },
-  alertDate: {
-    ...Typography.caption1,
-    marginTop: 2,
-  },
+  container: { gap: Spacing.lg },
+  metricsRow: { flexDirection: "row", gap: Spacing.sm },
+  miniMetric: { flex: 1, alignItems: "center" },
+  miniMetricValue: { ...Typography.title3 },
+  miniMetricLabel: { ...Typography.caption1, marginTop: 2 },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-  },
-  infoLabel: {
-    ...Typography.subhead,
-    flex: 1,
-  },
-  infoValue: {
-    ...Typography.subhead,
-    fontWeight: '500',
-  },
-  consentsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  consentPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
-    borderRadius: 8,
   },
-  metricsRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  miniMetric: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-  },
-  miniValue: {
-    ...Typography.title3,
-  },
-  miniLabel: {
-    ...Typography.caption1,
-    textAlign: 'center',
-  },
+  infoLabel: { ...Typography.caption1, width: 100 },
+  infoValue: { ...Typography.body, flex: 1 },
+  consentsRow: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
 });

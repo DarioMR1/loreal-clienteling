@@ -7,15 +7,16 @@ import { useTheme } from '@/hooks/use-theme';
 
 type MaterialIconName = 'whatsapp' | 'spa' | 'face-woman' | 'lipstick' | 'lotion' | 'calendar-star' | 'account-star' | 'flask' | 'palette-swatch';
 
-interface IconButtonProps {
+export interface IconButtonProps {
   icon: IconName | MaterialIconName;
   label?: string;
   onPress?: () => void;
   variant?: 'default' | 'accent' | 'danger';
   size?: 'sm' | 'md';
+  disabled?: boolean;
 }
 
-export function IconButton({ icon, label, onPress, variant = 'default', size = 'md' }: IconButtonProps) {
+export function IconButton({ icon, label, onPress, variant = 'default', size = 'md', disabled = false }: IconButtonProps) {
   const theme = useTheme();
 
   const bgColor = variant === 'accent' ? theme.accent
@@ -30,12 +31,13 @@ export function IconButton({ icon, label, onPress, variant = 'default', size = '
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={({ pressed }) => [
         styles.button,
         {
           backgroundColor: bgColor,
           minHeight: buttonSize,
-          opacity: pressed ? 0.7 : 1,
+          opacity: disabled ? 0.4 : pressed ? 0.7 : 1,
         },
         label ? styles.withLabel : { width: buttonSize },
       ]}

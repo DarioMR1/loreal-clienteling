@@ -1,18 +1,19 @@
-import { Image } from 'expo-image';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image } from "expo-image";
+import React from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Card } from '@/components/ui/card';
-import { Icon } from '@/components/ui/icon';
-import { IconButton } from '@/components/ui/icon-button';
-import { SectionHeader } from '@/components/ui/section-header';
-import { StatusBadge } from '@/components/ui/badge';
-import { Radius, Spacing, Typography } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import type { Product } from '@/types';
+import { Card } from "@/components/ui/card";
+import { Icon } from "@/components/ui/icon";
+import { IconButton } from "@/components/ui/icon-button";
+import { SectionHeader } from "@/components/ui/section-header";
+import { Spacing, Typography } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import type { Product } from "@/types";
 
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('es-MX')}`;
+function formatCurrency(amount: string | number): string {
+  return (
+    "$" + Number(amount).toLocaleString("es-MX", { minimumFractionDigits: 0 })
+  );
 }
 
 interface ProductDetailProps {
@@ -21,6 +22,7 @@ interface ProductDetailProps {
 
 export function ProductDetail({ product }: ProductDetailProps) {
   const theme = useTheme();
+  const imageUrl = product.images?.[0];
 
   return (
     <ScrollView
@@ -29,58 +31,86 @@ export function ProductDetail({ product }: ProductDetailProps) {
       showsVerticalScrollIndicator={false}
     >
       {/* Hero image */}
-      <Image source={{ uri: product.imageUrl }} style={styles.heroImage} contentFit="cover" />
-
-      {/* Info */}
-      <View style={styles.info}>
-        <Text style={[styles.brand, { color: theme.textSecondary }]}>{product.brand}</Text>
-        <Text style={[styles.name, { color: theme.text }]}>{product.name}</Text>
-        <View style={styles.priceRow}>
-          <Text style={[styles.price, { color: theme.accent }]}>{formatCurrency(product.price)}</Text>
-          <StatusBadge
-            label={product.inStock ? 'En stock' : 'Agotado'}
-            color={product.inStock ? theme.success : theme.danger}
-          />
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.heroImage}
+          contentFit="cover"
+        />
+      ) : (
+        <View
+          style={[
+            styles.heroImage,
+            styles.heroPlaceholder,
+            { backgroundColor: theme.backgroundElement },
+          ]}
+        >
+          <Icon name="bag" size={48} color={theme.textTertiary} />
         </View>
+      )}
+
+      {/* Product info */}
+      <View style={styles.infoSection}>
+        <Text style={[styles.brand, { color: theme.textSecondary }]}>
+          {product.brand?.displayName ?? "—"}
+        </Text>
+        <Text style={[styles.name, { color: theme.text }]}>{product.name}</Text>
+        <Text style={[styles.price, { color: theme.accent }]}>
+          {formatCurrency(product.price)}
+        </Text>
         <View style={styles.skuRow}>
-          <Icon name="barcode" size={14} themeColor="textTertiary" />
-          <Text style={[styles.sku, { color: theme.textTertiary }]}>{product.sku}</Text>
+          <Icon name="barcode" size={14} color={theme.textTertiary} />
+          <Text style={[styles.sku, { color: theme.textTertiary }]}>
+            {product.sku}
+          </Text>
         </View>
       </View>
 
       {/* Actions */}
-      <View style={styles.actions}>
-        <IconButton icon="sparkles" label="Recomendar a cliente" variant="accent" />
-        <IconButton icon="camera" label="Escanear" variant="default" />
+      <View style={styles.actionsRow}>
+        <IconButton icon="sparkles" label="Recomendar" variant="accent" />
+        <IconButton icon="barcode" label="Escanear" variant="default" />
       </View>
 
       {/* Description */}
-      <View style={styles.section}>
-        <SectionHeader title="Descripcion" />
-        <Card>
-          <Text style={[styles.description, { color: theme.text }]}>{product.description}</Text>
-        </Card>
-      </View>
-
-      {/* Attributes */}
-      {Object.keys(product.attributes).length > 0 && (
+      {product.description && (
         <View style={styles.section}>
-          <SectionHeader title="Atributos" />
+          <SectionHeader title="Descripción" />
           <Card>
-            {Object.entries(product.attributes).map(([key, value], i, arr) => (
-              <View
-                key={key}
-                style={[
-                  styles.attrRow,
-                  i < arr.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.borderLight },
-                ]}
-              >
-                <Text style={[styles.attrKey, { color: theme.textSecondary }]}>
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
+            <Text style={[styles.description, { color: theme.text }]}>
+              {product.description}
+            </Text>
+          </Card>
+        </View>
+      )}
+
+      {/* Ingredients */}
+      {product.ingredients && product.ingredients.length > 0 && (
+        <View style={styles.section}>
+          <SectionHeader title="Ingredientes" />
+          <Card>
+            <Text style={[styles.description, { color: theme.textSecondary }]}>
+              {product.ingredients.join(", ")}
+            </Text>
+          </Card>
+        </View>
+      )}
+
+      {/* Technical details */}
+      {(product.technicalSheetUrl ||
+        product.tutorialUrl ||
+        product.salesArgument) && (
+        <View style={styles.section}>
+          <SectionHeader title="Recursos" />
+          <Card>
+            {product.salesArgument && (
+              <View style={styles.resourceRow}>
+                <Icon name="document-text" size={16} color={theme.accent} />
+                <Text style={[styles.resourceText, { color: theme.text }]}>
+                  {product.salesArgument}
                 </Text>
-                <Text style={[styles.attrValue, { color: theme.text }]}>{value}</Text>
               </View>
-            ))}
+            )}
           </Card>
         </View>
       )}
@@ -89,71 +119,41 @@ export function ProductDetail({ product }: ProductDetailProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   content: {
     padding: Spacing.xl,
     gap: Spacing.xl,
-    paddingBottom: Spacing['4xl'],
+    paddingBottom: Spacing["4xl"],
   },
-  heroImage: {
-    width: '100%',
-    height: 280,
-    borderRadius: Radius.lg,
+  heroImage: { width: "100%", height: 240, borderRadius: 12 },
+  heroPlaceholder: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 12,
   },
-  info: {
-    gap: Spacing.xs,
-  },
+  infoSection: { gap: 4 },
   brand: {
     ...Typography.caption1,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 1,
   },
-  name: {
-    ...Typography.title1,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-    marginTop: Spacing.xs,
-  },
-  price: {
-    ...Typography.title2,
-    fontWeight: '700',
-  },
+  name: { ...Typography.title2 },
+  price: { ...Typography.title3, marginTop: Spacing.xs },
   skuRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: Spacing.xs,
     marginTop: Spacing.xs,
   },
-  sku: {
-    ...Typography.caption1,
-  },
-  actions: {
-    flexDirection: 'row',
+  sku: { ...Typography.caption1 },
+  actionsRow: { flexDirection: "row", gap: Spacing.sm },
+  section: { gap: Spacing.sm },
+  description: { ...Typography.body, lineHeight: 24 },
+  resourceRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
-  section: {
-    gap: Spacing.sm,
-  },
-  description: {
-    ...Typography.body,
-    lineHeight: 26,
-  },
-  attrRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-  },
-  attrKey: {
-    ...Typography.subhead,
-  },
-  attrValue: {
-    ...Typography.subhead,
-    fontWeight: '500',
-  },
+  resourceText: { ...Typography.body, flex: 1 },
 });

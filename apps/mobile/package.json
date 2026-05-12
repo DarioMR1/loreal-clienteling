@@ -13,6 +13,7 @@
   "dependencies": {
     "@better-auth/expo": "^1.6.10",
     "@expo/vector-icons": "^15.0.2",
+    "@loreal/contracts": "workspace:^",
     "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/elements": "^2.9.10",
     "@react-navigation/native": "^7.1.33",

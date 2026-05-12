@@ -1,174 +1,320 @@
-// ─── Client ──────────────────────────────────────────────
-export type ClientSegment = 'vip' | 'recurrent' | 'new' | 'at-risk';
-export type Gender = 'female' | 'male' | 'non-binary' | 'prefer-not-to-say';
-export type SkinType = 'normal' | 'dry' | 'oily' | 'combination' | 'sensitive';
-export type SkinConcern = 'wrinkles' | 'acne' | 'dark-spots' | 'pores' | 'dryness' | 'redness' | 'dullness';
-export type BeautyCategory = 'skincare' | 'makeup' | 'fragrance';
-export type Routine = 'day' | 'night' | 'both';
-export type ConsentChannel = 'sms' | 'email' | 'whatsapp';
+/**
+ * Mobile app types — built on top of @loreal/contracts enums.
+ *
+ * These represent the shapes returned by the API endpoints,
+ * not the Drizzle schema rows. The API may join, rename, or
+ * omit fields compared to the raw DB tables.
+ */
 
-export interface ShadeMatch {
-  category: string; // e.g. "Foundation", "Concealer", "Lipstick"
-  shade: string;
-  brand: string;
-}
+// Re-export enums so feature code imports from one place
+export {
+  type Gender,
+  type LifecycleSegment,
+  type AppointmentStatus,
+  type AppointmentEventType,
+  type CommunicationChannel,
+  type FollowupType,
+  type ProductCategory,
+  type StockStatus,
+  type SkinType,
+  type SkinTone,
+  type SkinSubtone,
+  type SkinConcern,
+  type ShadeCategory,
+  type RoutineType,
+  type BeautyInterest,
+  type FragrancePreference,
+  type RecommendationSource,
+  type VisitReason,
+  type PurchaseSource,
+  type AttributionReason,
+  type ConsentType,
+  type UserRole,
+} from "@loreal/contracts";
 
-export interface BeautyProfile {
-  skinType: SkinType;
-  concerns: SkinConcern[];
-  tone: string;
-  undertone: string;
-  routine: Routine;
-  categories: BeautyCategory[];
-  shades: ShadeMatch[];
-  preferredIngredients: string[];
-  avoidIngredients: string[];
-}
+// ─── Navigation ──────────────────────────────────────────
+export type SidebarSection =
+  | "client-book"
+  | "appointments"
+  | "product-catalog"
+  | "performance"
+  | "settings";
 
-export interface PrivacyConsent {
-  accepted: boolean;
-  date: string;
-  version: string;
-}
-
-export interface ChannelConsents {
-  sms: boolean;
-  email: boolean;
-  whatsapp: boolean;
-}
-
-export interface Client {
+// ─── Customer (from GET /customers, GET /customers/:id) ──
+export interface Customer {
   id: string;
   firstName: string;
   lastName: string;
-  gender: Gender;
-  birthDate: string;
-  phone: string;
-  email: string;
-  photoUrl: string;
-  segment: ClientSegment;
-  registeredAt: string;
-  lastVisit: string;
-  lastPurchase: string;
-  preferredBrand: string;
-  privacyConsent: PrivacyConsent;
-  channelConsents: ChannelConsents;
-  beautyProfile: BeautyProfile;
-  totalSpent: number;
-  visitCount: number;
+  email: string | null;
+  phone: string | null;
+  gender: string | null;
+  birthDate: string | null;
+  registeredAtStoreId: string | null;
+  registeredByUserId: string | null;
+  lastBaUserId: string | null;
+  customerSince: string | null;
+  lastContactAt: string | null;
+  lastTransactionAt: string | null;
+  lifecycleSegment: string | null;
+  inactive: boolean | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// ─── Product ─────────────────────────────────────────────
-export type ProductCategory = 'skincare' | 'makeup' | 'fragrance' | 'haircare';
+// ─── Beauty Profile (from GET /customers/:id/beauty-profile) ──
+export interface BeautyProfile {
+  id: string;
+  customerId: string;
+  skinType: string | null;
+  skinTone: string | null;
+  skinSubtone: string | null;
+  skinConcerns: string[] | null;
+  preferredIngredients: string[] | null;
+  avoidedIngredients: string[] | null;
+  fragrancePreferences: string[] | null;
+  makeupPreferences: Record<string, unknown> | null;
+  routineType: string | null;
+  interests: string[] | null;
+  shades: BeautyProfileShade[];
+}
 
+export interface BeautyProfileShade {
+  id: string;
+  beautyProfileId: string;
+  category: string;
+  brandId: string;
+  productId: string;
+  shadeCode: string;
+  capturedAt: string;
+  capturedByUserId: string;
+}
+
+// ─── Product (from GET /products, GET /products/:id) ──
 export interface Product {
   id: string;
   sku: string;
+  brandId: string;
   name: string;
-  brand: string;
-  category: ProductCategory;
-  price: number;
-  imageUrl: string;
-  description: string;
-  inStock: boolean;
-  attributes: Record<string, string>;
+  category: string;
+  subcategory: string | null;
+  description: string | null;
+  ingredients: string[] | null;
+  price: string; // numeric comes as string from API
+  images: string[] | null;
+  shadeOptions: unknown | null;
+  estimatedDurationDays: number | null;
+  technicalSheetUrl: string | null;
+  tutorialUrl: string | null;
+  salesArgument: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Joined data
+  brand?: Brand;
 }
 
-// ─── Purchase ────────────────────────────────────────────
-export interface Purchase {
+export interface ProductAvailability {
   id: string;
-  clientId: string;
   productId: string;
-  product: Product;
-  date: string;
-  quantity: number;
-  price: number;
-  advisorId: string;
+  storeId: string;
+  stockStatus: string;
+  lastSyncedAt: string | null;
 }
 
-// ─── Recommendation ─────────────────────────────────────
+// ─── Brand (from GET /brands) ──
+export interface Brand {
+  id: string;
+  code: string;
+  displayName: string;
+  tier: string;
+  active: boolean;
+}
+
+export interface BrandConfig {
+  id: string;
+  brandId: string;
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  accentColor: string | null;
+  logoUrl: string | null;
+  fontFamily: string | null;
+  messageTemplates: unknown | null;
+  replenishmentRules: unknown | null;
+  virtualTryonEnabled: boolean;
+}
+
+// ─── Store (from GET /stores) ──
+export interface Store {
+  id: string;
+  code: string;
+  displayName: string;
+  chain: string;
+  zoneId: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  active: boolean;
+}
+
+// ─── Recommendation (from GET /customers/:id/recommendations) ──
 export interface Recommendation {
   id: string;
-  clientId: string;
+  customerId: string;
   productId: string;
-  product: Product;
-  date: string;
-  notes: string;
+  baUserId: string;
+  storeId: string;
+  recommendedAt: string;
+  source: string;
+  aiReasoning: string | null;
+  notes: string | null;
+  visitReason: string | null;
   convertedToPurchase: boolean;
+  conversionPurchaseId: string | null;
+  // Joined
+  product?: Product;
 }
 
-// ─── Appointment ─────────────────────────────────────────
-export type AppointmentStatus = 'confirmed' | 'rescheduled' | 'cancelled' | 'completed';
-export type EventType = 'cabin-service' | 'facial' | 'anniversary-event' | 'vip-cabin' | 'product-follow-up' | 'virtual-consultation';
+// ─── Purchase (from GET /customers/:id/purchases) ──
+export interface Purchase {
+  id: string;
+  customerId: string;
+  storeId: string;
+  purchasedAt: string;
+  totalAmount: string; // numeric as string
+  posTransactionId: string | null;
+  source: string;
+  attributedBaUserId: string | null;
+  attributionReason: string | null;
+  items: PurchaseItem[];
+}
 
+export interface PurchaseItem {
+  id: string;
+  purchaseId: string;
+  productId: string;
+  sku: string;
+  quantity: number;
+  unitPrice: string; // numeric as string
+  product?: Product;
+}
+
+// ─── Sample (from GET /customers/:id/samples) ──
+export interface Sample {
+  id: string;
+  customerId: string;
+  productId: string;
+  baUserId: string;
+  storeId: string;
+  deliveredAt: string;
+  convertedToPurchase: boolean;
+  conversionPurchaseId: string | null;
+  product?: Product;
+}
+
+// ─── Appointment (from GET /appointments) ──
 export interface Appointment {
   id: string;
-  clientId: string;
-  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'photoUrl' | 'phone'>;
-  eventType: EventType;
-  date: string;
-  time: string;
-  endTime: string;
-  status: AppointmentStatus;
-  notes: string;
-  advisorId: string;
+  customerId: string;
+  baUserId: string;
+  storeId: string;
+  eventType: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  status: string;
+  comments: string | null;
+  reminderSentAt: string | null;
+  confirmationSentAt: string | null;
+  isVirtual: boolean;
+  videoLink: string | null;
+  rescheduledFromAppointmentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Joined
+  customer?: Customer;
 }
 
-// ─── Follow-Up ───────────────────────────────────────────
-export type FollowUpType = '3-month' | '6-month' | 'birthday' | 'replenishment' | 'special-event';
-
-export interface FollowUp {
+// ─── Communication (from GET /customers/:id/communications) ──
+export interface Communication {
   id: string;
-  clientId: string;
-  client: Pick<Client, 'id' | 'firstName' | 'lastName' | 'photoUrl'>;
-  type: FollowUpType;
-  dueDate: string;
-  completed: boolean;
-  notes: string;
-}
-
-// ─── Activity (timeline) ─────────────────────────────────
-export type ActivityType = 'purchase' | 'recommendation' | 'appointment' | 'follow-up' | 'message' | 'sample';
-
-export interface Activity {
-  id: string;
-  clientId: string;
-  type: ActivityType;
-  date: string;
-  title: string;
-  subtitle: string;
-  metadata?: Record<string, string>;
-}
-
-// ─── Message ─────────────────────────────────────────────
-export type MessageChannel = 'whatsapp' | 'sms' | 'email';
-
-export interface Message {
-  id: string;
-  clientId: string;
-  channel: MessageChannel;
-  templateName: string;
+  customerId: string;
+  sentByUserId: string;
+  channel: string;
+  templateId: string | null;
+  subject: string | null;
+  body: string;
+  followupType: string | null;
   sentAt: string;
-  content: string;
+  deliveredAt: string | null;
+  readAt: string | null;
+  respondedAt: string | null;
+  trackingLinkId: string | null;
 }
 
-// ─── Beauty Advisor ──────────────────────────────────────
-export interface BeautyAdvisor {
+// ─── MessageTemplate (from GET /communications/templates) ──
+export interface MessageTemplate {
   id: string;
+  brandId: string | null;
   name: string;
-  photoUrl: string;
-  store: string;
-  brand: string;
-  role: 'ba' | 'store-manager' | 'zone-supervisor' | 'admin';
+  channel: string;
+  body: string;
+  followupType: string | null;
+  active: boolean;
 }
 
-// ─── Metrics ─────────────────────────────────────────────
+// ─── Consent (from GET /customers/:id/consents) ──
+export interface Consent {
+  id: string;
+  customerId: string;
+  type: string;
+  version: string | null;
+  acceptedAt: string;
+  revokedAt: string | null;
+  source: string | null;
+}
+
+// ─── Analytics (from GET /analytics/*) ──
+export interface DashboardMetrics {
+  totalCustomers: number;
+  totalSales: number;
+  salesCount: number;
+  totalAppointments: number;
+  newCustomers: number;
+  communicationsSent: number;
+}
+
+export interface BaPerformance {
+  baUserId: string;
+  baName: string;
+  salesTotal: number;
+  salesCount: number;
+  registrations: number;
+  communications: number;
+  recommendations: number;
+  conversionRate: number;
+}
+
+export interface ConversionMetrics {
+  recommendationToSale: { total: number; converted: number; rate: number };
+  sampleToSale: { total: number; converted: number; rate: number };
+}
+
+// ─── UI / Metrics ──
 export interface SalesMetric {
   label: string;
   value: number;
   target: number;
-  unit: 'currency' | 'count' | 'percent';
+  unit: "currency" | "count" | "percent";
 }
 
-// ─── Navigation ──────────────────────────────────────────
-export type SidebarSection = 'client-book' | 'appointments' | 'product-catalog' | 'performance' | 'settings';
+// ─── Audit Log ──
+export interface AuditLog {
+  id: string;
+  actorUserId: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  changes: unknown;
+  ipAddress: string | null;
+  userAgent: string | null;
+  timestamp: string;
+}

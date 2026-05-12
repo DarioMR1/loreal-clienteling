@@ -21,7 +21,7 @@ export type IconName =
   // Appointments
   | 'time' | 'videocam' | 'ribbon' | 'body'
   // Communication
-  | 'chatbubble' | 'send' | 'phone-portrait' | 'mail-open'
+  | 'chatbubble' | 'chatbubble-ellipses' | 'send' | 'phone-portrait' | 'mail-open' | 'logo-whatsapp'
   // Actions
   | 'add' | 'close' | 'chevron-forward' | 'create' | 'trash' | 'download'
   // Status
