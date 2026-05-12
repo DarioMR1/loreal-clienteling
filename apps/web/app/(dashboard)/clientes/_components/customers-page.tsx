@@ -95,7 +95,8 @@ export function CustomersPage({ user }: CustomersPageProps) {
 
   const customers = isSearching
     ? searchQuery.data ?? []
-    : customersQuery.data ?? [];
+    : customersQuery.data?.data ?? [];
+  const totalCustomers = isSearching ? customers.length : (customersQuery.data?.total ?? 0);
   const isLoading = isSearching ? searchQuery.isLoading : customersQuery.isLoading;
 
   // Mutations
@@ -185,12 +186,9 @@ export function CustomersPage({ user }: CustomersPageProps) {
 
   const isPending = createCustomer.isPending || updateCustomer.isPending;
 
-  // Rough page count — the API returns an array, so estimate
   const totalPages = isSearching
     ? 1
-    : customers.length < limit
-      ? page
-      : page + 1;
+    : Math.max(1, Math.ceil(totalCustomers / limit));
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

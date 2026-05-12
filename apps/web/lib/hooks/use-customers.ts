@@ -34,16 +34,34 @@ const customerKeys = {
 
 // ── Queries ────────────────────────────────────────────────────────
 
-export function useCustomers(params?: { page?: string; limit?: string; segment?: string; storeId?: string }) {
+interface PaginatedCustomers {
+  data: Customer[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export function useCustomers(params?: {
+  page?: string;
+  limit?: string;
+  segment?: string;
+  storeId?: string;
+  baUserId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}) {
   const queryParams: Record<string, string> = {};
-  if (params?.page) queryParams.page = params.page;
-  if (params?.limit) queryParams.limit = params.limit;
-  if (params?.segment) queryParams.segment = params.segment;
-  if (params?.storeId) queryParams.storeId = params.storeId;
+  if (params) {
+    Object.entries(params).forEach(([k, v]) => {
+      if (v) queryParams[k] = v;
+    });
+  }
 
   return useQuery({
     queryKey: customerKeys.all(queryParams),
-    queryFn: () => api.get<Customer[]>("/customers", queryParams),
+    queryFn: () => api.get<PaginatedCustomers>("/customers", Object.keys(queryParams).length ? queryParams : undefined),
   });
 }
 
