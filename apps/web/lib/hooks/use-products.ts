@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
+import { API_URL } from "@/lib/constants";
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -12,10 +13,17 @@ export interface Product {
   subcategory: string | null;
   description: string | null;
   price: string;
+  images: string[] | null;
+  ingredients: string[] | null;
+  shadeOptions: Record<string, unknown> | null;
   estimatedDurationDays: number | null;
+  technicalSheetUrl: string | null;
+  tutorialUrl: string | null;
+  salesArgument: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  brand?: { id: string; displayName: string; code: string };
 }
 
 export interface ProductAvailability {
@@ -95,6 +103,22 @@ export function useUpdateProductAvailability() {
       api.patch<ProductAvailability>(`/products/${productId}/availability/${storeId}`, { stockStatus }),
     onSuccess: (_, { productId }) => {
       queryClient.invalidateQueries({ queryKey: productKeys.availability(productId) });
+    },
+  });
+}
+
+export function useUploadProductImage() {
+  return useMutation({
+    mutationFn: async (file: File): Promise<{ key: string; url: string }> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_URL}/uploads/products`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      return res.json();
     },
   });
 }

@@ -1,23 +1,45 @@
 "use client";
 
 import { useState } from "react";
-import { useProducts, useBrands, useCreateProduct, useUpdateProduct, type Product } from "@/lib/hooks";
+import Image from "next/image";
+import {
+  useProducts,
+  useBrands,
+  useCreateProduct,
+  useUpdateProduct,
+  type Product,
+} from "@/lib/hooks";
 import { can } from "@/lib/permissions";
 import { PRODUCT_CATEGORIES } from "@loreal/contracts";
 import { PageHeader } from "@/components/dashboard/page-header";
-import { DataTable, type Column } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogClose,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import type { CreateProduct } from "@loreal/contracts";
 import { ProductForm } from "./product-form";
 
-type DialogState = null | { mode: "create" } | { mode: "edit"; product: Product };
+type DialogState =
+  | null
+  | { mode: "create" }
+  | { mode: "edit"; product: Product }
+  | { mode: "detail"; product: Product };
 
 const CATEGORY_LABEL: Record<string, string> = {
   skincare: "Skincare",
@@ -40,6 +62,7 @@ export function ProductsPage({ user }: ProductsPageProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
   const { data: brands = [] } = useBrands();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -51,129 +74,612 @@ export function ProductsPage({ user }: ProductsPageProps) {
 
   const { data: products = [], isLoading } = useProducts(params);
 
-  const brandMap = Object.fromEntries(brands.map((b) => [b.id, b.displayName]));
+  const brandMap = Object.fromEntries(
+    brands.map((b) => [b.id, b.displayName]),
+  );
 
-  const columns: Column<Product>[] = [
-    { key: "sku", label: "SKU", className: "font-mono text-xs" },
-    { key: "name", label: "Nombre" },
-    {
-      key: "brandId",
-      label: "Marca",
-      render: (v) => brandMap[v as string] ?? "—",
-    },
-    {
-      key: "category",
-      label: "Categoría",
-      render: (v) => {
-        const cat = v as string;
-        return <Badge variant={CATEGORY_VARIANT[cat] ?? "secondary"}>{CATEGORY_LABEL[cat] ?? cat}</Badge>;
-      },
-    },
-    {
-      key: "price",
-      label: "Precio",
-      className: "text-right tabular-nums",
-      render: (v) => `$${Number(v).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`,
-    },
-    {
-      key: "active",
-      label: "Estado",
-      render: (v) => (
-        <Badge variant={v ? "success" : "destructive"} size="sm">{v ? "Activo" : "Inactivo"}</Badge>
-      ),
-    },
-    ...(can(role, "product.edit")
-      ? [{
-          key: "actions" as const,
-          label: "",
-          className: "w-10",
-          render: (_: unknown, row: Product) => (
-            <Button variant="ghost" size="icon-xs" onClick={() => setDialog({ mode: "edit", product: row })}>
-              <EditIcon className="size-3.5" />
-            </Button>
-          ),
-        }]
-      : []),
-  ];
-
-  function handleSubmit(data: CreateProduct) {
+  function handleSubmit(data: CreateProduct & { images?: string[] }) {
     if (dialog?.mode === "edit") {
-      updateProduct.mutate({ id: dialog.product.id, ...data } as Record<string, unknown> & { id: string }, { onSuccess: () => setDialog(null) });
+      updateProduct.mutate(
+        { id: dialog.product.id, ...data } as Record<string, unknown> & {
+          id: string;
+        },
+        { onSuccess: () => setDialog(null) },
+      );
     } else {
-      createProduct.mutate(data as unknown as Record<string, unknown>, { onSuccess: () => setDialog(null) });
+      createProduct.mutate(data as unknown as Record<string, unknown>, {
+        onSuccess: () => setDialog(null),
+      });
     }
   }
 
   const isPending = createProduct.isPending || updateProduct.isPending;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         title="Productos"
-        description="Catálogo de productos del portafolio"
+        description={`${products.length} productos en catálogo`}
         action={
           can(role, "product.create") ? (
-            <Button onClick={() => setDialog({ mode: "create" })}>Nuevo producto</Button>
+            <Button onClick={() => setDialog({ mode: "create" })}>
+              Nuevo producto
+            </Button>
           ) : undefined
         }
       />
 
-      {/* Filters */}
-      <div className="flex gap-3">
+      {/* Filters + View Toggle */}
+      <div className="flex flex-wrap items-center gap-3">
         <Input
           placeholder="Buscar por nombre o SKU..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           className="max-w-xs"
         />
-        <Select value={category} onValueChange={(v) => { setCategory(v as string); setPage(1); }}>
+        <Select
+          value={category}
+          onValueChange={(v) => {
+            setCategory((v as string) ?? "");
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Todas las categorías">
-              {category ? CATEGORY_LABEL[category] ?? category : undefined}
+              {category ? (CATEGORY_LABEL[category] ?? category) : undefined}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todas</SelectItem>
             {PRODUCT_CATEGORIES.map((cat) => (
-              <SelectItem key={cat} value={cat}>{CATEGORY_LABEL[cat] ?? cat}</SelectItem>
+              <SelectItem key={cat} value={cat}>
+                {CATEGORY_LABEL[cat] ?? cat}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
+
+        <div className="ml-auto flex gap-1 rounded-lg border border-border p-0.5">
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`rounded-md p-1.5 transition-colors ${
+              viewMode === "grid"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <GridIcon className="size-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            className={`rounded-md p-1.5 transition-colors ${
+              viewMode === "table"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <ListIcon className="size-4" />
+          </button>
+        </div>
       </div>
 
-      <DataTable columns={columns} data={products} isLoading={isLoading} emptyTitle="No hay productos" />
+      {/* Product Grid */}
+      {isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-xl border border-border/50 bg-card"
+            >
+              <div className="aspect-square animate-pulse bg-muted" />
+              <div className="space-y-2 p-3">
+                <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : viewMode === "grid" ? (
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              brandName={brandMap[product.brandId] ?? ""}
+              onClick={() => setDialog({ mode: "detail", product })}
+              onEdit={
+                can(role, "product.edit")
+                  ? () => setDialog({ mode: "edit", product })
+                  : undefined
+              }
+            />
+          ))}
+          {products.length === 0 && (
+            <div className="col-span-full py-16 text-center text-sm text-muted-foreground">
+              No se encontraron productos
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Table view fallback */
+        <div className="overflow-x-auto rounded-xl border border-border/50">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/30 text-left text-muted-foreground">
+                <th className="px-3 py-2 font-medium">Producto</th>
+                <th className="px-3 py-2 font-medium">SKU</th>
+                <th className="px-3 py-2 font-medium">Marca</th>
+                <th className="px-3 py-2 font-medium">Categoría</th>
+                <th className="px-3 py-2 font-medium text-right">Precio</th>
+                <th className="px-3 py-2 font-medium">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((p) => (
+                <tr
+                  key={p.id}
+                  className="cursor-pointer border-b border-border/50 transition-colors hover:bg-muted/20"
+                  onClick={() => setDialog({ mode: "detail", product: p })}
+                >
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                        {p.images?.[0] ? (
+                          <img
+                            src={p.images[0]}
+                            alt={p.name}
+                            className="size-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
+                            —
+                          </div>
+                        )}
+                      </div>
+                      <span className="font-medium">{p.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+                    {p.sku}
+                  </td>
+                  <td className="px-3 py-2">
+                    {brandMap[p.brandId] ?? "—"}
+                  </td>
+                  <td className="px-3 py-2">
+                    <Badge
+                      variant={CATEGORY_VARIANT[p.category] ?? "secondary"}
+                      size="sm"
+                    >
+                      {CATEGORY_LABEL[p.category] ?? p.category}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    ${Number(p.price).toLocaleString("es-MX", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </td>
+                  <td className="px-3 py-2">
+                    <Badge
+                      variant={p.active ? "success" : "destructive"}
+                      size="sm"
+                    >
+                      {p.active ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      <Pagination page={page} totalPages={Math.ceil(products.length === 20 ? page + 1 : page)} onPageChange={setPage} />
+      <Pagination
+        page={page}
+        totalPages={Math.ceil(
+          products.length === 20 ? page + 1 : page,
+        )}
+        onPageChange={setPage}
+      />
 
-      <Dialog open={dialog !== null} onOpenChange={(open) => !open && setDialog(null)}>
+      {/* Create / Edit Dialog */}
+      <Dialog
+        open={dialog?.mode === "create" || dialog?.mode === "edit"}
+        onOpenChange={(open) => !open && setDialog(null)}
+      >
         <DialogContent size="lg">
           <DialogHeader>
-            <DialogTitle>{dialog?.mode === "edit" ? "Editar producto" : "Nuevo producto"}</DialogTitle>
+            <DialogTitle>
+              {dialog?.mode === "edit"
+                ? "Editar producto"
+                : "Nuevo producto"}
+            </DialogTitle>
           </DialogHeader>
           <DialogBody>
             <ProductForm
-              defaultValues={dialog?.mode === "edit" ? (dialog.product as unknown as Record<string, unknown>) : undefined}
+              defaultValues={
+                dialog?.mode === "edit"
+                  ? (dialog.product as unknown as Record<string, unknown>)
+                  : undefined
+              }
               brands={brands}
               onSubmit={handleSubmit}
               isPending={isPending}
             />
           </DialogBody>
           <DialogFooter>
-            <DialogClose><Button variant="outline" disabled={isPending}>Cancelar</Button></DialogClose>
-            <Button type="submit" form="product-form" disabled={isPending}>
+            <DialogClose>
+              <Button variant="outline" disabled={isPending}>
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button
+              type="submit"
+              form="product-form"
+              disabled={isPending}
+            >
               {isPending ? "Guardando..." : "Guardar"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Detail Dialog */}
+      <Dialog
+        open={dialog?.mode === "detail"}
+        onOpenChange={(open) => !open && setDialog(null)}
+      >
+        <DialogContent size="lg">
+          {dialog?.mode === "detail" && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{dialog.product.name}</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
+                <ProductDetail
+                  product={dialog.product}
+                  brandName={brandMap[dialog.product.brandId] ?? ""}
+                  onEdit={
+                    can(role, "product.edit")
+                      ? () =>
+                          setDialog({
+                            mode: "edit",
+                            product: dialog.product,
+                          })
+                      : undefined
+                  }
+                />
+              </DialogBody>
+              <DialogFooter>
+                <DialogClose>
+                  <Button variant="outline">Cerrar</Button>
+                </DialogClose>
+                {can(role, "product.edit") && (
+                  <Button
+                    onClick={() =>
+                      setDialog({
+                        mode: "edit",
+                        product: dialog.product,
+                      })
+                    }
+                  >
+                    Editar
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
 
+// ── Product Card ───────────────────────────────────────────────────
+
+function ProductCard({
+  product,
+  brandName,
+  onClick,
+  onEdit,
+}: {
+  product: Product;
+  brandName: string;
+  onClick: () => void;
+  onEdit?: () => void;
+}) {
+  const imageUrl = product.images?.[0];
+
+  return (
+    <div
+      onClick={onClick}
+      className="group cursor-pointer overflow-hidden rounded-xl border border-border/50 bg-card transition-all duration-200 hover:shadow-md"
+    >
+      {/* Image */}
+      <div className="relative aspect-square overflow-hidden bg-muted">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center">
+            <ImagePlaceholder className="size-12 text-muted-foreground/30" />
+          </div>
+        )}
+
+        {/* Category badge overlay */}
+        <div className="absolute left-2 top-2">
+          <Badge
+            variant={CATEGORY_VARIANT[product.category] ?? "secondary"}
+            size="sm"
+            className="shadow-sm"
+          >
+            {CATEGORY_LABEL[product.category] ?? product.category}
+          </Badge>
+        </div>
+
+        {/* Edit button overlay */}
+        {onEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            className="absolute right-2 top-2 rounded-lg bg-card/80 p-1.5 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100"
+          >
+            <EditIcon className="size-3.5" />
+          </button>
+        )}
+
+        {!product.active && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+            <Badge variant="destructive">Inactivo</Badge>
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="p-3">
+        <div className="mb-0.5 text-[11px] text-muted-foreground">
+          {brandName}
+        </div>
+        <h3 className="mb-1 text-sm font-medium leading-tight text-foreground line-clamp-2">
+          {product.name}
+        </h3>
+        <div className="flex items-center justify-between">
+          <span className="text-base font-semibold tabular-nums">
+            ${Number(product.price).toLocaleString("es-MX", {
+              minimumFractionDigits: 2,
+            })}
+          </span>
+          <span className="font-mono text-[10px] text-muted-foreground">
+            {product.sku}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Product Detail ─────────────────────────────────────────────────
+
+function ProductDetail({
+  product,
+  brandName,
+  onEdit,
+}: {
+  product: Product;
+  brandName: string;
+  onEdit?: () => void;
+}) {
+  const imageUrl = product.images?.[0];
+
+  return (
+    <div className="space-y-4">
+      {/* Image + Basic info */}
+      <div className="flex gap-4">
+        <div className="relative size-32 shrink-0 overflow-hidden rounded-xl bg-muted">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={product.name}
+              className="size-full object-cover"
+            />
+          ) : (
+            <div className="flex size-full items-center justify-center">
+              <ImagePlaceholder className="size-8 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1">
+          <div className="mb-1 text-xs text-muted-foreground">
+            {brandName} · {product.sku}
+          </div>
+          <h3 className="mb-2 text-lg font-semibold">{product.name}</h3>
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={
+                CATEGORY_VARIANT[product.category] ?? "secondary"
+              }
+            >
+              {CATEGORY_LABEL[product.category] ?? product.category}
+            </Badge>
+            {product.subcategory && (
+              <Badge variant="secondary">{product.subcategory}</Badge>
+            )}
+            <Badge
+              variant={product.active ? "success" : "destructive"}
+              size="sm"
+            >
+              {product.active ? "Activo" : "Inactivo"}
+            </Badge>
+          </div>
+          <div className="mt-2 text-2xl font-bold tabular-nums">
+            ${Number(product.price).toLocaleString("es-MX", {
+              minimumFractionDigits: 2,
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Description */}
+      {product.description && (
+        <div>
+          <h4 className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Descripción
+          </h4>
+          <p className="text-sm">{product.description}</p>
+        </div>
+      )}
+
+      {/* Details grid */}
+      <dl className="grid gap-3 rounded-lg border border-border/50 bg-muted/20 p-3 text-sm sm:grid-cols-2">
+        {product.estimatedDurationDays && (
+          <div>
+            <dt className="text-xs text-muted-foreground">
+              Duración estimada
+            </dt>
+            <dd className="font-medium">
+              {product.estimatedDurationDays} días
+            </dd>
+          </div>
+        )}
+        {product.salesArgument && (
+          <div className="sm:col-span-2">
+            <dt className="text-xs text-muted-foreground">
+              Argumentario de venta
+            </dt>
+            <dd className="font-medium">{product.salesArgument}</dd>
+          </div>
+        )}
+        {product.technicalSheetUrl && (
+          <div>
+            <dt className="text-xs text-muted-foreground">
+              Ficha técnica
+            </dt>
+            <dd>
+              <a
+                href={product.technicalSheetUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent underline"
+              >
+                Ver ficha →
+              </a>
+            </dd>
+          </div>
+        )}
+        {product.tutorialUrl && (
+          <div>
+            <dt className="text-xs text-muted-foreground">Tutorial</dt>
+            <dd>
+              <a
+                href={product.tutorialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent underline"
+              >
+                Ver tutorial →
+              </a>
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      {/* Multiple images gallery */}
+      {product.images && product.images.length > 1 && (
+        <div>
+          <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Galería
+          </h4>
+          <div className="flex gap-2 overflow-x-auto">
+            {product.images.map((img, i) => (
+              <div
+                key={i}
+                className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted"
+              >
+                <img
+                  src={img}
+                  alt={`${product.name} ${i + 1}`}
+                  className="size-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Icons ──────────────────────────────────────────────────────────
+
 function EditIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11.5 2.5l2 2L5 13H3v-2l8.5-8.5z" />
+    </svg>
+  );
+}
+
+function GridIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <rect x="1.5" y="1.5" width="5" height="5" rx="1" />
+      <rect x="9.5" y="1.5" width="5" height="5" rx="1" />
+      <rect x="1.5" y="9.5" width="5" height="5" rx="1" />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
+    </svg>
+  );
+}
+
+function ListIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    >
+      <path d="M2 4h12M2 8h12M2 12h12" />
+    </svg>
+  );
+}
+
+function ImagePlaceholder({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" />
     </svg>
   );
 }
