@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
 import { eq, and, ilike, or } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
-import { products, productAvailability } from "@loreal/database";
+import { products, productAvailability, brands } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import type { PaginationDto } from "../../dtos/common.dto";
@@ -29,22 +29,30 @@ export class ProductsService {
     const where = conditions.length > 1 ? and(...conditions) : conditions[0];
 
     const rows = await this.db
-      .select()
+      .select({
+        product: products,
+        brand: brands,
+      })
       .from(products)
+      .leftJoin(brands, eq(products.brandId, brands.id))
       .where(where)
       .limit(pagination.limit)
       .offset((pagination.page - 1) * pagination.limit);
 
-    return rows;
+    return rows.map((r) => ({ ...r.product, brand: r.brand }));
   }
 
   async findOne(id: string) {
-    const [product] = await this.db
-      .select()
+    const [row] = await this.db
+      .select({
+        product: products,
+        brand: brands,
+      })
       .from(products)
+      .leftJoin(brands, eq(products.brandId, brands.id))
       .where(eq(products.id, id));
-    if (!product) throw new NotFoundException("Product not found");
-    return product;
+    if (!row) throw new NotFoundException("Product not found");
+    return { ...row.product, brand: row.brand };
   }
 
   async create(data: CreateProductDto) {

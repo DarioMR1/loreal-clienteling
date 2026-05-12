@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
-import { appointments } from "@loreal/database";
+import { appointments, customers } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import type { CreateAppointmentDto, UpdateAppointmentDto } from "../../dtos/appointments.dto";
@@ -27,17 +27,44 @@ export class AppointmentsService {
     if (filters?.from) conditions.push(gte(appointments.scheduledAt, filters.from));
     if (filters?.to) conditions.push(lte(appointments.scheduledAt, filters.to));
 
-    return this.db
-      .select()
+    const rows = await this.db
+      .select({
+        appointment: appointments,
+        customer: {
+          id: customers.id,
+          firstName: customers.firstName,
+          lastName: customers.lastName,
+          phone: customers.phone,
+          email: customers.email,
+          lifecycleSegment: customers.lifecycleSegment,
+        },
+      })
       .from(appointments)
+      .leftJoin(customers, eq(appointments.customerId, customers.id))
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(appointments.scheduledAt));
+
+    return rows.map((r) => ({ ...r.appointment, customer: r.customer }));
   }
 
   async findOne(id: string) {
-    const [appt] = await this.db.select().from(appointments).where(eq(appointments.id, id));
-    if (!appt) throw new NotFoundException("Appointment not found");
-    return appt;
+    const [row] = await this.db
+      .select({
+        appointment: appointments,
+        customer: {
+          id: customers.id,
+          firstName: customers.firstName,
+          lastName: customers.lastName,
+          phone: customers.phone,
+          email: customers.email,
+          lifecycleSegment: customers.lifecycleSegment,
+        },
+      })
+      .from(appointments)
+      .leftJoin(customers, eq(appointments.customerId, customers.id))
+      .where(eq(appointments.id, id));
+    if (!row) throw new NotFoundException("Appointment not found");
+    return { ...row.appointment, customer: row.customer };
   }
 
   async create(data: CreateAppointmentDto, user: SessionUser) {

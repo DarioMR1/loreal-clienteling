@@ -52,7 +52,7 @@ async function seed() {
   console.log("Truncating tables...");
   await db.execute(sql`TRUNCATE TABLE
     audit_logs, communications, message_templates, consents,
-    appointments, samples, purchase_items, purchases,
+    appointments, appointment_event_types, samples, purchase_items, purchases,
     recommendations, product_availability, beauty_profile_shades,
     beauty_profiles, customers, products, brand_configs,
     stores, zones, brands, two_factors, sessions, accounts, verifications, users
@@ -167,8 +167,52 @@ async function seed() {
   // Helper: get BAs by store
   const basByStore = (storeId: string) => usersData.filter((u) => u.role === "ba" && u.storeId === storeId);
 
+  // ─── 5b. Appointment Event Types ─────────────────────────────────────────
+  console.log("Seeding appointment event types...");
+  await db.insert(schema.appointmentEventTypes).values([
+    { code: "cabin_service", displayName: "Servicio de cabina" },
+    { code: "facial", displayName: "Facial" },
+    { code: "anniversary_event", displayName: "Evento aniversario" },
+    { code: "vip_cabin", displayName: "Cabina VIP" },
+    { code: "product_followup", displayName: "Seguimiento de producto" },
+    { code: "custom", displayName: "Personalizado" },
+  ]);
+
   // ─── 6. Products ───────────────────────────────────────────────────────────
   console.log("Seeding products...");
+
+  // Unsplash image URLs for seed data (categorized for realistic product images)
+  const skincareImages = [
+    "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1570194065650-d99fb4a38691?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1612817288484-6f916006741a?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1573461160327-b450ce3d8e7f?w=400&h=400&fit=crop",
+  ];
+  const makeupImages = [
+    "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1631730486572-226d1f595b68?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1596704017254-9b121068fb31?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1583241800698-e8ab01830a07?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1557205465-f3762edea6d3?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1619451334792-150fd785ee74?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1590156546946-ce55a12a0a68?w=400&h=400&fit=crop",
+  ];
+  const fragranceImages = [
+    "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=400&fit=crop",
+    "https://images.unsplash.com/photo-1594035910387-fea081ae5276?w=400&h=400&fit=crop",
+  ];
 
   const skincareSubs = ["serum", "moisturizer", "cleanser", "toner", "eye_cream", "mask", "sunscreen"];
   const makeupSubs = ["foundation", "concealer", "lipstick", "mascara", "blush", "eyeshadow", "powder"];
@@ -178,6 +222,7 @@ async function seed() {
     id: string; sku: string; brandId: string; name: string;
     category: string; subcategory: string; price: string;
     estimatedDurationDays: number | null; description: string;
+    images: string[];
   }> = [];
 
   // Generate 50 products per brand
@@ -201,6 +246,7 @@ async function seed() {
         price: (Math.round((Math.random() * 3000 + 500) * 100) / 100).toFixed(2),
         estimatedDurationDays: Math.floor(Math.random() * 60) + 30,
         description: `Tratamiento de skincare premium de ${brand.displayName}`,
+        images: [pick(skincareImages)],
       });
     }
     // 20 makeup
@@ -219,6 +265,7 @@ async function seed() {
         price: (Math.round((Math.random() * 2000 + 300) * 100) / 100).toFixed(2),
         estimatedDurationDays: Math.floor(Math.random() * 90) + 60,
         description: `Maquillaje profesional de ${brand.displayName}`,
+        images: [pick(makeupImages)],
       });
     }
     // 10 fragrance
@@ -235,6 +282,7 @@ async function seed() {
         price: (Math.round((Math.random() * 4000 + 1000) * 100) / 100).toFixed(2),
         estimatedDurationDays: null, // Fragrances don't have predictable depletion
         description: `Fragancia de ${brand.displayName}`,
+        images: [pick(fragranceImages)],
       });
     }
   }
