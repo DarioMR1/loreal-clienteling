@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
@@ -30,6 +31,14 @@ function formatFullDate(dateStr: string): string {
 
 function formatTime(dateStr: string): string {
   return new Date(dateStr).toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatEndTime(dateStr: string, durationMinutes: number): string {
+  const end = new Date(new Date(dateStr).getTime() + durationMinutes * 60_000);
+  return end.toLocaleTimeString("es-MX", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -84,28 +93,46 @@ export function AppointmentDetail({
             color="#FFFFFF"
           />
         </View>
-        <Text style={[styles.eventLabel, { color: eventColor }]}>
-          {eventTypeLabels[appointment.eventType] ?? appointment.eventType}
-        </Text>
-        <StatusBadge
-          label={statusLabels[appointment.status] ?? appointment.status}
-          color={statusColors[appointment.status] ?? theme.textSecondary}
-        />
+        <View style={styles.headerInfo}>
+          <Text style={[styles.eventLabel, { color: eventColor }]}>
+            {eventTypeLabels[appointment.eventType] ?? appointment.eventType}
+          </Text>
+          <StatusBadge
+            label={statusLabels[appointment.status] ?? appointment.status}
+            color={statusColors[appointment.status] ?? theme.textSecondary}
+          />
+        </View>
       </View>
 
-      {/* Date & time */}
+      {/* Time block */}
       <Card>
-        <View style={styles.dateRow}>
-          <Icon name="calendar" size={22} themeColor="accent" />
-          <View>
+        <View style={styles.timeBlock}>
+          <View style={[styles.timeIconCircle, { backgroundColor: theme.accentLight }]}>
+            <Icon name="time" size={20} color={theme.accent} />
+          </View>
+          <View style={styles.timeInfo}>
             <Text style={[styles.dateText, { color: theme.text }]}>
               {formatFullDate(appointment.scheduledAt)}
             </Text>
-            <Text style={[styles.timeText, { color: theme.textSecondary }]}>
-              {formatTime(appointment.scheduledAt)} ·{" "}
+            <Text style={[styles.timeRange, { color: theme.textSecondary }]}>
+              {formatTime(appointment.scheduledAt)} –{" "}
+              {formatEndTime(appointment.scheduledAt, appointment.durationMinutes)}
+              {"  ·  "}
               {appointment.durationMinutes} min
             </Text>
           </View>
+        </View>
+        {/* Duration bar */}
+        <View style={[styles.durationBarBg, { backgroundColor: theme.backgroundElement }]}>
+          <View
+            style={[
+              styles.durationBarFill,
+              {
+                backgroundColor: eventColor,
+                width: `${Math.min((appointment.durationMinutes / 120) * 100, 100)}%`,
+              },
+            ]}
+          />
         </View>
       </Card>
 
@@ -115,16 +142,38 @@ export function AppointmentDetail({
           <SectionHeader title="Cliente" />
           <Card>
             <View style={styles.clientRow}>
+              <Avatar
+                uri={undefined}
+                size={44}
+                borderColor={theme.border}
+              />
               <View style={styles.clientInfo}>
                 <Text style={[styles.clientName, { color: theme.text }]}>
                   {appointment.customer.firstName}{" "}
                   {appointment.customer.lastName}
                 </Text>
-                <Text
-                  style={[styles.clientPhone, { color: theme.textSecondary }]}
-                >
-                  {appointment.customer.phone ?? "Sin teléfono"}
-                </Text>
+                <View style={styles.clientMeta}>
+                  {appointment.customer.phone && (
+                    <View style={styles.metaRow}>
+                      <Icon name="call" size={13} color={theme.textTertiary} />
+                      <Text
+                        style={[styles.clientPhone, { color: theme.textSecondary }]}
+                      >
+                        {appointment.customer.phone}
+                      </Text>
+                    </View>
+                  )}
+                  {appointment.customer.email && (
+                    <View style={styles.metaRow}>
+                      <Icon name="mail" size={13} color={theme.textTertiary} />
+                      <Text
+                        style={[styles.clientPhone, { color: theme.textSecondary }]}
+                      >
+                        {appointment.customer.email}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
           </Card>
@@ -211,6 +260,12 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     borderRadius: Radius.lg,
   },
+  headerInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   eventBadge: {
     width: 44,
     height: 44,
@@ -218,20 +273,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  eventLabel: { ...Typography.title3, flex: 1 },
-  dateRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  eventLabel: { ...Typography.title3 },
+  // Time block
+  timeBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  timeIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timeInfo: {
+    flex: 1,
+    gap: 2,
+  },
   dateText: {
     ...Typography.body,
     fontWeight: "600",
     textTransform: "capitalize",
   },
-  timeText: { ...Typography.subhead, marginTop: 2 },
+  timeRange: { ...Typography.subhead },
+  durationBarBg: {
+    height: 4,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  durationBarFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+  // Client
   section: { gap: Spacing.sm },
   clientRow: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
-  clientInfo: { flex: 1 },
+  clientInfo: { flex: 1, gap: 4 },
   clientName: { ...Typography.body, fontWeight: "600" },
-  clientPhone: { ...Typography.subhead },
+  clientMeta: { gap: 2 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
+  clientPhone: { ...Typography.caption1 },
+  // Notes
   notes: { ...Typography.body, lineHeight: 24 },
+  // Actions
   actions: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
   closedText: { ...Typography.body },
 });

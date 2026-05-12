@@ -6,7 +6,11 @@ import type { Appointment, Customer, DashboardMetrics } from "@/types";
 export function useTodayAppointments() {
   const today = new Date().toISOString().split("T")[0];
   return useApi<Appointment[]>(
-    () => api.get<Appointment[]>("/appointments", { from: today, to: today }),
+    () =>
+      api.get<Appointment[]>("/appointments", {
+        from: `${today}T00:00:00`,
+        to: `${today}T23:59:59`,
+      }),
     [today]
   );
 }

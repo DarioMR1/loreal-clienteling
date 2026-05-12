@@ -76,7 +76,7 @@ export class AppointmentsService {
         baUserId: user.id,
         storeId,
         eventType: data.eventType,
-        scheduledAt: data.scheduledAt,
+        scheduledAt: new Date(data.scheduledAt),
         durationMinutes: data.durationMinutes,
         comments: data.comments,
         isVirtual: data.isVirtual ?? false,
@@ -103,7 +103,7 @@ export class AppointmentsService {
           baUserId: existing.baUserId,
           storeId: existing.storeId,
           eventType: existing.eventType,
-          scheduledAt: data.scheduledAt,
+          scheduledAt: new Date(data.scheduledAt),
           durationMinutes: data.durationMinutes ?? existing.durationMinutes,
           comments: data.comments ?? existing.comments,
           isVirtual: existing.isVirtual,
@@ -114,9 +114,12 @@ export class AppointmentsService {
       return newAppt;
     }
 
+    const updateData: Record<string, unknown> = { ...data, updatedAt: new Date() };
+    if (data.scheduledAt) updateData.scheduledAt = new Date(data.scheduledAt);
+
     const [updated] = await this.db
       .update(appointments)
-      .set({ ...data, updatedAt: new Date() })
+      .set(updateData)
       .where(eq(appointments.id, id))
       .returning();
     return updated;
