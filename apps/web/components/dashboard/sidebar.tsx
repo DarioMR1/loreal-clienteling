@@ -7,6 +7,8 @@ import { Tooltip } from "@base-ui/react/tooltip";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/auth-client";
 import { useSidebar } from "@/components/dashboard/sidebar-context";
+import { useBrand } from "@/lib/hooks/use-brands";
+import { LorealLogo, LancomeLogo, YslLogo } from "@/components/ui/brand-logos";
 import type { UserRole } from "@loreal/contracts";
 
 // ── Types ────────────────────────────────────────────────────────
@@ -27,6 +29,7 @@ interface SidebarProps {
   user: {
     fullName?: string | null;
     role?: string | null;
+    brandId?: string | null;
   };
 }
 
@@ -71,11 +74,36 @@ const ROLE_LABELS: Record<string, string> = {
 
 // ── Sidebar content (shared between desktop & mobile) ────────────
 
+/** Returns the correct brand logo component based on user role and brand code */
+function BrandLogo({ role, brandCode, collapsed }: { role: string; brandCode?: string; collapsed: boolean }) {
+  const logoClass = "text-sidebar-accent-foreground";
+  const size = collapsed ? 20 : 28;
+
+  // Admin without brand → central L'Oréal logo
+  if (role === "admin" && !brandCode) {
+    return <LorealLogo width={collapsed ? 20 : 80} className={logoClass} />;
+  }
+
+  const code = brandCode?.toUpperCase();
+
+  if (code === "YSL") {
+    return <YslLogo width={size * 1.6} className={logoClass} />;
+  }
+
+  if (code === "LANCOME") {
+    return <LancomeLogo width={size * 1.5} className={logoClass} />;
+  }
+
+  // Default: Lancôme for any other brand
+  return <LancomeLogo width={size * 1.5} className={logoClass} />;
+}
+
 function SidebarContent({ user }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { collapsed, toggleCollapsed } = useSidebar();
   const role = user.role ?? "ba";
+  const { data: brand } = useBrand(user.brandId ?? "");
 
   async function handleSignOut() {
     await signOut();
@@ -91,14 +119,9 @@ function SidebarContent({ user }: SidebarProps) {
         collapsed ? "justify-center" : "justify-between"
       )}>
         <div className={cn("flex items-center gap-2.5 overflow-hidden", collapsed && "justify-center")}>
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary">
-            <span className="text-xs font-bold text-sidebar-primary-foreground">L</span>
-          </div>
+          <BrandLogo role={role} brandCode={brand?.code} collapsed={collapsed} />
           {!collapsed && (
             <div className="flex flex-col overflow-hidden">
-              <span className="truncate text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
-                L&apos;Oréal
-              </span>
               <span className="truncate text-[10px] tracking-widest text-sidebar-foreground/40 uppercase">
                 Clienteling
               </span>

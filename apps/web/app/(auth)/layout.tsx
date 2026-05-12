@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LorealLogo, LancomeLogo, YslLogo } from "@/components/ui/brand-logos";
 
 export default function AuthLayout({
   children,
@@ -26,19 +27,14 @@ export default function AuthLayout({
         {/* Top: Logo & brand mark */}
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent">
-              <span className="text-sm font-bold text-accent-foreground">
-                L
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-medium tracking-wide text-primary-foreground">
-                L&apos;Oréal
-              </p>
-              <p className="text-xs tracking-widest text-primary-foreground/50 uppercase">
-                Clienteling
-              </p>
-            </div>
+            <LorealLogo
+              width={120}
+              className="text-primary-foreground"
+            />
+            <div className="ml-2 h-6 w-px bg-primary-foreground/20" />
+            <p className="text-xs tracking-widest text-primary-foreground/50 uppercase">
+              Clienteling
+            </p>
           </div>
         </div>
 
@@ -52,6 +48,18 @@ export default function AuthLayout({
             <p className="text-xs tracking-widest text-accent uppercase">
               — Coco Chanel
             </p>
+          </div>
+
+          {/* Brand logos — Zen: quiet, aligned presence */}
+          <div className="flex items-center gap-8 pt-4">
+            <LancomeLogo
+              width={100}
+              className="text-primary-foreground/40"
+            />
+            <YslLogo
+              width={120}
+              className="text-primary-foreground/40"
+            />
           </div>
         </div>
 
@@ -67,12 +75,11 @@ export default function AuthLayout({
       <div className="flex flex-1 flex-col">
         {/* Mobile header — visible only on small screens */}
         <div className="flex items-center gap-3 border-b border-border/50 p-6 lg:hidden">
-          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
-            <span className="text-xs font-bold text-primary-foreground">L</span>
-          </div>
-          <div>
-            <p className="text-sm font-medium">L&apos;Oréal Clienteling</p>
-          </div>
+          <LorealLogo width={90} className="text-foreground" />
+          <div className="h-4 w-px bg-border" />
+          <p className="text-xs tracking-widest text-muted-foreground uppercase">
+            Clienteling
+          </p>
         </div>
 
         {/* Form container — centered with breathing room */}

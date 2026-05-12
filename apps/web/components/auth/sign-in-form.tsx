@@ -20,10 +20,21 @@ import {
 } from "@/components/ui/form";
 import { ROUTES } from "@/lib/constants";
 
+// ── Demo quick-login accounts ────────────────────────────────────
+const DEMO_ACCOUNTS = [
+  { label: "Admin Central", email: "admin@loreal.mx", role: "admin" },
+  { label: "Gerente · Lancôme", email: "a.martinez@loreal.mx", role: "manager" },
+  { label: "Gerente · YSL", email: "l.diaz@loreal.mx", role: "manager" },
+  { label: "Supervisor", email: "g.torres@loreal.mx", role: "supervisor" },
+] as const;
+
+const DEMO_PASSWORD = "Password123!";
+
 export function SignInForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState<string | null>(null);
 
   const form = useForm<Login>({
     resolver: zodResolver(loginSchema),
@@ -48,6 +59,27 @@ export function SignInForm() {
     router.push(ROUTES.DASHBOARD);
     router.refresh();
   }
+
+  async function handleDemoLogin(email: string) {
+    setError(null);
+    setLoadingDemo(email);
+
+    const { error: authError } = await signIn.email({
+      email,
+      password: DEMO_PASSWORD,
+    });
+
+    if (authError) {
+      setError(authError.message ?? "Error al iniciar sesión");
+      setLoadingDemo(null);
+      return;
+    }
+
+    router.push(ROUTES.DASHBOARD);
+    router.refresh();
+  }
+
+  const isDisabled = loading || !!loadingDemo;
 
   return (
     <Form {...form}>
@@ -97,11 +129,44 @@ export function SignInForm() {
         />
 
         <div className="pt-2">
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+          <Button type="submit" className="w-full" size="lg" disabled={isDisabled}>
             {loading ? "Ingresando..." : "Iniciar Sesión"}
           </Button>
         </div>
       </form>
+
+      {/* Demo quick-login */}
+      <div className="pt-6">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/60" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-background px-3 text-muted-foreground">
+              Acceso rápido demo
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {DEMO_ACCOUNTS.map((account) => (
+            <button
+              key={account.email}
+              type="button"
+              disabled={isDisabled}
+              onClick={() => handleDemoLogin(account.email)}
+              className="flex flex-col items-start rounded-xl border border-border/60 px-3 py-2.5 text-left transition-colors hover:bg-muted/50 disabled:pointer-events-none disabled:opacity-50"
+            >
+              <span className="text-xs font-medium text-foreground">
+                {loadingDemo === account.email ? "Ingresando..." : account.label}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {account.email}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
     </Form>
   );
 }

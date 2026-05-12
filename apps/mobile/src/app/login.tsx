@@ -28,6 +28,7 @@ export default function LoginScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const isFormValid = email.trim().length > 0 && password.length >= 8;
+  const isDisabled = isSubmitting;
 
   const handleSignIn = async () => {
     if (!isFormValid || isSubmitting) return;
@@ -38,6 +39,26 @@ export default function LoginScreen() {
     const { error } = await signIn.email({
       email: email.trim().toLowerCase(),
       password,
+    });
+
+    if (error) {
+      setErrorMessage(error.message ?? 'Credenciales incorrectas. Intenta de nuevo.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    router.replace('/');
+  };
+
+  const handleDemoLogin = async (demoEmail: string) => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    const { error } = await signIn.email({
+      email: demoEmail,
+      password: 'Password123!',
     });
 
     if (error) {
@@ -151,6 +172,34 @@ export default function LoginScreen() {
                   <Text style={styles.submitText}>Iniciar sesión</Text>
                 )}
               </Pressable>
+
+              {/* Demo quick-login */}
+              <View style={styles.demoDivider}>
+                <View style={[styles.demoDividerLine, { backgroundColor: theme.border }]} />
+                <Text style={[styles.demoDividerText, { color: theme.textTertiary }]}>
+                  Acceso rápido demo
+                </Text>
+                <View style={[styles.demoDividerLine, { backgroundColor: theme.border }]} />
+              </View>
+
+              <View style={styles.demoGrid}>
+                {([
+                  { label: 'BA · Lancôme', sub: 'v.rojas@loreal.mx', email: 'v.rojas@loreal.mx' },
+                  { label: 'BA · YSL', sub: 'i.guzman@loreal.mx', email: 'i.guzman@loreal.mx' },
+                  { label: 'BA · Lancôme', sub: 's.castillo@loreal.mx', email: 's.castillo@loreal.mx' },
+                  { label: 'BA · YSL', sub: 'm.salazar@loreal.mx', email: 'm.salazar@loreal.mx' },
+                ] as const).map((account) => (
+                  <Pressable
+                    key={account.email}
+                    style={[styles.demoButton, { borderColor: theme.border, backgroundColor: theme.backgroundSecondary }]}
+                    onPress={() => handleDemoLogin(account.email)}
+                    disabled={isDisabled}
+                  >
+                    <Text style={[styles.demoButtonLabel, { color: theme.text }]}>{account.label}</Text>
+                    <Text style={[styles.demoButtonEmail, { color: theme.textTertiary }]}>{account.sub}</Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -281,5 +330,40 @@ const styles = StyleSheet.create({
   submitText: {
     color: '#FFFFFF',
     ...Typography.headline,
+  },
+  // Demo quick-login
+  demoDivider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  demoDividerLine: {
+    flex: 1,
+    height: 1,
+  },
+  demoDividerText: {
+    ...Typography.caption1,
+  },
+  demoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  demoButton: {
+    width: '48%' as unknown as number,
+    flexGrow: 1,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  demoButtonLabel: {
+    ...Typography.footnote,
+    fontWeight: '600',
+  },
+  demoButtonEmail: {
+    ...Typography.caption2,
+    marginTop: 2,
   },
 });
