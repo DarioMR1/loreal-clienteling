@@ -2,23 +2,17 @@ import { api } from "@/lib/api-client";
 import { useApi } from "@/hooks/use-api";
 import type {
   DashboardMetrics,
-  BaPerformance,
   ConversionMetrics,
+  AppointmentMetrics,
+  SalesBreakdown,
+  SalesTrend,
+  CustomerSegmentData,
 } from "@/types";
 
 /** Fetch the main dashboard KPIs. */
 export function useDashboard(from?: string, to?: string) {
   return useApi<DashboardMetrics>(
     () => api.get<DashboardMetrics>("/analytics/dashboard", { from, to }),
-    [from, to]
-  );
-}
-
-/** Fetch BA performance data (used by managers, but also the BA's own stats). */
-export function useBaPerformance(from?: string, to?: string) {
-  return useApi<BaPerformance[]>(
-    () =>
-      api.get<BaPerformance[]>("/analytics/ba-performance", { from, to }),
     [from, to]
   );
 }
@@ -31,14 +25,53 @@ export function useConversion(from?: string, to?: string) {
   );
 }
 
-/** Fetch appointment analytics. */
+/** Fetch appointment status breakdown. */
 export function useAppointmentAnalytics(from?: string, to?: string) {
-  return useApi<Record<string, number>>(
+  return useApi<AppointmentMetrics>(
     () =>
-      api.get<Record<string, number>>("/analytics/appointments", {
+      api.get<AppointmentMetrics>("/analytics/appointments", { from, to }),
+    [from, to]
+  );
+}
+
+/** Fetch sales breakdown by category or brand. */
+export function useSalesBreakdown(
+  groupBy: "category" | "brand",
+  from?: string,
+  to?: string
+) {
+  return useApi<SalesBreakdown>(
+    () =>
+      api.get<SalesBreakdown>("/analytics/sales-breakdown", {
+        groupBy,
         from,
         to,
       }),
-    [from, to]
+    [groupBy, from, to]
+  );
+}
+
+/** Fetch sales trend time-series. */
+export function useSalesTrend(
+  interval: "day" | "week" | "month" = "month",
+  from?: string,
+  to?: string
+) {
+  return useApi<SalesTrend>(
+    () =>
+      api.get<SalesTrend>("/analytics/sales-trend", {
+        interval,
+        from,
+        to,
+      }),
+    [interval, from, to]
+  );
+}
+
+/** Fetch customer segment distribution. */
+export function useCustomerSegments() {
+  return useApi<CustomerSegmentData[]>(
+    () => api.get<CustomerSegmentData[]>("/analytics/customers"),
+    []
   );
 }

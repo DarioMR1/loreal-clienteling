@@ -273,29 +273,68 @@ export interface Consent {
 }
 
 // ─── Analytics (from GET /analytics/*) ──
+
+/** GET /analytics/dashboard — matches actual API response shape */
 export interface DashboardMetrics {
   totalCustomers: number;
-  totalSales: number;
-  salesCount: number;
-  totalAppointments: number;
+  sales: {
+    totalAmount: string;
+    transactionCount: number;
+  };
+  appointments: number;
   newCustomers: number;
   communicationsSent: number;
+  period: { from: string; to: string };
 }
 
-export interface BaPerformance {
-  baUserId: string;
-  baName: string;
-  salesTotal: number;
-  salesCount: number;
-  registrations: number;
-  communications: number;
-  recommendations: number;
-  conversionRate: number;
-}
-
+/** GET /analytics/conversion */
 export interface ConversionMetrics {
   recommendationToSale: { total: number; converted: number; rate: number };
   sampleToSale: { total: number; converted: number; rate: number };
+  period: { from: string; to: string };
+}
+
+/** GET /analytics/appointments */
+export interface AppointmentMetrics {
+  total: number;
+  scheduled: number;
+  confirmed: number;
+  completed: number;
+  rescheduled: number;
+  cancelled: number;
+  noShow: number;
+  period: { from: string; to: string };
+}
+
+/** GET /analytics/sales-breakdown?groupBy=category|brand */
+export interface SalesBreakdown {
+  groupBy: "category" | "brand";
+  data: { category?: string; brandId?: string; totalAmount: string; itemCount: number }[];
+  period: { from: string; to: string };
+}
+
+/** GET /analytics/sales-trend */
+export interface SalesTrend {
+  interval: "day" | "week" | "month";
+  data: { date: string; totalAmount: string; transactionCount: number }[];
+  period: { from: string; to: string };
+}
+
+/** GET /analytics/customers */
+export interface CustomerSegmentData {
+  segment: string;
+  count: number;
+}
+
+/** GET /analytics/ba-performance */
+export interface BaPerformance {
+  baId: string;
+  fullName: string;
+  storeId: string;
+  sales: { totalAmount: string; transactionCount: number };
+  registrations: number;
+  communicationsSent: number;
+  recommendations: { total: number; converted: number; conversionRate: number };
 }
 
 // ─── UI / Metrics ──

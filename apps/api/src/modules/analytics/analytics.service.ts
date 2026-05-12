@@ -264,6 +264,52 @@ export class AnalyticsService {
     });
   }
 
+  async getSalesTrend(
+    user: SessionUser,
+    interval: "day" | "week" | "month",
+    range?: DateRange,
+  ) {
+    const storeIds = await this.scopeService.getAccessibleStoreIds(user);
+    const isAdmin = user.role === "admin";
+
+    // Default to last 6 months for trend
+    const to = range?.to ?? new Date();
+    const from = range?.from ?? (() => {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 6);
+      d.setDate(1);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    })();
+
+    const conditions = [gte(purchases.purchasedAt, from), lte(purchases.purchasedAt, to)];
+    const storeFilter = this.buildStoreFilter(isAdmin, storeIds, purchases.storeId);
+    if (storeFilter) conditions.push(storeFilter as any);
+
+    const dateTrunc = sql`date_trunc(${sql.raw(`'${interval}'`)}, ${purchases.purchasedAt})`;
+
+    const rows = await this.db
+      .select({
+        period: dateTrunc.as("period"),
+        totalAmount: sum(purchases.totalAmount),
+        transactionCount: count(),
+      })
+      .from(purchases)
+      .where(and(...conditions))
+      .groupBy(dateTrunc)
+      .orderBy(dateTrunc);
+
+    return {
+      interval,
+      data: rows.map((r) => ({
+        date: r.period,
+        totalAmount: r.totalAmount ?? "0",
+        transactionCount: r.transactionCount,
+      })),
+      period: { from, to },
+    };
+  }
+
   async getSalesBreakdown(
     user: SessionUser,
     groupBy: "category" | "brand",

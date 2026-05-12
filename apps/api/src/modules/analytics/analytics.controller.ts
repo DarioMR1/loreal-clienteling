@@ -8,7 +8,7 @@ import type { Response } from "express";
 @ApiTags("Analytics")
 @ApiBearerAuth()
 @Controller("analytics")
-@Roles(["manager", "supervisor", "admin"])
+@Roles(["ba", "manager", "supervisor", "admin"])
 export class AnalyticsController {
   constructor(@Inject(AnalyticsService) private analyticsService: AnalyticsService) {}
 
@@ -66,6 +66,20 @@ export class AnalyticsController {
       throw new BadRequestException("groupBy must be 'category' or 'brand'");
     }
     return this.analyticsService.getSalesBreakdown(session.user, groupBy, this.parseDateRange(from, to));
+  }
+
+  @Get("sales-trend")
+  @ApiQuery({ name: "interval", enum: ["day", "week", "month"], required: false })
+  @ApiQuery({ name: "from", type: String, required: false })
+  @ApiQuery({ name: "to", type: String, required: false })
+  getSalesTrend(
+    @Query("interval") interval: string | undefined,
+    @Query("from") from: string | undefined,
+    @Query("to") to: string | undefined,
+    @Session() session: UserSession,
+  ) {
+    const validInterval = interval === "day" || interval === "week" ? interval : "month";
+    return this.analyticsService.getSalesTrend(session.user, validInterval, this.parseDateRange(from, to));
   }
 
   @Get("conversion")

@@ -29,8 +29,8 @@ import {
   useAtRiskClients,
 } from "./hooks/use-home";
 
-function formatCurrency(amount: number): string {
-  return "$" + amount.toLocaleString("es-MX", { minimumFractionDigits: 0 });
+function formatCurrency(amount: string | number): string {
+  return "$" + Number(amount).toLocaleString("es-MX", { minimumFractionDigits: 0 });
 }
 
 function formatTime(dateStr: string): string {
@@ -93,7 +93,7 @@ export function HomeDashboard() {
           <View style={styles.statsRow}>
             <Card style={styles.statCard}>
               <Text style={[styles.statValue, { color: theme.text }]}>
-                {formatCurrency(metrics.totalSales)}
+                {formatCurrency(metrics.sales?.totalAmount ?? "0")}
               </Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
                 Ventas
@@ -117,7 +117,7 @@ export function HomeDashboard() {
             </Card>
             <Card style={styles.statCard}>
               <Text style={[styles.statValue, { color: theme.text }]}>
-                {metrics.totalAppointments}
+                {metrics.appointments}
               </Text>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
                 Citas
