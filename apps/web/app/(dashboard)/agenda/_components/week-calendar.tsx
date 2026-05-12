@@ -1,31 +1,30 @@
 "use client";
 
-import type { Appointment } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 import { AppointmentCard } from "./appointment-card";
 
 const DAY_NAMES = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 interface WeekCalendarProps {
-  appointments: Appointment[];
+  appointments: Record<string, any>[];
   weekStart: Date;
-  onAppointmentClick: (appt: Appointment) => void;
+  onAppointmentClick: (appt: any) => void;
+  showBa?: boolean;
 }
 
 export function WeekCalendar({
   appointments,
   weekStart,
   onAppointmentClick,
+  showBa,
 }: WeekCalendarProps) {
-  // Generate 7 days starting from weekStart
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() + i);
     return d;
   });
 
-  // Group appointments by day
-  function getAppointmentsForDay(day: Date): Appointment[] {
+  function getAppointmentsForDay(day: Date) {
     const dayStr = day.toISOString().split("T")[0];
     return appointments
       .filter((a) => a.scheduledAt.startsWith(dayStr))
@@ -46,7 +45,7 @@ export function WeekCalendar({
         const dayAppointments = getAppointmentsForDay(day);
 
         return (
-          <div key={i} className="flex min-h-[200px] flex-col bg-card">
+          <div key={i} className="flex min-h-[240px] flex-col bg-card">
             {/* Day header */}
             <div
               className={cn(
@@ -66,15 +65,21 @@ export function WeekCalendar({
               >
                 {day.getDate()}
               </div>
+              {dayAppointments.length > 0 && (
+                <div className="mt-0.5 text-[10px] text-muted-foreground">
+                  {dayAppointments.length} cita{dayAppointments.length !== 1 ? "s" : ""}
+                </div>
+              )}
             </div>
 
             {/* Appointments */}
-            <div className="flex-1 space-y-1 overflow-y-auto p-1">
+            <div className="flex-1 space-y-1.5 overflow-y-auto p-1.5">
               {dayAppointments.map((appt) => (
                 <AppointmentCard
                   key={appt.id}
                   appointment={appt}
                   onClick={() => onAppointmentClick(appt)}
+                  showBa={showBa}
                 />
               ))}
             </div>

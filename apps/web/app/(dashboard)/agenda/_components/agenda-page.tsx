@@ -1,17 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   useAppointmentCalendar,
   useCreateAppointment,
   useUpdateAppointment,
-  type Appointment,
+  type CalendarAppointment,
 } from "@/lib/hooks";
+import { useAppointmentMetrics } from "@/lib/hooks/use-analytics";
 import { APPOINTMENT_STATUSES } from "@loreal/contracts";
 import { can } from "@/lib/permissions";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -61,12 +69,26 @@ function formatDateRange(start: Date): string {
   return `${startStr} – ${endStr}`;
 }
 
+const SEGMENT_LABEL: Record<string, string> = {
+  new: "Nueva",
+  returning: "Recurrente",
+  vip: "VIP",
+  at_risk: "En riesgo",
+};
+
+const SEGMENT_VARIANT: Record<string, "info" | "success" | "warning" | "destructive" | "secondary"> = {
+  new: "info",
+  returning: "secondary",
+  vip: "success",
+  at_risk: "warning",
+};
+
 // ── Types ──────────────────────────────────────────────────────────
 
 type DialogState =
   | null
   | { mode: "create" }
-  | { mode: "detail"; appointment: Appointment };
+  | { mode: "detail"; appointment: CalendarAppointment };
 
 // ── Component ──────────────────────────────────────────────────────
 
@@ -89,8 +111,10 @@ export function AgendaPage({ user }: AgendaPageProps) {
     to,
     role !== "ba" ? { storeView } : undefined,
   );
-  // Cast to Appointment[] for WeekCalendar compat (CalendarAppointment has all needed fields + extras)
-  const appointments = calendarData as unknown as Appointment[];
+
+  // Metrics for the summary bar
+  const { data: metrics } = useAppointmentMetrics(from, to);
+
   const createAppointment = useCreateAppointment();
   const updateAppointment = useUpdateAppointment();
 
@@ -111,7 +135,6 @@ export function AgendaPage({ user }: AgendaPageProps) {
       {
         id: dialog.appointment.id,
         status: statusUpdate as any,
-        ...(statusUpdate === "rescheduled" ? {} : {}),
       },
       { onSuccess: () => setDialog(null) },
     );
@@ -135,27 +158,44 @@ export function AgendaPage({ user }: AgendaPageProps) {
 
       {/* Store / Mine toggle — visible for manager+ */}
       {role !== "ba" && (
-        <div className="flex gap-1 rounded-lg border border-border p-0.5">
-          <button
-            onClick={() => setStoreView(true)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              storeView
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Tienda
-          </button>
-          <button
-            onClick={() => setStoreView(false)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              !storeView
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Mis citas
-          </button>
+        <div className="flex items-center gap-4">
+          <div className="flex gap-1 rounded-lg border border-border p-0.5">
+            <button
+              onClick={() => setStoreView(true)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                storeView
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Tienda
+            </button>
+            <button
+              onClick={() => setStoreView(false)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                !storeView
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Mis citas
+            </button>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {calendarData.length} cita{calendarData.length !== 1 ? "s" : ""} esta semana
+          </span>
+        </div>
+      )}
+
+      {/* Metrics summary cards */}
+      {metrics && (
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          <MiniMetric label="Total" value={metrics.total} />
+          <MiniMetric label="Completadas" value={metrics.completed} variant="success" />
+          <MiniMetric label="Confirmadas" value={metrics.confirmed} variant="info" />
+          <MiniMetric label="Canceladas" value={metrics.cancelled} variant="destructive" />
+          <MiniMetric label="No asistió" value={metrics.noShow} variant="warning" />
+          <MiniMetric label="Reagendadas" value={metrics.rescheduled} />
         </div>
       )}
 
@@ -200,11 +240,12 @@ export function AgendaPage({ user }: AgendaPageProps) {
         </div>
       ) : (
         <WeekCalendar
-          appointments={appointments}
+          appointments={calendarData}
           weekStart={weekStart}
+          showBa={storeView && role !== "ba"}
           onAppointmentClick={(appt) => {
             setStatusUpdate(appt.status);
-            setDialog({ mode: "detail", appointment: appt });
+            setDialog({ mode: "detail", appointment: appt as CalendarAppointment });
           }}
         />
       )}
@@ -237,119 +278,174 @@ export function AgendaPage({ user }: AgendaPageProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail Dialog */}
+      {/* Detail Dialog — enriched with client/BA info */}
       <Dialog
         open={dialog?.mode === "detail"}
         onOpenChange={(open) => !open && setDialog(null)}
       >
-        <DialogContent>
+        <DialogContent size="lg">
           <DialogHeader>
             <DialogTitle>Detalle de cita</DialogTitle>
           </DialogHeader>
           {dialog?.mode === "detail" && (
             <DialogBody>
-              <dl className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Tipo</dt>
-                  <dd>
-                    <Badge variant="secondary">
-                      {EVENT_LABEL[dialog.appointment.eventType] ??
-                        dialog.appointment.eventType}
-                    </Badge>
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Fecha</dt>
-                  <dd className="font-medium">
-                    {new Date(dialog.appointment.scheduledAt).toLocaleDateString(
-                      "es-MX",
-                      {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      },
-                    )}
-                  </dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Duración</dt>
-                  <dd>{dialog.appointment.durationMinutes} min</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Estado actual</dt>
-                  <dd>
-                    <Badge
-                      variant={
-                        STATUS_VARIANT[dialog.appointment.status] ?? "secondary"
-                      }
-                    >
-                      {STATUS_LABEL[dialog.appointment.status] ??
-                        dialog.appointment.status}
-                    </Badge>
-                  </dd>
-                </div>
-                {dialog.appointment.comments && (
-                  <div>
-                    <dt className="mb-1 text-muted-foreground">Comentarios</dt>
-                    <dd>{dialog.appointment.comments}</dd>
+              <div className="space-y-5">
+                {/* Client section */}
+                <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                  <div className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                    Cliente
                   </div>
-                )}
-                {dialog.appointment.isVirtual && dialog.appointment.videoLink && (
-                  <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Video</dt>
-                    <dd>
-                      <a
-                        href={dialog.appointment.videoLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-accent underline"
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-semibold">
+                      {dialog.appointment.customerName ?? "Sin nombre"}
+                    </span>
+                    {dialog.appointment.customerSegment && (
+                      <Badge
+                        variant={SEGMENT_VARIANT[dialog.appointment.customerSegment] ?? "secondary"}
+                        size="sm"
                       >
-                        Unirse
-                      </a>
+                        {SEGMENT_LABEL[dialog.appointment.customerSegment] ?? dialog.appointment.customerSegment}
+                      </Badge>
+                    )}
+                  </div>
+                  {dialog.appointment.customerPhone && (
+                    <div className="mt-0.5 text-sm text-muted-foreground tabular-nums">
+                      {dialog.appointment.customerPhone}
+                    </div>
+                  )}
+                  {dialog.appointment.customerId && (
+                    <Link
+                      href={`/clientes/${dialog.appointment.customerId}`}
+                      className="mt-1 inline-block text-xs font-medium text-accent hover:text-accent/80"
+                    >
+                      Ver perfil completo →
+                    </Link>
+                  )}
+                </div>
+
+                {/* Appointment details */}
+                <dl className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Tipo de evento</dt>
+                    <dd className="flex items-center gap-2">
+                      {dialog.appointment.eventTypeColor && (
+                        <span
+                          className="inline-block size-2.5 rounded-full"
+                          style={{ backgroundColor: dialog.appointment.eventTypeColor }}
+                        />
+                      )}
+                      <Badge variant="secondary">
+                        {dialog.appointment.eventTypeName ??
+                          EVENT_LABEL[dialog.appointment.eventType] ??
+                          dialog.appointment.eventType}
+                      </Badge>
                     </dd>
                   </div>
-                )}
-              </dl>
 
-              {/* Status change */}
-              {can(role, "appointment.edit") && (
-                <div className="mt-4 space-y-2 border-t border-border/60 pt-4">
-                  <Label className="text-xs text-muted-foreground">
-                    Cambiar estado
-                  </Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={statusUpdate}
-                      onValueChange={(v) => setStatusUpdate(v ?? "")}
-                    >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Seleccionar estado">
-                          {statusUpdate ? STATUS_LABEL[statusUpdate] ?? statusUpdate : undefined}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {APPOINTMENT_STATUSES.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {STATUS_LABEL[s] ?? s}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="sm"
-                      disabled={
-                        isPending ||
-                        statusUpdate === dialog.appointment.status
-                      }
-                      onClick={handleStatusChange}
-                    >
-                      {isPending ? "Guardando..." : "Actualizar"}
-                    </Button>
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Fecha y hora</dt>
+                    <dd className="font-medium">
+                      {new Date(dialog.appointment.scheduledAt).toLocaleDateString(
+                        "es-MX",
+                        {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </dd>
                   </div>
-                </div>
-              )}
+
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Duración</dt>
+                    <dd>{dialog.appointment.durationMinutes} min</dd>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Beauty Advisor</dt>
+                    <dd className="font-medium">
+                      {dialog.appointment.baName ?? "Sin asignar"}
+                    </dd>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Tienda</dt>
+                    <dd>{dialog.appointment.storeName ?? "—"}</dd>
+                  </div>
+
+                  <div className="flex justify-between">
+                    <dt className="text-muted-foreground">Estado</dt>
+                    <dd>
+                      <Badge
+                        variant={
+                          STATUS_VARIANT[dialog.appointment.status] ?? "secondary"
+                        }
+                      >
+                        {STATUS_LABEL[dialog.appointment.status] ??
+                          dialog.appointment.status}
+                      </Badge>
+                    </dd>
+                  </div>
+
+                  {dialog.appointment.isVirtual && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Modalidad</dt>
+                      <dd>
+                        <Badge variant="info" size="sm">Virtual</Badge>
+                      </dd>
+                    </div>
+                  )}
+
+                  {dialog.appointment.comments && (
+                    <div>
+                      <dt className="mb-1 text-muted-foreground">Comentarios</dt>
+                      <dd className="rounded-md bg-muted/30 p-2 text-sm">
+                        {dialog.appointment.comments}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+
+                {/* Status change */}
+                {can(role, "appointment.edit") && (
+                  <div className="space-y-2 border-t border-border/60 pt-4">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Cambiar estado
+                    </span>
+                    <div className="flex gap-2">
+                      <Select
+                        value={statusUpdate}
+                        onValueChange={(v) => setStatusUpdate(v ?? "")}
+                      >
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Seleccionar estado">
+                            {statusUpdate ? STATUS_LABEL[statusUpdate] ?? statusUpdate : undefined}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {APPOINTMENT_STATUSES.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {STATUS_LABEL[s] ?? s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        size="sm"
+                        disabled={
+                          isPending ||
+                          statusUpdate === dialog.appointment.status
+                        }
+                        onClick={handleStatusChange}
+                      >
+                        {isPending ? "Guardando..." : "Actualizar"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </DialogBody>
           )}
           <DialogFooter>
@@ -363,15 +459,31 @@ export function AgendaPage({ user }: AgendaPageProps) {
   );
 }
 
-// Label imported from ui but need a simple one for inline use
-function Label({
-  children,
-  className,
+// ── Mini metric card for summary bar ───────────────────────────────
+
+function MiniMetric({
+  label,
+  value,
+  variant,
 }: {
-  children: React.ReactNode;
-  className?: string;
+  label: string;
+  value: number;
+  variant?: "success" | "info" | "warning" | "destructive";
 }) {
   return (
-    <span className={`text-sm font-medium ${className ?? ""}`}>{children}</span>
+    <Card className="p-0">
+      <CardContent className="px-3 py-2">
+        <CardDescription className="text-[11px]">{label}</CardDescription>
+        <div className={`text-lg font-semibold tabular-nums ${
+          variant === "success" ? "text-green-600" :
+          variant === "destructive" ? "text-red-500" :
+          variant === "warning" ? "text-amber-500" :
+          variant === "info" ? "text-blue-500" :
+          ""
+        }`}>
+          {value}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
