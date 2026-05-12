@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import React from "react";
+import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { Product } from "@/types";
+import { CreateRecommendationModal } from "./create-recommendation-modal";
+import { CreateSampleModal } from "./create-sample-modal";
 
 function formatCurrency(amount: string | number): string {
   return (
@@ -23,6 +25,8 @@ interface ProductDetailProps {
 export function ProductDetail({ product }: ProductDetailProps) {
   const theme = useTheme();
   const imageUrl = product.images?.[0];
+  const [showRecommend, setShowRecommend] = useState(false);
+  const [showSample, setShowSample] = useState(false);
 
   return (
     <ScrollView
@@ -68,8 +72,18 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
       {/* Actions */}
       <View style={styles.actionsRow}>
-        <IconButton icon="sparkles" label="Recomendar" variant="accent" />
-        <IconButton icon="barcode" label="Escanear" variant="default" />
+        <IconButton
+          icon="sparkles"
+          label="Recomendar"
+          variant="accent"
+          onPress={() => setShowRecommend(true)}
+        />
+        <IconButton
+          icon="gift"
+          label="Entregar muestra"
+          variant="default"
+          onPress={() => setShowSample(true)}
+        />
       </View>
 
       {/* Description */}
@@ -114,6 +128,20 @@ export function ProductDetail({ product }: ProductDetailProps) {
           </Card>
         </View>
       )}
+      <CreateRecommendationModal
+        visible={showRecommend}
+        onClose={() => setShowRecommend(false)}
+        productId={product.id}
+        productName={product.name}
+        onSuccess={() => setShowRecommend(false)}
+      />
+      <CreateSampleModal
+        visible={showSample}
+        onClose={() => setShowSample(false)}
+        productId={product.id}
+        productName={product.name}
+        onSuccess={() => setShowSample(false)}
+      />
     </ScrollView>
   );
 }

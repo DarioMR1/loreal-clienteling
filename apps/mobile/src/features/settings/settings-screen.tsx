@@ -53,13 +53,13 @@ export function SettingsScreen() {
 
       {/* Sync status */}
       <View style={styles.section}>
-        <SectionHeader title="Estado de sincronizacion" />
+        <SectionHeader title="Estado de sincronización" />
         <Card>
           <View style={styles.syncRow}>
             <Icon name="cloud-done" size={24} color={theme.success} />
             <View style={styles.syncInfo}>
               <Text style={[styles.syncTitle, { color: theme.text }]}>Todo sincronizado</Text>
-              <Text style={[styles.syncSub, { color: theme.textSecondary }]}>Ultima sincronizacion: hace 2 min</Text>
+              <Text style={[styles.syncSub, { color: theme.textSecondary }]}>Última sincronización: hace 2 min</Text>
             </View>
             <StatusBadge label="Online" color={theme.success} />
           </View>
@@ -68,12 +68,12 @@ export function SettingsScreen() {
 
       {/* Settings list */}
       <View style={styles.section}>
-        <SectionHeader title="Configuracion" />
+        <SectionHeader title="Configuración" />
         <Card padded={false}>
-          <SettingsRow icon="globe" label="Idioma" value="Espanol" theme={theme} />
+          <SettingsRow icon="globe" label="Idioma" value="Español" theme={theme} />
           <SettingsRow icon="notifications" label="Notificaciones" value="Activadas" theme={theme} />
-          <SettingsRow icon="color-fill" label="Apariencia" value="Automatico" theme={theme} />
-          <SettingsRow icon="information-circle" label="Version de la app" value="1.0.0" theme={theme} last />
+          <SettingsRow icon="color-fill" label="Apariencia" value="Automático" theme={theme} />
+          <SettingsRow icon="information-circle" label="Versión de la app" value="1.0.0" theme={theme} last />
         </Card>
       </View>
 
@@ -92,7 +92,7 @@ export function SettingsScreen() {
         <SectionHeader title="Legal" />
         <Card padded={false}>
           <SettingsRow icon="lock-closed" label="Aviso de privacidad" value="v2.1" theme={theme} />
-          <SettingsRow icon="document-text" label="Terminos y condiciones" value="" theme={theme} last />
+          <SettingsRow icon="document-text" label="Términos y condiciones" value="" theme={theme} last />
         </Card>
       </View>
 
@@ -101,7 +101,7 @@ export function SettingsScreen() {
         <Card style={{ backgroundColor: theme.dangerLight }}>
           <View style={styles.logoutRow}>
             <Icon name="log-out" size={20} color={theme.danger} />
-            <Text style={[styles.logoutText, { color: theme.danger }]}>Cerrar sesion</Text>
+            <Text style={[styles.logoutText, { color: theme.danger }]}>Cerrar sesión</Text>
           </View>
         </Card>
       </Pressable>

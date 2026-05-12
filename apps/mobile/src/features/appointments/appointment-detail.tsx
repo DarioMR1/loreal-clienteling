@@ -1,59 +1,23 @@
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusBadge } from "@/components/ui/badge";
-import { Spacing, Typography } from "@/constants/theme";
+import { Radius, Spacing, Typography } from "@/constants/theme";
+import {
+  eventTypeLabels,
+  eventTypeColors,
+  eventTypeIcons,
+  statusLabels,
+  statusColors,
+} from "@/constants/event-colors";
 import { useTheme } from "@/hooks/use-theme";
 import type { Appointment } from "@/types";
-
-const eventTypeLabels: Record<string, string> = {
-  cabin_service: "Servicio de cabina",
-  facial: "Facial",
-  anniversary_event: "Evento aniversario",
-  vip_cabin: "Cabina VIP",
-  product_followup: "Seguimiento de producto",
-  custom: "Personalizado",
-};
-
-const eventTypeColors: Record<string, string> = {
-  cabin_service: "#C9A96E",
-  facial: "#5B7FA5",
-  anniversary_event: "#7B1FA2",
-  vip_cabin: "#C9A96E",
-  product_followup: "#4A7C59",
-  custom: "#6B6B6B",
-};
-
-const eventIcons: Record<string, IconName> = {
-  facial: "sparkles",
-  cabin_service: "star",
-  anniversary_event: "ribbon",
-  vip_cabin: "star",
-  product_followup: "clipboard",
-  custom: "calendar",
-};
-
-const statusLabels: Record<string, string> = {
-  scheduled: "Programada",
-  confirmed: "Confirmada",
-  rescheduled: "Reagendada",
-  cancelled: "Cancelada",
-  completed: "Completada",
-  no_show: "No asistió",
-};
-
-const statusColors: Record<string, string> = {
-  scheduled: "#5B7FA5",
-  confirmed: "#4A7C59",
-  rescheduled: "#D4A017",
-  cancelled: "#C44536",
-  completed: "#5B7FA5",
-  no_show: "#C44536",
-};
+import { useUpdateAppointment } from "./hooks/use-appointments";
+import { RescheduleModal } from "./reschedule-modal";
 
 function formatFullDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-MX", {
@@ -73,12 +37,37 @@ function formatTime(dateStr: string): string {
 
 interface AppointmentDetailProps {
   appointment: Appointment;
+  onUpdate?: () => void;
 }
 
-export function AppointmentDetail({ appointment }: AppointmentDetailProps) {
+export function AppointmentDetail({
+  appointment,
+  onUpdate,
+}: AppointmentDetailProps) {
   const theme = useTheme();
   const eventColor =
     eventTypeColors[appointment.eventType] ?? theme.textSecondary;
+  const { mutate, isLoading } = useUpdateAppointment(appointment.id);
+  const [showReschedule, setShowReschedule] = useState(false);
+
+  const isActive = ["scheduled", "confirmed"].includes(appointment.status);
+
+  const handleStatusChange = (status: string, label: string) => {
+    Alert.alert(
+      `${label} cita`,
+      `¿Confirmas que deseas marcar esta cita como "${statusLabels[status]}"?`,
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Sí",
+          onPress: async () => {
+            const result = await mutate({ status });
+            if (result) onUpdate?.();
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScrollView
@@ -90,7 +79,7 @@ export function AppointmentDetail({ appointment }: AppointmentDetailProps) {
       <View style={[styles.header, { backgroundColor: eventColor + "10" }]}>
         <View style={[styles.eventBadge, { backgroundColor: eventColor }]}>
           <Icon
-            name={eventIcons[appointment.eventType] ?? "calendar"}
+            name={eventTypeIcons[appointment.eventType] ?? "calendar"}
             size={22}
             color="#FFFFFF"
           />
@@ -158,19 +147,52 @@ export function AppointmentDetail({ appointment }: AppointmentDetailProps) {
       <View style={styles.section}>
         <SectionHeader title="Acciones" />
         <View style={styles.actions}>
-          <IconButton
-            icon="chatbubble"
-            label="Enviar recordatorio"
-            variant="accent"
-          />
-          <IconButton
-            icon="calendar"
-            label="Reagendar"
-            variant="default"
-          />
-          <IconButton icon="close" label="Cancelar" variant="danger" />
+          {isActive && (
+            <>
+              <IconButton
+                icon="checkmark-circle"
+                label="Completar"
+                variant="accent"
+                disabled={isLoading}
+                onPress={() => handleStatusChange("completed", "Completar")}
+              />
+              <IconButton
+                icon="calendar"
+                label="Reagendar"
+                variant="default"
+                disabled={isLoading}
+                onPress={() => setShowReschedule(true)}
+              />
+              <IconButton
+                icon="close"
+                label="Cancelar"
+                variant="danger"
+                disabled={isLoading}
+                onPress={() => handleStatusChange("cancelled", "Cancelar")}
+              />
+              <IconButton
+                icon="alert-circle"
+                label="No asistió"
+                variant="default"
+                disabled={isLoading}
+                onPress={() => handleStatusChange("no_show", "No asistió")}
+              />
+            </>
+          )}
+          {!isActive && (
+            <Text style={[styles.closedText, { color: theme.textSecondary }]}>
+              Esta cita ya fue {statusLabels[appointment.status]?.toLowerCase() ?? "cerrada"}.
+            </Text>
+          )}
         </View>
       </View>
+
+      <RescheduleModal
+        visible={showReschedule}
+        onClose={() => setShowReschedule(false)}
+        appointmentId={appointment.id}
+        onSuccess={() => onUpdate?.()}
+      />
     </ScrollView>
   );
 }
@@ -187,7 +209,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.md,
     padding: Spacing.lg,
-    borderRadius: 16,
+    borderRadius: Radius.lg,
   },
   eventBadge: {
     width: 44,
@@ -211,4 +233,5 @@ const styles = StyleSheet.create({
   clientPhone: { ...Typography.subhead },
   notes: { ...Typography.body, lineHeight: 24 },
   actions: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
+  closedText: { ...Typography.body },
 });

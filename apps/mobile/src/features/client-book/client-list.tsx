@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -10,11 +11,13 @@ import {
 
 import { Avatar } from "@/components/ui/avatar";
 import { SegmentBadge } from "@/components/ui/badge";
+import { IconButton } from "@/components/ui/icon-button";
 import { SearchBar } from "@/components/ui/search-bar";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { Customer } from "@/types";
 import { useClients } from "./hooks/use-clients";
+import { CreateCustomerModal } from "./create-customer-modal";
 
 function daysAgo(dateStr: string | null): string {
   if (!dateStr) return "Sin visita";
@@ -34,7 +37,15 @@ interface ClientListProps {
 export function ClientList({ selectedId, onSelect }: ClientListProps) {
   const theme = useTheme();
   const [search, setSearch] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { data: clients, isLoading, error, refetch } = useClients();
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
 
   const filtered = useMemo(() => {
     if (!clients) return [];
@@ -129,10 +140,20 @@ export function ClientList({ selectedId, onSelect }: ClientListProps) {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Client Book</Text>
-        <Text style={[styles.count, { color: theme.textSecondary }]}>
-          {clients?.length ?? 0} clientes
-        </Text>
+        <View style={styles.headerTitleRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.title, { color: theme.text }]}>Client Book</Text>
+            <Text style={[styles.count, { color: theme.textSecondary }]}>
+              {clients?.length ?? 0} clientes
+            </Text>
+          </View>
+          <IconButton
+            icon="add"
+            variant="accent"
+            size="sm"
+            onPress={() => setShowCreate(true)}
+          />
+        </View>
       </View>
 
       <View style={styles.searchWrapper}>
@@ -149,6 +170,19 @@ export function ClientList({ selectedId, onSelect }: ClientListProps) {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.accent}
+          />
+        }
+      />
+
+      <CreateCustomerModal
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSuccess={refetch}
       />
     </View>
   );
@@ -166,6 +200,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xl,
     paddingBottom: Spacing.sm,
+  },
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   title: {
     ...Typography.title2,

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "expo-router";
 import { Avatar } from "@/components/ui/avatar";
 import { Icon, type IconName } from "@/components/ui/icon";
 import {
+  Radius,
   Spacing,
   Sidebar as SidebarDimensions,
   Typography,
@@ -13,13 +14,11 @@ import { useAuth } from "@/providers/auth-provider";
 import { useTheme } from "@/hooks/use-theme";
 
 const sections: { path: string; icon: IconName; label: string }[] = [
-  { path: "/(auth)", icon: "people", label: "Client Book" },
+  { path: "/(auth)", icon: "home" as IconName, label: "Inicio" },
+  { path: "/(auth)/client-book", icon: "people", label: "Client Book" },
   { path: "/(auth)/appointments", icon: "calendar", label: "Citas" },
-  {
-    path: "/(auth)/products",
-    icon: "bag",
-    label: "Catálogo",
-  },
+  { path: "/(auth)/follow-ups", icon: "checkmark-circle", label: "Seguimientos" },
+  { path: "/(auth)/products", icon: "bag", label: "Catálogo" },
   { path: "/(auth)/stats", icon: "stats-chart", label: "Métricas" },
   { path: "/(auth)/settings", icon: "settings", label: "Configuración" },
 ];
@@ -41,8 +40,8 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
 
   function isActive(sectionPath: string): boolean {
     if (sectionPath === "/(auth)") {
-      // Client book is the index — active when path is exactly / or /clients
-      return pathname === "/" || pathname.startsWith("/clients");
+      // Home is the index — active only when path is exactly /
+      return pathname === "/";
     }
     // Strip the (auth) group prefix for matching
     const clean = sectionPath.replace("/(auth)", "");
@@ -162,7 +161,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    borderRadius: 10,
+    borderRadius: Radius.md,
   },
   navItemCollapsed: {
     justifyContent: "center",

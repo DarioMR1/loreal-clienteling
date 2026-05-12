@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 
-import { Icon, type IconName } from "@/components/ui/icon";
+import { Icon } from "@/components/ui/icon";
+import { activityIcons, activityColors } from "@/constants/event-colors";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { Purchase, Recommendation, Communication, Sample } from "@/types";
@@ -13,20 +14,6 @@ interface ActivityItem {
   title: string;
   subtitle: string;
 }
-
-const activityIcons: Record<string, IconName> = {
-  purchase: "bag",
-  recommendation: "sparkles",
-  communication: "chatbubble",
-  sample: "gift",
-};
-
-const activityColors: Record<string, string> = {
-  purchase: "#4A7C59",
-  recommendation: "#C9A96E",
-  communication: "#5B7FA5",
-  sample: "#D4A017",
-};
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-MX", {

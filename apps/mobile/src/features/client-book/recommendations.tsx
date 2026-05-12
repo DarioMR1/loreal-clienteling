@@ -86,6 +86,14 @@ export function Recommendations({ recommendations }: Props) {
                   {formatDate(rec.recommendedAt)}
                 </Text>
               </View>
+              {rec.product && (
+                <Text
+                  style={[styles.recProductName, { color: theme.text }]}
+                  numberOfLines={1}
+                >
+                  {rec.product.name}
+                </Text>
+              )}
               {rec.notes && (
                 <Text
                   style={[styles.recNotes, { color: theme.text }]}
@@ -137,6 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  recProductName: { ...Typography.body, fontWeight: "600", marginTop: 2 },
   recSource: { ...Typography.subhead, fontWeight: "600" },
   recDate: { ...Typography.caption1 },
   recNotes: { ...Typography.body, marginTop: 2 },

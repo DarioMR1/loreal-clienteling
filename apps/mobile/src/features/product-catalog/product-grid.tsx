@@ -1,9 +1,10 @@
 import { Image } from "expo-image";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -11,7 +12,7 @@ import {
 
 import { SearchBar } from "@/components/ui/search-bar";
 import { StatusBadge } from "@/components/ui/badge";
-import { Spacing, Typography } from "@/constants/theme";
+import { Radius, Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { Product } from "@/types";
 import { useProducts } from "./hooks/use-products";
@@ -40,7 +41,14 @@ export function ProductGrid({ selectedId, onSelect }: ProductGridProps) {
   const theme = useTheme();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { data: products, isLoading, error, refetch } = useProducts(category);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
 
   const filtered = useMemo(() => {
     if (!products) return [];
@@ -117,6 +125,13 @@ export function ProductGrid({ selectedId, onSelect }: ProductGridProps) {
         data={filtered}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.accent}
+          />
+        }
         renderItem={({ item }) => {
           const isSelected = item.id === selectedId;
           const imageUrl = item.images?.[0];
@@ -192,7 +207,7 @@ const styles = StyleSheet.create({
   filterPill: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
-    borderRadius: 20,
+    borderRadius: Radius.full,
   },
   filterPillText: { ...Typography.caption1, fontWeight: "600" },
   row: {

@@ -1,6 +1,62 @@
 import { api } from "@/lib/api-client";
-import { useApi } from "@/hooks/use-api";
-import type { Product, ProductAvailability } from "@/types";
+import { useApi, useMutation } from "@/hooks/use-api";
+import type {
+  Product,
+  ProductAvailability,
+  Purchase,
+  Recommendation,
+  Sample,
+} from "@/types";
+
+// ─── Mutation input types ────────────────────────────────
+
+export interface PurchaseItemInput {
+  productId: string;
+  sku: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface CreatePurchaseInput {
+  customerId: string;
+  source: string;
+  items: PurchaseItemInput[];
+  totalAmount: number;
+  posTransactionId?: string;
+}
+
+export interface CreateRecommendationInput {
+  customerId: string;
+  productId: string;
+  source: string;
+  visitReason?: string;
+  notes?: string;
+}
+
+export interface CreateSampleInput {
+  customerId: string;
+  productId: string;
+}
+
+// ─── Mutation hooks ──────────────────────────────────────
+
+export function useCreatePurchase() {
+  return useMutation<CreatePurchaseInput, Purchase>((input) =>
+    api.post<Purchase>("/purchases", input)
+  );
+}
+
+export function useCreateRecommendation() {
+  return useMutation<CreateRecommendationInput, Recommendation>((input) =>
+    api.post<Recommendation>("/recommendations", input)
+  );
+}
+
+export function useCreateSample() {
+  return useMutation<CreateSampleInput, Sample>((input) =>
+    api.post<Sample>("/samples", input)
+  );
+}
 
 /** Fetch products for the BA's brand with optional category/search filter. */
 export function useProducts(category?: string, search?: string) {

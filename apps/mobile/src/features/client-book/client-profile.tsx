@@ -9,6 +9,7 @@ import {
 
 import { Avatar } from "@/components/ui/avatar";
 import { SegmentBadge } from "@/components/ui/badge";
+import { IconButton } from "@/components/ui/icon-button";
 import { TabBar } from "@/components/ui/tab-bar";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
@@ -18,16 +19,35 @@ import { useCustomerProfile } from "./hooks/use-clients";
 import { ActivityFeed } from "./activity-feed";
 import { BeautyProfileView } from "./beauty-profile";
 import { ClientSummary } from "./client-summary";
+import { CreateAppointmentModal } from "../appointments/create-appointment-modal";
+import { CreateRecommendationModal } from "../product-catalog/create-recommendation-modal";
+import { EditCustomerModal } from "./edit-customer-modal";
 import { FollowUpView } from "./follow-up";
+import { PurchaseCloset } from "./purchase-closet";
 import { Recommendations } from "./recommendations";
 
 const profileTabs = [
   { key: "summary", label: "Resumen" },
   { key: "beauty", label: "Belleza" },
+  { key: "purchases", label: "Compras" },
   { key: "history", label: "Historial" },
   { key: "recommendations", label: "Recomendaciones" },
   { key: "follow-up", label: "Seguimiento" },
 ];
+
+function daysAgo(dateStr: string | null): string {
+  if (!dateStr) return "sin visita";
+  const diff = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 86_400_000
+  );
+  if (diff === 0) return "hoy";
+  if (diff === 1) return "ayer";
+  return `hace ${diff}d`;
+}
+
+function formatCurrency(amount: number): string {
+  return "$" + amount.toLocaleString("es-MX", { minimumFractionDigits: 0 });
+}
 
 interface ClientProfileProps {
   customer: Customer;
@@ -37,6 +57,18 @@ export function ClientProfile({ customer }: ClientProfileProps) {
   const theme = useTheme();
   const [activeTab, setActiveTab] = useState("summary");
   const profile = useCustomerProfile(customer.id);
+
+  // Modal state
+  const [showAppointment, setShowAppointment] = useState(false);
+  const [showRecommendation, setShowRecommendation] = useState(false);
+  const [showEditCustomer, setShowEditCustomer] = useState(false);
+
+  // LTV calculations
+  const totalSpent = profile.purchases.reduce(
+    (sum, p) => sum + Number(p.totalAmount),
+    0
+  );
+  const purchaseCount = profile.purchases.length;
 
   const renderContent = () => {
     if (profile.isLoading) {
@@ -58,7 +90,15 @@ export function ClientProfile({ customer }: ClientProfileProps) {
           />
         );
       case "beauty":
-        return <BeautyProfileView beautyProfile={profile.beautyProfile} />;
+        return (
+          <BeautyProfileView
+            beautyProfile={profile.beautyProfile}
+            customerId={customer.id}
+            onUpdate={profile.refetch}
+          />
+        );
+      case "purchases":
+        return <PurchaseCloset purchases={profile.purchases} />;
       case "history":
         return (
           <ActivityFeed
@@ -121,7 +161,38 @@ export function ClientProfile({ customer }: ClientProfileProps) {
                   })
                 : "—"}
             </Text>
+
+            {/* LTV metrics */}
+            <Text style={[styles.ltv, { color: theme.accent }]}>
+              LTV: {formatCurrency(totalSpent)} · {purchaseCount} compras ·
+              Último contacto: {daysAgo(customer.lastContactAt)}
+            </Text>
           </View>
+        </View>
+
+        {/* Quick actions */}
+        <View style={styles.quickActions}>
+          <IconButton
+            icon="calendar"
+            label="Agendar cita"
+            variant="accent"
+            size="sm"
+            onPress={() => setShowAppointment(true)}
+          />
+          <IconButton
+            icon="sparkles"
+            label="Recomendar"
+            variant="default"
+            size="sm"
+            onPress={() => setShowRecommendation(true)}
+          />
+          <IconButton
+            icon="create"
+            label="Editar"
+            variant="default"
+            size="sm"
+            onPress={() => setShowEditCustomer(true)}
+          />
         </View>
 
         <TabBar
@@ -139,6 +210,28 @@ export function ClientProfile({ customer }: ClientProfileProps) {
       >
         {renderContent()}
       </ScrollView>
+
+      {/* Modals */}
+      <CreateAppointmentModal
+        visible={showAppointment}
+        onClose={() => setShowAppointment(false)}
+        customerId={customer.id}
+        customerName={`${customer.firstName} ${customer.lastName}`}
+        onSuccess={profile.refetch}
+      />
+      <CreateRecommendationModal
+        visible={showRecommendation}
+        onClose={() => setShowRecommendation(false)}
+        customerId={customer.id}
+        customerName={`${customer.firstName} ${customer.lastName}`}
+        onSuccess={profile.refetch}
+      />
+      <EditCustomerModal
+        visible={showEditCustomer}
+        onClose={() => setShowEditCustomer(false)}
+        customer={customer}
+        onSuccess={profile.refetch}
+      />
     </View>
   );
 }
@@ -165,7 +258,7 @@ const styles = StyleSheet.create({
   },
   headerInfo: {
     flex: 1,
-    gap: 2,
+    gap: 3,
   },
   nameRow: {
     flexDirection: "row",
@@ -177,6 +270,17 @@ const styles = StyleSheet.create({
   },
   meta: {
     ...Typography.subhead,
+  },
+  ltv: {
+    ...Typography.caption1,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  quickActions: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.md,
   },
   content: {
     flex: 1,

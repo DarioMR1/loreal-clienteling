@@ -7,7 +7,7 @@ export const Colors = {
   light: {
     // Core
     text: '#1A1A1A',
-    textSecondary: '#8A8A8A',
+    textSecondary: '#6B6B6B',
     textTertiary: '#B0B0B0',
     background: '#FFFFFF',
     backgroundSecondary: '#FAFAFA',
@@ -26,15 +26,15 @@ export const Colors = {
     accentLight: '#F5EDE0',
     accentText: '#FFFFFF',
 
-    // Semantic
-    success: '#2E7D32',
-    successLight: '#E8F5E9',
-    warning: '#F57C00',
-    warningLight: '#FFF3E0',
-    danger: '#C62828',
-    dangerLight: '#FFEBEE',
-    info: '#1565C0',
-    infoLight: '#E3F2FD',
+    // Semantic — per 07-ux-ui-guidelines.md luxury palette
+    success: '#4A7C59',
+    successLight: '#EDF3EF',
+    warning: '#D4A017',
+    warningLight: '#FBF5E6',
+    danger: '#C44536',
+    dangerLight: '#FBEAE8',
+    info: '#5B7FA5',
+    infoLight: '#EEF2F6',
 
     // Borders
     border: '#E8E8E8',
@@ -69,13 +69,13 @@ export const Colors = {
     accentLight: '#2A2418',
     accentText: '#FFFFFF',
 
-    success: '#4CAF50',
+    success: '#4A7C59',
     successLight: '#1B2E1B',
-    warning: '#FF9800',
+    warning: '#D4A017',
     warningLight: '#2E2010',
-    danger: '#EF5350',
+    danger: '#C44536',
     dangerLight: '#2E1515',
-    info: '#42A5F5',
+    info: '#5B7FA5',
     infoLight: '#152030',
 
     border: '#252525',
@@ -127,12 +127,12 @@ export const Spacing = {
   '4xl': 64,
 } as const;
 
-// Border radius
+// Border radius — luxury: minimal rounding (Dior 0-4px, max 12px per guide)
 export const Radius = {
-  sm: 6,
-  md: 10,
-  lg: 16,
-  xl: 24,
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 12,
   full: 9999,
 } as const;
 

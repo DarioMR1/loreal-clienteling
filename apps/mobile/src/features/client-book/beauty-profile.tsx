@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Card } from "@/components/ui/card";
+import { IconButton } from "@/components/ui/icon-button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusBadge } from "@/components/ui/badge";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { BeautyProfile } from "@/types";
+import { EditBeautyProfileModal } from "./edit-beauty-profile-modal";
 
 const skinTypeLabels: Record<string, string> = {
   dry: "Seca",
@@ -33,12 +35,27 @@ const routineLabels: Record<string, string> = {
   both: "Ambas",
 };
 
+// Category-based swatch colors for realistic visual representation
+const shadeCategoryColors: Record<string, string> = {
+  foundation: "#D2B48C",
+  concealer: "#F5DEB3",
+  lipstick: "#C44536",
+  blush: "#E8A0BF",
+};
+
 interface Props {
   beautyProfile: BeautyProfile | null;
+  customerId: string;
+  onUpdate: () => void;
 }
 
-export function BeautyProfileView({ beautyProfile }: Props) {
+export function BeautyProfileView({
+  beautyProfile,
+  customerId,
+  onUpdate,
+}: Props) {
   const theme = useTheme();
+  const [showEdit, setShowEdit] = useState(false);
 
   if (!beautyProfile) {
     return (
@@ -46,6 +63,19 @@ export function BeautyProfileView({ beautyProfile }: Props) {
         <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
           No se ha capturado perfil de belleza aún.
         </Text>
+        <IconButton
+          icon="add"
+          label="Capturar perfil"
+          variant="accent"
+          onPress={() => setShowEdit(true)}
+        />
+        <EditBeautyProfileModal
+          visible={showEdit}
+          onClose={() => setShowEdit(false)}
+          customerId={customerId}
+          beautyProfile={null}
+          onSuccess={onUpdate}
+        />
       </View>
     );
   }
@@ -53,7 +83,18 @@ export function BeautyProfileView({ beautyProfile }: Props) {
   return (
     <View style={styles.container}>
       {/* Skin profile */}
-      <SectionHeader title="Perfil de piel" />
+      <SectionHeader
+        title="Perfil de piel"
+        action={
+          <IconButton
+            icon="create"
+            label="Editar"
+            variant="default"
+            size="sm"
+            onPress={() => setShowEdit(true)}
+          />
+        }
+      />
       <Card>
         <InfoRow
           label="Tipo de piel"
@@ -91,7 +132,13 @@ export function BeautyProfileView({ beautyProfile }: Props) {
             {beautyProfile.shades.map((shade) => (
               <View key={shade.id} style={styles.shadeRow}>
                 <View
-                  style={[styles.shadeSwatch, { backgroundColor: theme.accent }]}
+                  style={[
+                    styles.shadeSwatch,
+                    {
+                      backgroundColor:
+                        shadeCategoryColors[shade.category] ?? "#B0B0B0",
+                    },
+                  ]}
                 />
                 <View>
                   <Text style={[styles.shadeCategory, { color: theme.text }]}>
@@ -134,6 +181,14 @@ export function BeautyProfileView({ beautyProfile }: Props) {
             </View>
           </>
         )}
+
+      <EditBeautyProfileModal
+        visible={showEdit}
+        onClose={() => setShowEdit(false)}
+        customerId={customerId}
+        beautyProfile={beautyProfile}
+        onSuccess={onUpdate}
+      />
     </View>
   );
 }

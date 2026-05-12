@@ -10,7 +10,7 @@ type MaterialName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 export type IconName =
   // Sidebar / Navigation
-  | 'people' | 'calendar' | 'bag' | 'stats-chart' | 'settings'
+  | 'home' | 'people' | 'calendar' | 'bag' | 'stats-chart' | 'settings'
   // Client
   | 'person' | 'search' | 'call' | 'mail' | 'gift' | 'refresh' | 'clipboard'
   | 'heart' | 'star' | 'alert-circle' | 'checkmark-circle'

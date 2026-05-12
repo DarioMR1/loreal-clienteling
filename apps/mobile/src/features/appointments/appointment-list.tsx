@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -10,46 +11,19 @@ import {
 
 import { Avatar } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/ui/badge";
+import { IconButton } from "@/components/ui/icon-button";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { Appointment } from "@/types";
 import { useAppointments } from "./hooks/use-appointments";
+import { CreateAppointmentModal } from "./create-appointment-modal";
 
-const eventTypeLabels: Record<string, string> = {
-  cabin_service: "Servicio de cabina",
-  facial: "Facial",
-  anniversary_event: "Evento aniversario",
-  vip_cabin: "Cabina VIP",
-  product_followup: "Seguimiento de producto",
-  custom: "Personalizado",
-};
-
-const eventTypeColors: Record<string, string> = {
-  cabin_service: "#C9A96E",
-  facial: "#5B7FA5",
-  anniversary_event: "#7B1FA2",
-  vip_cabin: "#C9A96E",
-  product_followup: "#4A7C59",
-  custom: "#6B6B6B",
-};
-
-const statusLabels: Record<string, string> = {
-  scheduled: "Programada",
-  confirmed: "Confirmada",
-  rescheduled: "Reagendada",
-  cancelled: "Cancelada",
-  completed: "Completada",
-  no_show: "No asistió",
-};
-
-const statusColors: Record<string, string> = {
-  scheduled: "#5B7FA5",
-  confirmed: "#4A7C59",
-  rescheduled: "#D4A017",
-  cancelled: "#C44536",
-  completed: "#5B7FA5",
-  no_show: "#C44536",
-};
+import {
+  eventTypeLabels,
+  eventTypeColors,
+  statusLabels,
+  statusColors,
+} from "@/constants/event-colors";
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-MX", {
@@ -77,7 +51,15 @@ export function AppointmentList({
 }: AppointmentListProps) {
   const theme = useTheme();
   const [filter, setFilter] = useState<"upcoming" | "past">("upcoming");
+  const [showCreate, setShowCreate] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { data: appointments, isLoading, error, refetch } = useAppointments();
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await refetch();
+    setIsRefreshing(false);
+  }, [refetch]);
 
   const now = new Date();
   const filtered = useMemo(() => {
@@ -132,7 +114,15 @@ export function AppointmentList({
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Citas</Text>
+        <View style={styles.headerRow}>
+          <Text style={[styles.title, { color: theme.text }]}>Citas</Text>
+          <IconButton
+            icon="add"
+            variant="accent"
+            size="sm"
+            onPress={() => setShowCreate(true)}
+          />
+        </View>
       </View>
 
       {/* Filter toggle */}
@@ -182,6 +172,13 @@ export function AppointmentList({
         data={filtered}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.accent}
+          />
+        }
         renderItem={({ item }) => {
           const isSelected = item.id === selectedId;
           const eColor =
@@ -230,6 +227,12 @@ export function AppointmentList({
           );
         }}
       />
+
+      <CreateAppointmentModal
+        visible={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSuccess={refetch}
+      />
     </View>
   );
 }
@@ -241,6 +244,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.xl,
     paddingBottom: Spacing.sm,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   title: { ...Typography.title2 },
   errorText: { ...Typography.body, marginBottom: Spacing.md },

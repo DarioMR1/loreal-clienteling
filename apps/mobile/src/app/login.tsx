@@ -59,7 +59,7 @@ export default function LoginScreen() {
           {/* Left — Branding */}
           <View style={styles.brandingSide}>
             <View style={styles.brandingContent}>
-              <Text style={styles.brandTitle}>L'OREAL</Text>
+              <Text style={styles.brandTitle}>L'ORÉAL</Text>
               <Text style={styles.brandSubtitle}>CLIENTELING</Text>
               <View style={[styles.brandDivider, { backgroundColor: theme.sidebarAccent }]} />
               <Text style={styles.brandTagline}>
@@ -72,7 +72,7 @@ export default function LoginScreen() {
           <View style={[styles.formSide, { backgroundColor: theme.background }]}>
             <View style={styles.formContainer}>
               <View style={styles.formHeader}>
-                <Text style={[styles.formTitle, { color: theme.text }]}>Iniciar sesion</Text>
+                <Text style={[styles.formTitle, { color: theme.text }]}>Iniciar sesión</Text>
                 <Text style={[styles.formSubtitle, { color: theme.textSecondary }]}>
                   Ingresa tus credenciales para continuar
                 </Text>
@@ -88,7 +88,7 @@ export default function LoginScreen() {
 
               {/* Email */}
               <View style={styles.fieldGroup}>
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Correo electronico</Text>
+                <Text style={[styles.label, { color: theme.textSecondary }]}>Correo electrónico</Text>
                 <View style={[styles.inputRow, { borderColor: theme.border, backgroundColor: theme.backgroundSecondary }]}>
                   <Icon name="mail" size={18} color={theme.textTertiary} />
                   <TextInput
@@ -109,7 +109,7 @@ export default function LoginScreen() {
 
               {/* Password */}
               <View style={styles.fieldGroup}>
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Contrasena</Text>
+                <Text style={[styles.label, { color: theme.textSecondary }]}>Contraseña</Text>
                 <View style={[styles.inputRow, { borderColor: theme.border, backgroundColor: theme.backgroundSecondary }]}>
                   <Icon name="lock-closed" size={18} color={theme.textTertiary} />
                   <TextInput
@@ -148,7 +148,7 @@ export default function LoginScreen() {
                 {isSubmitting ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
-                  <Text style={styles.submitText}>Iniciar sesion</Text>
+                  <Text style={styles.submitText}>Iniciar sesión</Text>
                 )}
               </Pressable>
             </View>

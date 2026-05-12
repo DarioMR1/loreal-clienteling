@@ -6,18 +6,10 @@ import { Icon } from "@/components/ui/icon";
 import { IconButton } from "@/components/ui/icon-button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { StatusBadge } from "@/components/ui/badge";
+import { followUpLabels } from "@/constants/event-colors";
 import { Spacing, Typography } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import type { Customer, Consent, Communication } from "@/types";
-
-const followUpLabels: Record<string, string> = {
-  "3_months": "3 meses",
-  "6_months": "6 meses",
-  birthday: "Cumpleaños",
-  replenishment: "Reposición",
-  special_event: "Evento especial",
-  custom: "Personalizado",
-};
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-MX", {

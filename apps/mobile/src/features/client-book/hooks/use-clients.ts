@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { api } from "@/lib/api-client";
-import { useApi } from "@/hooks/use-api";
+import { useApi, useMutation } from "@/hooks/use-api";
 import type {
   Customer,
   BeautyProfile,
@@ -10,6 +10,62 @@ import type {
   Communication,
   Consent,
 } from "@/types";
+
+// ─── Mutation input types ────────────────────────────────
+
+export interface CreateCustomerInput {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  birthDate?: string;
+}
+
+export interface UpdateCustomerInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  birthDate?: string;
+}
+
+export interface UpsertBeautyProfileInput {
+  skinType?: string;
+  skinTone?: string;
+  skinSubtone?: string;
+  skinConcerns?: string[];
+  preferredIngredients?: string[];
+  avoidedIngredients?: string[];
+  fragrancePreferences?: string[];
+  makeupPreferences?: Record<string, unknown>;
+  routineType?: string;
+  interests?: string[];
+}
+
+// ─── Mutation hooks ──────────────────────────────────────
+
+export function useCreateCustomer() {
+  return useMutation<CreateCustomerInput, Customer>((input) =>
+    api.post<Customer>("/customers", input)
+  );
+}
+
+export function useUpdateCustomer(customerId: string) {
+  return useMutation<UpdateCustomerInput, Customer>((input) =>
+    api.patch<Customer>(`/customers/${customerId}`, input)
+  );
+}
+
+export function useUpdateBeautyProfile(customerId: string) {
+  return useMutation<UpsertBeautyProfileInput, BeautyProfile>((input) =>
+    api.put<BeautyProfile>(
+      `/customers/${customerId}/beauty-profile`,
+      input
+    )
+  );
+}
 
 /** Fetch paginated list of customers for the BA's store. */
 export function useClients() {
