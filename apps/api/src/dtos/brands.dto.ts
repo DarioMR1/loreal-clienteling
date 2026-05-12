@@ -58,12 +58,12 @@ export class UpsertBrandConfigDto {
   @MaxLength(100)
   fontFamily?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: "object", additionalProperties: true })
   @IsOptional()
   @IsObject()
   messageTemplates?: Record<string, unknown>;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ type: "object", additionalProperties: true })
   @IsOptional()
   @IsObject()
   replenishmentRules?: Record<string, unknown>;
