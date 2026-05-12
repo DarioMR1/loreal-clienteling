@@ -87,4 +87,31 @@ export class CustomerFiltersDto {
   @IsOptional()
   @IsUUID()
   brandId?: string;
+
+  @ApiPropertyOptional({ type: String, format: "date-time" })
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  dateFrom?: Date;
+
+  @ApiPropertyOptional({ type: String, format: "date-time" })
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  dateTo?: Date;
+
+  @ApiPropertyOptional({ type: String })
+  @IsOptional()
+  @IsString()
+  baUserId?: string;
+
+  @ApiPropertyOptional({ type: String, enum: ["name", "customerSince", "lastContactAt", "lastTransactionAt", "ltv"] })
+  @IsOptional()
+  @IsIn(["name", "customerSince", "lastContactAt", "lastTransactionAt", "ltv"])
+  sortBy?: string;
+
+  @ApiPropertyOptional({ type: String, enum: ["asc", "desc"] })
+  @IsOptional()
+  @IsIn(["asc", "desc"])
+  sortOrder?: string;
 }

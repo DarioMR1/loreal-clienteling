@@ -28,12 +28,21 @@ export class AppointmentsController {
   @Get("calendar")
   @ApiQuery({ name: "from", type: String, required: true })
   @ApiQuery({ name: "to", type: String, required: true })
+  @ApiQuery({ name: "baUserId", type: String, required: false })
+  @ApiQuery({ name: "storeView", type: Boolean, required: false })
   getCalendar(
     @Query("from") from: string,
     @Query("to") to: string,
+    @Query("baUserId") baUserId: string | undefined,
+    @Query("storeView") storeView: string | undefined,
     @Session() session: UserSession,
   ) {
-    return this.appointmentsService.getCalendar(new Date(from), new Date(to), session.user);
+    return this.appointmentsService.getCalendar(
+      new Date(from),
+      new Date(to),
+      session.user,
+      { baUserId, storeView: storeView === "true" },
+    );
   }
 
   @Get(":id")

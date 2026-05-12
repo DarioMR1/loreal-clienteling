@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { eq, and, or, ilike, sql } from "drizzle-orm";
+import { eq, and, or, ilike, sql, gte, lte, asc, desc, count, sum } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import {
   customers,
@@ -11,6 +11,7 @@ import {
   samples,
   appointments,
   communications,
+  users,
 } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
@@ -37,7 +38,7 @@ export class CustomersService {
       customers.registeredAtStoreId,
     );
 
-    const conditions = [
+    const conditions: any[] = [
       eq(customers.inactive, false),
       ...(scope ? [scope] : []),
       ...(filters?.segment
@@ -46,18 +47,80 @@ export class CustomersService {
       ...(filters?.storeId
         ? [eq(customers.registeredAtStoreId, filters.storeId)]
         : []),
+      ...(filters?.baUserId
+        ? [eq(customers.lastBaUserId, filters.baUserId)]
+        : []),
+      ...(filters?.dateFrom
+        ? [gte(customers.customerSince, filters.dateFrom)]
+        : []),
+      ...(filters?.dateTo
+        ? [lte(customers.customerSince, filters.dateTo)]
+        : []),
     ];
 
     const where = conditions.length > 1 ? and(...conditions) : conditions[0];
 
-    const rows = await this.db
-      .select()
+    // Total count
+    const [totalResult] = await this.db
+      .select({ count: count() })
       .from(customers)
+      .where(where);
+
+    // Data with LTV and BA name
+    const ltvSubquery = this.db
+      .select({
+        customerId: purchases.customerId,
+        ltv: sum(purchases.totalAmount).as("ltv"),
+        purchaseCount: count().as("purchase_count"),
+      })
+      .from(purchases)
+      .groupBy(purchases.customerId)
+      .as("ltv_sq");
+
+    // Determine sort
+    let orderByClause;
+    const sortDir = filters?.sortOrder === "asc" ? asc : desc;
+    switch (filters?.sortBy) {
+      case "customerSince": orderByClause = sortDir(customers.customerSince); break;
+      case "lastContactAt": orderByClause = sortDir(customers.lastContactAt); break;
+      case "lastTransactionAt": orderByClause = sortDir(customers.lastTransactionAt); break;
+      case "ltv": orderByClause = sortDir(ltvSubquery.ltv); break;
+      default: orderByClause = asc(customers.firstName); break;
+    }
+
+    const rows = await this.db
+      .select({
+        id: customers.id,
+        firstName: customers.firstName,
+        lastName: customers.lastName,
+        email: customers.email,
+        phone: customers.phone,
+        gender: customers.gender,
+        birthDate: customers.birthDate,
+        lifecycleSegment: customers.lifecycleSegment,
+        customerSince: customers.customerSince,
+        lastContactAt: customers.lastContactAt,
+        lastTransactionAt: customers.lastTransactionAt,
+        registeredAtStoreId: customers.registeredAtStoreId,
+        lastBaUserId: customers.lastBaUserId,
+        baName: users.fullName,
+        ltv: ltvSubquery.ltv,
+        purchaseCount: ltvSubquery.purchaseCount,
+      })
+      .from(customers)
+      .leftJoin(users, eq(customers.lastBaUserId, users.id))
+      .leftJoin(ltvSubquery, eq(customers.id, ltvSubquery.customerId))
       .where(where)
+      .orderBy(orderByClause)
       .limit(pagination.limit)
       .offset((pagination.page - 1) * pagination.limit);
 
-    return rows;
+    return {
+      data: rows,
+      total: totalResult?.count ?? 0,
+      page: pagination.page,
+      limit: pagination.limit,
+    };
   }
 
   async findOne(id: string, user: SessionUser) {

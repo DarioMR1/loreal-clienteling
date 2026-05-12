@@ -11,6 +11,7 @@ import {
 import { customers } from "./customers";
 import { users } from "./auth";
 import { stores } from "./stores";
+import { appointmentEventTypes } from "./appointment-event-types";
 
 export const appointments = pgTable(
   "appointments",
@@ -26,6 +27,9 @@ export const appointments = pgTable(
       .notNull()
       .references(() => stores.id),
     eventType: varchar("event_type", { length: 30 }).notNull(), // cabin_service | facial | anniversary_event | vip_cabin | product_followup | custom
+    eventTypeId: uuid("event_type_id").references(
+      () => appointmentEventTypes.id,
+    ),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
     durationMinutes: integer("duration_minutes").notNull(),
     status: varchar("status", { length: 20 }).notNull().default("scheduled"), // scheduled | confirmed | rescheduled | cancelled | completed | no_show

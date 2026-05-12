@@ -7,10 +7,12 @@ import {
   purchaseItems,
   recommendations,
   appointments,
+  appointmentEventTypes,
   communications,
   samples,
   products,
   users,
+  stores,
 } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
@@ -355,7 +357,7 @@ export class AnalyticsService {
     return { groupBy: "brand", data: rows, period: { from, to } };
   }
 
-  async getConversion(user: SessionUser, range?: DateRange) {
+  async getConversion(user: SessionUser, range?: DateRange, trending?: boolean) {
     const storeIds = await this.scopeService.getAccessibleStoreIds(user);
     const isAdmin = user.role === "admin";
     const { from, to } = this.getDefaultDateRange(range);
@@ -396,7 +398,7 @@ export class AnalyticsService {
       .from(samples)
       .where(and(eq(samples.convertedToPurchase, true), ...sampleConditions));
 
-    return {
+    const summary = {
       recommendationToSale: {
         total: recTotal?.count ?? 0,
         converted: recConverted?.count ?? 0,
@@ -408,6 +410,31 @@ export class AnalyticsService {
         rate: sampleTotal?.count ? (sampleConverted?.count ?? 0) / sampleTotal.count : 0,
       },
       period: { from, to },
+    };
+
+    if (!trending) return summary;
+
+    // Monthly trend data
+    const dateTrunc = sql`date_trunc('month', ${recommendations.recommendedAt})`;
+    const trendRows = await this.db
+      .select({
+        period: dateTrunc.as("period"),
+        total: count(),
+        converted: sql<number>`COUNT(*) FILTER (WHERE ${recommendations.convertedToPurchase} = true)`,
+      })
+      .from(recommendations)
+      .where(and(...recConditions))
+      .groupBy(dateTrunc)
+      .orderBy(dateTrunc);
+
+    return {
+      ...summary,
+      trend: trendRows.map((r) => ({
+        date: r.period,
+        total: r.total,
+        converted: r.converted,
+        rate: r.total > 0 ? r.converted / r.total : 0,
+      })),
     };
   }
 
@@ -428,6 +455,168 @@ export class AnalyticsService {
       .groupBy(customers.lifecycleSegment);
 
     return result;
+  }
+
+  async getAgendaReport(
+    user: SessionUser,
+    range?: DateRange,
+    filters?: { baUserId?: string; status?: string; page?: number; limit?: number },
+  ) {
+    const storeIds = await this.scopeService.getAccessibleStoreIds(user);
+    const isAdmin = user.role === "admin";
+    const { from, to } = this.getDefaultDateRange(range);
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 50;
+    const offset = (page - 1) * limit;
+
+    const conditions: any[] = [
+      gte(appointments.scheduledAt, from),
+      lte(appointments.scheduledAt, to),
+    ];
+    const storeFilter = this.buildStoreFilter(isAdmin, storeIds, appointments.storeId);
+    if (storeFilter) conditions.push(storeFilter);
+    if (filters?.baUserId) conditions.push(eq(appointments.baUserId, filters.baUserId));
+    if (filters?.status) conditions.push(eq(appointments.status, filters.status));
+
+    const whereClause = and(...conditions);
+
+    const [totalResult] = await this.db
+      .select({ count: count() })
+      .from(appointments)
+      .where(whereClause);
+
+    const rows = await this.db
+      .select({
+        id: appointments.id,
+        scheduledAt: appointments.scheduledAt,
+        durationMinutes: appointments.durationMinutes,
+        eventType: appointments.eventType,
+        eventTypeName: appointmentEventTypes.displayName,
+        status: appointments.status,
+        comments: appointments.comments,
+        isVirtual: appointments.isVirtual,
+        customerName: sql<string>`${customers.firstName} || ' ' || ${customers.lastName}`,
+        customerPhone: customers.phone,
+        customerId: appointments.customerId,
+        baName: users.fullName,
+        baUserId: appointments.baUserId,
+        storeName: stores.displayName,
+        storeId: appointments.storeId,
+      })
+      .from(appointments)
+      .innerJoin(customers, eq(appointments.customerId, customers.id))
+      .innerJoin(users, eq(appointments.baUserId, users.id))
+      .innerJoin(stores, eq(appointments.storeId, stores.id))
+      .leftJoin(appointmentEventTypes, eq(appointments.eventTypeId, appointmentEventTypes.id))
+      .where(whereClause)
+      .orderBy(appointments.scheduledAt)
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      data: rows,
+      total: totalResult?.count ?? 0,
+      page,
+      limit,
+      period: { from, to },
+    };
+  }
+
+  async getAppointmentsByBa(user: SessionUser, range?: DateRange) {
+    const storeIds = await this.scopeService.getAccessibleStoreIds(user);
+    const isAdmin = user.role === "admin";
+    const { from, to } = this.getDefaultDateRange(range);
+
+    const conditions: any[] = [
+      gte(appointments.scheduledAt, from),
+      lte(appointments.scheduledAt, to),
+    ];
+    const storeFilter = this.buildStoreFilter(isAdmin, storeIds, appointments.storeId);
+    if (storeFilter) conditions.push(storeFilter);
+
+    const rows = await this.db
+      .select({
+        baUserId: appointments.baUserId,
+        baName: users.fullName,
+        total: count(),
+        completed: sql<number>`COUNT(*) FILTER (WHERE ${appointments.status} = 'completed')`,
+        scheduled: sql<number>`COUNT(*) FILTER (WHERE ${appointments.status} = 'scheduled')`,
+        confirmed: sql<number>`COUNT(*) FILTER (WHERE ${appointments.status} = 'confirmed')`,
+        cancelled: sql<number>`COUNT(*) FILTER (WHERE ${appointments.status} = 'cancelled')`,
+        noShow: sql<number>`COUNT(*) FILTER (WHERE ${appointments.status} = 'no_show')`,
+        rescheduled: sql<number>`COUNT(*) FILTER (WHERE ${appointments.status} = 'rescheduled')`,
+      })
+      .from(appointments)
+      .innerJoin(users, eq(appointments.baUserId, users.id))
+      .where(and(...conditions))
+      .groupBy(appointments.baUserId, users.fullName);
+
+    return {
+      data: rows.map((r) => ({
+        ...r,
+        completionRate: r.total > 0 ? r.completed / r.total : 0,
+        noShowRate: r.total > 0 ? r.noShow / r.total : 0,
+        cancellationRate: r.total > 0 ? r.cancelled / r.total : 0,
+      })),
+      period: { from, to },
+    };
+  }
+
+  async getRetention(user: SessionUser) {
+    const storeIds = await this.scopeService.getAccessibleStoreIds(user);
+    const isAdmin = user.role === "admin";
+    const storeFilter = this.buildStoreFilter(isAdmin, storeIds, customers.registeredAtStoreId);
+    const conditions: any[] = storeFilter ? [storeFilter] : [];
+
+    const now = new Date();
+    const threeMonthsAgo = new Date(now.getTime() - 90 * 86400000);
+    const sixMonthsAgo = new Date(now.getTime() - 180 * 86400000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 86400000);
+
+    // Segment counts
+    const segments = await this.db
+      .select({ segment: customers.lifecycleSegment, count: count() })
+      .from(customers)
+      .where(conditions.length > 0 ? and(...conditions as any) : undefined)
+      .groupBy(customers.lifecycleSegment);
+
+    const segmentMap: Record<string, number> = {};
+    for (const s of segments) segmentMap[s.segment] = s.count;
+
+    const total = Object.values(segmentMap).reduce((a, b) => a + b, 0);
+    const atRiskCount = segmentMap["at_risk"] ?? 0;
+
+    // At-risk customer list (top 20)
+    const atRiskConditions = [
+      eq(customers.lifecycleSegment, "at_risk"),
+      ...(storeFilter ? [storeFilter] : []),
+    ];
+    const atRiskCustomers = await this.db
+      .select({
+        id: customers.id,
+        name: sql<string>`${customers.firstName} || ' ' || ${customers.lastName}`,
+        lastTransactionAt: customers.lastTransactionAt,
+        lastContactAt: customers.lastContactAt,
+        lastBaUserId: customers.lastBaUserId,
+        baName: users.fullName,
+      })
+      .from(customers)
+      .leftJoin(users, eq(customers.lastBaUserId, users.id))
+      .where(and(...atRiskConditions as any))
+      .orderBy(customers.lastTransactionAt)
+      .limit(20);
+
+    return {
+      segments: segmentMap,
+      total,
+      churnRate: total > 0 ? atRiskCount / total : 0,
+      atRiskCustomers: atRiskCustomers.map((c) => ({
+        ...c,
+        daysSinceLastPurchase: c.lastTransactionAt
+          ? Math.floor((now.getTime() - new Date(c.lastTransactionAt).getTime()) / 86400000)
+          : null,
+      })),
+    };
   }
 
   async exportData(type: string, user: SessionUser, range?: DateRange) {

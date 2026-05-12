@@ -2,6 +2,8 @@ import {
   pgTable,
   uuid,
   varchar,
+  numeric,
+  integer,
   jsonb,
   boolean,
   timestamp,
@@ -24,6 +26,13 @@ export const brandConfigs = pgTable("brand_configs", {
   virtualTryonEnabled: boolean("virtual_tryon_enabled")
     .notNull()
     .default(false),
+  vipThresholdAmount: numeric("vip_threshold_amount", {
+    precision: 12,
+    scale: 2,
+  }),
+  vipThresholdPeriodMonths: integer("vip_threshold_period_months").default(12),
+  communicationRules: jsonb("communication_rules"),
+  enabledModules: jsonb("enabled_modules"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

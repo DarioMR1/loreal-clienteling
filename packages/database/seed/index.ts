@@ -81,11 +81,11 @@ async function seed() {
   // ─── 3. Brand Configs ──────────────────────────────────────────────────────
   console.log("Seeding brand configs...");
   const brandConfigData = [
-    { brandId: brandData[0].id, primaryColor: "#000000", secondaryColor: "#E8D5B5", accentColor: "#C4A265", logoUrl: "/logos/lancome.png", fontFamily: "Garamond" },
-    { brandId: brandData[1].id, primaryColor: "#1A1A1A", secondaryColor: "#FFFFFF", accentColor: "#4A7C59", logoUrl: "/logos/kiehls.png", fontFamily: "Helvetica" },
-    { brandId: brandData[2].id, primaryColor: "#000000", secondaryColor: "#FFFFFF", accentColor: "#FF0000", logoUrl: "/logos/ysl.png", fontFamily: "YSL Display" },
-    { brandId: brandData[3].id, primaryColor: "#000000", secondaryColor: "#FFFFFF", accentColor: "#FF69B4", logoUrl: "/logos/maybelline.png", fontFamily: "Gotham" },
-    { brandId: brandData[4].id, primaryColor: "#000000", secondaryColor: "#FFFFFF", accentColor: "#FFD700", logoUrl: "/logos/loreal-paris.png", fontFamily: "LP Didot" },
+    { brandId: brandData[0].id, primaryColor: "#000000", secondaryColor: "#E8D5B5", accentColor: "#C4A265", logoUrl: "/logos/lancome.png", fontFamily: "Garamond", vipThresholdAmount: "20000.00", vipThresholdPeriodMonths: 12, communicationRules: { maxPerWeek: 2, quietHoursStart: 21, quietHoursEnd: 9 }, enabledModules: { virtualTryon: true, samples: true, lookbooks: true, aiRecommendations: true } },
+    { brandId: brandData[1].id, primaryColor: "#1A1A1A", secondaryColor: "#FFFFFF", accentColor: "#4A7C59", logoUrl: "/logos/kiehls.png", fontFamily: "Helvetica", vipThresholdAmount: "15000.00", vipThresholdPeriodMonths: 12, communicationRules: { maxPerWeek: 3, quietHoursStart: 21, quietHoursEnd: 9 }, enabledModules: { virtualTryon: false, samples: true, lookbooks: true, aiRecommendations: true } },
+    { brandId: brandData[2].id, primaryColor: "#000000", secondaryColor: "#FFFFFF", accentColor: "#FF0000", logoUrl: "/logos/ysl.png", fontFamily: "YSL Display", vipThresholdAmount: "25000.00", vipThresholdPeriodMonths: 12, communicationRules: { maxPerWeek: 2, quietHoursStart: 21, quietHoursEnd: 9 }, enabledModules: { virtualTryon: true, samples: true, lookbooks: true, aiRecommendations: true } },
+    { brandId: brandData[3].id, primaryColor: "#000000", secondaryColor: "#FFFFFF", accentColor: "#FF69B4", logoUrl: "/logos/maybelline.png", fontFamily: "Gotham", vipThresholdAmount: "8000.00", vipThresholdPeriodMonths: 12, communicationRules: { maxPerWeek: 4, quietHoursStart: 22, quietHoursEnd: 8 }, enabledModules: { virtualTryon: true, samples: true, lookbooks: false, aiRecommendations: true } },
+    { brandId: brandData[4].id, primaryColor: "#000000", secondaryColor: "#FFFFFF", accentColor: "#FFD700", logoUrl: "/logos/loreal-paris.png", fontFamily: "LP Didot", vipThresholdAmount: "10000.00", vipThresholdPeriodMonths: 12, communicationRules: { maxPerWeek: 3, quietHoursStart: 21, quietHoursEnd: 9 }, enabledModules: { virtualTryon: false, samples: true, lookbooks: false, aiRecommendations: true } },
   ];
   await db.insert(schema.brandConfigs).values(brandConfigData);
 
@@ -169,14 +169,16 @@ async function seed() {
 
   // ─── 5b. Appointment Event Types ─────────────────────────────────────────
   console.log("Seeding appointment event types...");
-  await db.insert(schema.appointmentEventTypes).values([
-    { code: "cabin_service", displayName: "Servicio de cabina" },
-    { code: "facial", displayName: "Facial" },
-    { code: "anniversary_event", displayName: "Evento aniversario" },
-    { code: "vip_cabin", displayName: "Cabina VIP" },
-    { code: "product_followup", displayName: "Seguimiento de producto" },
-    { code: "custom", displayName: "Personalizado" },
-  ]);
+  const eventTypeData = [
+    { id: uuid(), code: "cabin_service", displayName: "Servicio de cabina", durationMinutes: 60, color: "#5B7FA5", description: "Servicio completo en cabina de belleza", sortOrder: 0 },
+    { id: uuid(), code: "facial", displayName: "Facial", durationMinutes: 45, color: "#4A7C59", description: "Tratamiento facial personalizado", sortOrder: 1 },
+    { id: uuid(), code: "anniversary_event", displayName: "Evento aniversario", durationMinutes: 120, color: "#C9A96E", description: "Evento especial para aniversario de clienta", sortOrder: 2 },
+    { id: uuid(), code: "vip_cabin", displayName: "Cabina VIP", durationMinutes: 90, color: "#C9A96E", description: "Servicio premium en cabina VIP", maxCapacity: 1, requiresConfirmation: true, sortOrder: 3 },
+    { id: uuid(), code: "product_followup", displayName: "Seguimiento de producto", durationMinutes: 30, color: "#6B6B6B", description: "Revisión y seguimiento de productos adquiridos", sortOrder: 4 },
+    { id: uuid(), code: "custom", displayName: "Personalizado", durationMinutes: 60, color: "#9B9B9B", description: "Evento personalizado", sortOrder: 5 },
+  ];
+  await db.insert(schema.appointmentEventTypes).values(eventTypeData);
+  const eventTypeByCode = Object.fromEntries(eventTypeData.map((e) => [e.code, e]));
 
   // ─── 6. Products ───────────────────────────────────────────────────────────
   console.log("Seeding products...");
@@ -554,7 +556,7 @@ async function seed() {
   // ─── 15. Appointments ──────────────────────────────────────────────────────
   console.log("Seeding appointments...");
   const eventTypes = ["cabin_service", "facial", "anniversary_event", "vip_cabin", "product_followup"];
-  const statuses = ["completed", "completed", "completed", "scheduled", "confirmed", "cancelled", "no_show"];
+  const statuses = ["completed", "completed", "completed", "scheduled", "confirmed", "cancelled", "no_show", "rescheduled"];
   let totalAppts = 0;
 
   for (const c of customerData.slice(0, 70)) {
@@ -564,13 +566,16 @@ async function seed() {
     for (let a = 0; a < numAppts; a++) {
       const scheduledAt = randomDate(c.customerSince, new Date(now.getTime() + 30 * 86400000));
       const status = scheduledAt > now ? pick(["scheduled", "confirmed"]) : pick(statuses);
+      const chosenEventType = pick(eventTypes);
+      const matchedEventType = eventTypeByCode[chosenEventType];
       await db.insert(schema.appointments).values({
         customerId: c.id,
         baUserId: ba.id,
         storeId: c.registeredAtStoreId,
-        eventType: pick(eventTypes),
+        eventType: chosenEventType,
+        eventTypeId: matchedEventType?.id ?? null,
         scheduledAt,
-        durationMinutes: pick([30, 45, 60, 90]),
+        durationMinutes: matchedEventType?.durationMinutes ?? pick([30, 45, 60, 90]),
         status,
         comments: Math.random() < 0.4 ? "Tratamiento facial personalizado" : null,
         isVirtual: Math.random() < 0.1,
@@ -583,7 +588,7 @@ async function seed() {
   // ─── 16. Communications ────────────────────────────────────────────────────
   console.log("Seeding communications...");
   const channels = ["whatsapp", "whatsapp", "whatsapp", "email", "sms"];
-  const followupTypes = ["3_months", "6_months", "birthday", "replenishment", "custom"];
+  const followupTypes = ["3_months", "6_months", "birthday", "replenishment", "special_event", "custom"];
   let totalComms = 0;
 
   for (const c of customerData.slice(0, 80)) {

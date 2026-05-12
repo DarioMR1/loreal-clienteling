@@ -1,9 +1,42 @@
 import { Controller, Get, Query, Inject, Res, BadRequestException } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiQuery } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
+import { Workbook } from "exceljs";
 import { AnalyticsService } from "./analytics.service";
 import type { UserSession } from "../../common/types/session";
 import type { Response } from "express";
+
+const COLUMN_LABELS: Record<string, string> = {
+  id: "ID",
+  scheduledAt: "Fecha y hora",
+  durationMinutes: "Duración (min)",
+  eventType: "Tipo de evento",
+  eventTypeName: "Nombre del evento",
+  status: "Estado",
+  comments: "Comentarios",
+  isVirtual: "Virtual",
+  customerName: "Cliente",
+  customerPhone: "Teléfono",
+  customerId: "ID Cliente",
+  baName: "Beauty Advisor",
+  baUserId: "ID BA",
+  storeName: "Tienda",
+  storeId: "ID Tienda",
+  firstName: "Nombre",
+  lastName: "Apellido",
+  email: "Correo",
+  phone: "Teléfono",
+  gender: "Género",
+  birthDate: "Fecha de nacimiento",
+  lifecycleSegment: "Segmento",
+  customerSince: "Cliente desde",
+  lastContactAt: "Último contacto",
+  lastTransactionAt: "Última transacción",
+  totalAmount: "Monto total",
+  purchasedAt: "Fecha de compra",
+  source: "Fuente",
+  attributedBaUserId: "BA atribuido",
+};
 
 @ApiTags("Analytics")
 @ApiBearerAuth()
@@ -85,12 +118,18 @@ export class AnalyticsController {
   @Get("conversion")
   @ApiQuery({ name: "from", type: String, required: false })
   @ApiQuery({ name: "to", type: String, required: false })
+  @ApiQuery({ name: "trending", type: Boolean, required: false })
   getConversion(
     @Query("from") from: string | undefined,
     @Query("to") to: string | undefined,
+    @Query("trending") trending: string | undefined,
     @Session() session: UserSession,
   ) {
-    return this.analyticsService.getConversion(session.user, this.parseDateRange(from, to));
+    return this.analyticsService.getConversion(
+      session.user,
+      this.parseDateRange(from, to),
+      trending === "true",
+    );
   }
 
   @Get("customers")
@@ -98,9 +137,56 @@ export class AnalyticsController {
     return this.analyticsService.getCustomerSegments(session.user);
   }
 
+  @Get("agenda-report")
+  @Roles(["manager", "supervisor", "admin"])
+  @ApiQuery({ name: "from", type: String, required: false })
+  @ApiQuery({ name: "to", type: String, required: false })
+  @ApiQuery({ name: "baUserId", type: String, required: false })
+  @ApiQuery({ name: "status", type: String, required: false })
+  @ApiQuery({ name: "page", type: Number, required: false })
+  @ApiQuery({ name: "limit", type: Number, required: false })
+  getAgendaReport(
+    @Query("from") from: string | undefined,
+    @Query("to") to: string | undefined,
+    @Query("baUserId") baUserId: string | undefined,
+    @Query("status") status: string | undefined,
+    @Query("page") page: string | undefined,
+    @Query("limit") limit: string | undefined,
+    @Session() session: UserSession,
+  ) {
+    return this.analyticsService.getAgendaReport(
+      session.user,
+      this.parseDateRange(from, to),
+      {
+        baUserId,
+        status,
+        page: page ? parseInt(page) : undefined,
+        limit: limit ? parseInt(limit) : undefined,
+      },
+    );
+  }
+
+  @Get("appointments-by-ba")
+  @Roles(["manager", "supervisor", "admin"])
+  @ApiQuery({ name: "from", type: String, required: false })
+  @ApiQuery({ name: "to", type: String, required: false })
+  getAppointmentsByBa(
+    @Query("from") from: string | undefined,
+    @Query("to") to: string | undefined,
+    @Session() session: UserSession,
+  ) {
+    return this.analyticsService.getAppointmentsByBa(session.user, this.parseDateRange(from, to));
+  }
+
+  @Get("retention")
+  @Roles(["manager", "supervisor", "admin"])
+  getRetention(@Session() session: UserSession) {
+    return this.analyticsService.getRetention(session.user);
+  }
+
   @Get("export")
-  @ApiQuery({ name: "type", enum: ["customers", "sales", "appointments"], required: true })
-  @ApiQuery({ name: "format", enum: ["json", "csv"], required: false })
+  @ApiQuery({ name: "type", enum: ["customers", "sales", "appointments", "agenda-report"], required: true })
+  @ApiQuery({ name: "format", enum: ["json", "csv", "xlsx"], required: false })
   @ApiQuery({ name: "from", type: String, required: false })
   @ApiQuery({ name: "to", type: String, required: false })
   async exportData(
@@ -111,11 +197,54 @@ export class AnalyticsController {
     @Session() session: UserSession,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const data = await this.analyticsService.exportData(type, session.user, this.parseDateRange(from, to));
+    let data: Record<string, any>[];
+
+    if (type === "agenda-report") {
+      const report = await this.analyticsService.getAgendaReport(
+        session.user,
+        this.parseDateRange(from, to),
+        { limit: 10000 },
+      );
+      data = report.data;
+    } else {
+      data = (await this.analyticsService.exportData(type, session.user, this.parseDateRange(from, to))) as Record<string, any>[];
+    }
+
+    if (format === "xlsx") {
+      const workbook = new Workbook();
+      const sheet = workbook.addWorksheet("Datos");
+
+      if (data.length > 0) {
+        const headers = Object.keys(data[0]);
+        const headerLabels = headers.map((h) => COLUMN_LABELS[h] ?? h);
+        sheet.addRow(headerLabels);
+        // Style header row
+        sheet.getRow(1).font = { bold: true };
+        sheet.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1A1A1A" } };
+        sheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+
+        for (const row of data) {
+          sheet.addRow(headers.map((h) => row[h] ?? ""));
+        }
+
+        // Auto-width columns
+        for (let i = 0; i < headers.length; i++) {
+          const col = sheet.getColumn(i + 1);
+          col.width = Math.max(headerLabels[i].length + 4, 14);
+        }
+      }
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      res.set({
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="${type}-export.xlsx"`,
+      });
+      res.send(Buffer.from(buffer as ArrayBuffer));
+      return;
+    }
 
     if (format === "csv") {
-      const rows = data as Record<string, any>[];
-      if (rows.length === 0) {
+      if (data.length === 0) {
         res.set({
           "Content-Type": "text/csv",
           "Content-Disposition": `attachment; filename="${type}-export.csv"`,
@@ -123,10 +252,11 @@ export class AnalyticsController {
         return "";
       }
 
-      const headers = Object.keys(rows[0]);
+      const headers = Object.keys(data[0]);
+      const headerLabels = headers.map((h) => COLUMN_LABELS[h] ?? h);
       const csvLines = [
-        headers.join(","),
-        ...rows.map((row) =>
+        headerLabels.join(","),
+        ...data.map((row) =>
           headers
             .map((h) => {
               const val = row[h];

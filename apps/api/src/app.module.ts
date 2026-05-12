@@ -19,6 +19,7 @@ import { CommunicationsModule } from "./modules/communications/communications.mo
 import { AuditModule } from "./modules/audit/audit.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { SchedulerModule } from "./modules/scheduler/scheduler.module";
+import { UsersModule } from "./modules/users/users.module";
 import { UploadsModule } from "./modules/uploads/uploads.module";
 import { HealthController } from "./health.controller";
 import { auth } from "./auth";
@@ -48,6 +49,7 @@ import { auth } from "./auth";
     AuditModule,
     AnalyticsModule,
     SchedulerModule,
+    UsersModule,
     UploadsModule,
   ],
   controllers: [HealthController],

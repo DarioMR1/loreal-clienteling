@@ -49,6 +49,9 @@ export const users = pgTable("users", {
   brandId: text("brand_id"), // logical FK to brands.id (uuid) — enforced at app level
   active: boolean("active").default(true).notNull(),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+  invitationStatus: text("invitation_status"), // pending | accepted | expired
+  invitedAt: timestamp("invited_at", { withTimezone: true }),
+  invitedByUserId: text("invited_by_user_id"),
 });
 
 export const sessions = pgTable(

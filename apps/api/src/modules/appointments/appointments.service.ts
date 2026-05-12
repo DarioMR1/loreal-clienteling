@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { eq, and, gte, lte, desc } from "drizzle-orm";
+import { eq, and, gte, lte, desc, sql } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
-import { appointments, customers } from "@loreal/database";
+import { appointments, customers, users, stores, appointmentEventTypes } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import type { CreateAppointmentDto, UpdateAppointmentDto } from "../../dtos/appointments.dto";
@@ -125,7 +125,59 @@ export class AppointmentsService {
     return updated;
   }
 
-  async getCalendar(from: Date, to: Date, user: SessionUser) {
-    return this.findAll(user, { from, to });
+  async getCalendar(
+    from: Date,
+    to: Date,
+    user: SessionUser,
+    options?: { baUserId?: string; storeView?: boolean },
+  ) {
+    const conditions: any[] = [
+      gte(appointments.scheduledAt, from),
+      lte(appointments.scheduledAt, to),
+    ];
+
+    if (options?.baUserId) {
+      // Viewing a specific BA's calendar
+      conditions.push(eq(appointments.baUserId, options.baUserId));
+    } else if (options?.storeView && user.role !== "ba") {
+      // Store view: manager+ sees all BAs in their store scope
+      const scope = await this.scopeService.scopeByStore(user, appointments.storeId);
+      if (scope) conditions.push(scope);
+    } else if (user.role === "ba") {
+      conditions.push(eq(appointments.baUserId, user.id));
+    } else {
+      const scope = await this.scopeService.scopeByStore(user, appointments.storeId);
+      if (scope) conditions.push(scope);
+    }
+
+    const rows = await this.db
+      .select({
+        id: appointments.id,
+        scheduledAt: appointments.scheduledAt,
+        durationMinutes: appointments.durationMinutes,
+        eventType: appointments.eventType,
+        eventTypeName: appointmentEventTypes.displayName,
+        eventTypeColor: appointmentEventTypes.color,
+        status: appointments.status,
+        comments: appointments.comments,
+        isVirtual: appointments.isVirtual,
+        customerId: appointments.customerId,
+        customerName: sql<string>`${customers.firstName} || ' ' || ${customers.lastName}`,
+        customerPhone: customers.phone,
+        customerSegment: customers.lifecycleSegment,
+        baUserId: appointments.baUserId,
+        baName: users.fullName,
+        storeId: appointments.storeId,
+        storeName: stores.displayName,
+      })
+      .from(appointments)
+      .leftJoin(customers, eq(appointments.customerId, customers.id))
+      .leftJoin(users, eq(appointments.baUserId, users.id))
+      .leftJoin(stores, eq(appointments.storeId, stores.id))
+      .leftJoin(appointmentEventTypes, eq(appointments.eventTypeId, appointmentEventTypes.id))
+      .where(and(...conditions))
+      .orderBy(appointments.scheduledAt);
+
+    return rows;
   }
 }

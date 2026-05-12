@@ -15,6 +15,13 @@
       "when": 1778596996529,
       "tag": "0001_breezy_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778611434099,
+      "tag": "0002_pretty_greymalkin",
+      "breakpoints": true
     }
   ]
 }
