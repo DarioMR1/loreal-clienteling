@@ -69,7 +69,13 @@ export function useUpdateBeautyProfile(customerId: string) {
 
 /** Fetch paginated list of customers for the BA's store. */
 export function useClients() {
-  return useApi<Customer[]>(() => api.get<Customer[]>("/customers"), []);
+  return useApi<Customer[]>(
+    async () => {
+      const res = await api.get<{ data: Customer[] }>("/customers");
+      return res.data ?? res;
+    },
+    [],
+  );
 }
 
 /** Search customers by query string. */

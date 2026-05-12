@@ -26,7 +26,12 @@ export function useHomeDashboard() {
 /** Fetch at-risk clients for alerts. */
 export function useAtRiskClients() {
   return useApi<Customer[]>(
-    () => api.get<Customer[]>("/customers", { segment: "at_risk" }),
-    []
+    async () => {
+      const res = await api.get<{ data: Customer[] }>("/customers", {
+        segment: "at_risk",
+      });
+      return res.data ?? res;
+    },
+    [],
   );
 }
