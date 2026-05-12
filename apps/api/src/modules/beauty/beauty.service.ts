@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { eq, and } from "drizzle-orm";
+import { eq, and, type SQL } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { beautyProfiles, beautyProfileShades, products } from "@loreal/database";
 import { findMatchingShades } from "@loreal/domain";
@@ -14,7 +14,8 @@ export class BeautyService {
     @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
-  async findProfile(customerId: string) {
+  async findProfile(customerId: string, user?: SessionUser) {
+    if (user) await this.scopeService.assertCustomerAccess(customerId, user);
     const [profile] = await this.db
       .select()
       .from(beautyProfiles)
@@ -31,6 +32,8 @@ export class BeautyService {
   }
 
   async upsertProfile(data: UpsertBeautyProfileDto, user: SessionUser) {
+    await this.scopeService.assertCustomerAccess(data.customerId, user);
+
     const [existing] = await this.db
       .select()
       .from(beautyProfiles)
@@ -53,7 +56,9 @@ export class BeautyService {
     return created;
   }
 
-  async addShade(data: CreateShadeDto, user: SessionUser) {
+  async addShade(data: CreateShadeDto, customerId: string, user: SessionUser) {
+    await this.scopeService.assertCustomerAccess(customerId, user);
+
     const [shade] = await this.db
       .insert(beautyProfileShades)
       .values({
@@ -71,6 +76,8 @@ export class BeautyService {
     brandId?: string,
     user?: SessionUser,
   ) {
+    if (user) await this.scopeService.assertCustomerAccess(customerId, user);
+
     const profile = await this.findProfile(customerId);
     if (!profile) throw new NotFoundException("Beauty profile not found");
 
@@ -83,9 +90,19 @@ export class BeautyService {
       skinSubtone: profile.skinSubtone as any,
     }));
 
-    // Get available shades from products
-    const allProducts = await this.db.select().from(products);
-    const availableShades = allProducts.flatMap((p) => {
+    // Get available shades from products (filtered by category and optionally brand)
+    const productConditions = [
+      eq(products.active, true),
+      eq(products.category, category),
+    ];
+    if (brandId) productConditions.push(eq(products.brandId, brandId));
+
+    const filteredProducts = await this.db
+      .select()
+      .from(products)
+      .where(and(...productConditions));
+
+    const availableShades = filteredProducts.flatMap((p) => {
       const opts = p.shadeOptions as any[];
       if (!Array.isArray(opts)) return [];
       return opts.map((opt: any) => ({

@@ -32,7 +32,9 @@ export class CommunicationsService {
       .limit(100);
   }
 
-  async findByCustomer(customerId: string) {
+  async findByCustomer(customerId: string, user: SessionUser) {
+    await this.scopeService.assertCustomerAccess(customerId, user);
+
     return this.db
       .select()
       .from(communications)
@@ -66,7 +68,7 @@ export class CommunicationsService {
 
     await this.auditService.log(
       user,
-      "consent_granted", // using closest audit action
+      "communication_sent",
       "communication",
       comm.id,
       { channel: data.channel, customerId: data.customerId },

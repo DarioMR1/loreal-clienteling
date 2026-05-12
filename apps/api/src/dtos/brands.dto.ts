@@ -1,4 +1,4 @@
-import { IsString, MinLength, MaxLength, IsIn, IsOptional, IsBoolean } from "class-validator";
+import { IsString, MinLength, MaxLength, IsIn, IsOptional, IsBoolean, IsObject } from "class-validator";
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { BRAND_TIERS } from "@loreal/contracts";
 
@@ -25,4 +25,51 @@ export class UpdateBrandDto extends PartialType(CreateBrandDto) {
   @IsOptional()
   @IsBoolean()
   active?: boolean;
+}
+
+export class UpsertBrandConfigDto {
+  @ApiPropertyOptional({ type: String, maxLength: 20 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  primaryColor?: string;
+
+  @ApiPropertyOptional({ type: String, maxLength: 20 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  secondaryColor?: string;
+
+  @ApiPropertyOptional({ type: String, maxLength: 20 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  accentColor?: string;
+
+  @ApiPropertyOptional({ type: String, maxLength: 500 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  logoUrl?: string;
+
+  @ApiPropertyOptional({ type: String, maxLength: 100 })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  fontFamily?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  messageTemplates?: Record<string, unknown>;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsObject()
+  replenishmentRules?: Record<string, unknown>;
+
+  @ApiPropertyOptional({ type: Boolean })
+  @IsOptional()
+  @IsBoolean()
+  virtualTryonEnabled?: boolean;
 }

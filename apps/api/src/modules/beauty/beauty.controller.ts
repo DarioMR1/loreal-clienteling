@@ -13,11 +13,15 @@ export class BeautyController {
 
   @Get("beauty-profile")
   @ApiParam({ name: "customerId", type: String })
-  findProfile(@Param("customerId") customerId: string) {
-    return this.beautyService.findProfile(customerId);
+  findProfile(
+    @Param("customerId") customerId: string,
+    @Session() session: UserSession,
+  ) {
+    return this.beautyService.findProfile(customerId, session.user);
   }
 
   @Put("beauty-profile")
+  @Roles(["ba", "manager"])
   @ApiParam({ name: "customerId", type: String })
   @ApiBody({ type: UpsertBeautyProfileDto })
   upsertProfile(
@@ -32,13 +36,15 @@ export class BeautyController {
   }
 
   @Post("shades")
+  @Roles(["ba", "manager"])
   @ApiParam({ name: "customerId", type: String })
   @ApiBody({ type: CreateShadeDto })
   addShade(
+    @Param("customerId") customerId: string,
     @Body() body: CreateShadeDto,
     @Session() session: UserSession,
   ) {
-    return this.beautyService.addShade(body, session.user);
+    return this.beautyService.addShade(body, customerId, session.user);
   }
 
   @Get("shade-matches")

@@ -53,6 +53,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id")
+  @Roles(["ba", "manager"])
   @ApiParam({ name: "id", type: String })
   @ApiBody({ type: UpdateAppointmentDto })
   update(

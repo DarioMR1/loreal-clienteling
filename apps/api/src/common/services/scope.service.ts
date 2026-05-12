@@ -1,7 +1,7 @@
 import { Injectable, Inject, ForbiddenException } from "@nestjs/common";
 import { eq, inArray, sql, type SQL, type Column } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
-import { stores } from "@loreal/database";
+import { stores, customers } from "@loreal/database";
 import type { SessionUser } from "../types/session";
 
 @Injectable()
@@ -72,5 +72,25 @@ export class ScopeService {
       throw new ForbiddenException("This action requires a brand assignment");
     }
     return user.brandId;
+  }
+
+  /**
+   * Verifies that a customer belongs to a store accessible by the user.
+   * Throws ForbiddenException if not.
+   */
+  async assertCustomerAccess(customerId: string, user: SessionUser): Promise<void> {
+    if (user.role === "admin") return;
+
+    const [customer] = await this.db
+      .select({ storeId: customers.registeredAtStoreId })
+      .from(customers)
+      .where(eq(customers.id, customerId));
+
+    if (!customer) return; // let the caller handle not found
+
+    const accessibleStoreIds = await this.getAccessibleStoreIds(user);
+    if (!accessibleStoreIds.includes(customer.storeId)) {
+      throw new ForbiddenException("You do not have access to this customer");
+    }
   }
 }

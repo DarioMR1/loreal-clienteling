@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Delete, Param, Body, Inject } from "@nestjs/common";
 import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
-import { Session } from "@thallesp/nestjs-better-auth";
+import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { ConsentsService } from "./consents.service";
 import { GrantConsentDto } from "../../dtos/consents.dto";
 import type { UserSession } from "../../common/types/session";
@@ -13,11 +13,15 @@ export class ConsentsController {
 
   @Get()
   @ApiParam({ name: "customerId", type: String })
-  findByCustomer(@Param("customerId") customerId: string) {
-    return this.consentsService.findByCustomer(customerId);
+  findByCustomer(
+    @Param("customerId") customerId: string,
+    @Session() session: UserSession,
+  ) {
+    return this.consentsService.findByCustomer(customerId, session.user);
   }
 
   @Post()
+  @Roles(["ba", "manager"])
   @ApiParam({ name: "customerId", type: String })
   @ApiBody({ type: GrantConsentDto })
   grant(
@@ -32,6 +36,7 @@ export class ConsentsController {
   }
 
   @Delete(":type")
+  @Roles(["ba", "manager", "admin"])
   @ApiParam({ name: "customerId", type: String })
   @ApiParam({ name: "type", type: String })
   revoke(

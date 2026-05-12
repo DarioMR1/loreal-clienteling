@@ -1,16 +1,18 @@
 import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { DATABASE_TOKEN, type Database } from "../../config/database.provider";
 import { purchases, purchaseItems, customers } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import { AuditService } from "../../common/services/audit.service";
 import { RecommendationsService } from "../recommendations/recommendations.service";
+import { SamplesService } from "../samples/samples.service";
 import {
   attributePurchaseToBa,
   type RecommendationRecord,
 } from "@loreal/domain";
 import type { CreatePurchaseDto } from "../../dtos/purchases.dto";
+import { samples } from "@loreal/database";
 
 @Injectable()
 export class PurchasesService {
@@ -19,6 +21,7 @@ export class PurchasesService {
     @Inject(ScopeService) private scopeService: ScopeService,
     @Inject(AuditService) private auditService: AuditService,
     @Inject(RecommendationsService) private recommendationsService: RecommendationsService,
+    @Inject(SamplesService) private samplesService: SamplesService,
   ) {}
 
   async findByCustomer(customerId: string, user: SessionUser) {
@@ -38,18 +41,27 @@ export class PurchasesService {
       .where(and(...conditions))
       .orderBy(purchases.purchasedAt);
 
-    // Attach items to each purchase
-    const result = await Promise.all(
-      rows.map(async (purchase) => {
-        const items = await this.db
-          .select()
-          .from(purchaseItems)
-          .where(eq(purchaseItems.purchaseId, purchase.id));
-        return { ...purchase, items };
-      }),
-    );
+    if (rows.length === 0) return [];
 
-    return result;
+    // Fetch all items for these purchases in a single query
+    const purchaseIds = rows.map((p) => p.id);
+    const allItems = await this.db
+      .select()
+      .from(purchaseItems)
+      .where(inArray(purchaseItems.purchaseId, purchaseIds));
+
+    // Group items by purchaseId
+    const itemsByPurchase = new Map<string, typeof allItems>();
+    for (const item of allItems) {
+      const existing = itemsByPurchase.get(item.purchaseId) ?? [];
+      existing.push(item);
+      itemsByPurchase.set(item.purchaseId, existing);
+    }
+
+    return rows.map((purchase) => ({
+      ...purchase,
+      items: itemsByPurchase.get(purchase.id) ?? [],
+    }));
   }
 
   async findOne(id: string) {
@@ -144,7 +156,22 @@ export class PurchasesService {
       );
     }
 
-    // g. Update customer.lastTransactionAt
+    // g. Mark matching unconverted samples as converted
+    const unconvertedSamples = await this.db
+      .select()
+      .from(samples)
+      .where(
+        and(
+          eq(samples.customerId, data.customerId),
+          eq(samples.convertedToPurchase, false),
+          inArray(samples.productId, purchasedProductIds),
+        ),
+      );
+    for (const sample of unconvertedSamples) {
+      await this.samplesService.markConverted(sample.id, purchase.id);
+    }
+
+    // h. Update customer.lastTransactionAt
     await this.db
       .update(customers)
       .set({ lastTransactionAt: new Date(), updatedAt: new Date() })

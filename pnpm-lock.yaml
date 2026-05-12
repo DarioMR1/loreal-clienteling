@@ -96,6 +96,9 @@ importers:
       '@swc/register':
         specifier: ^0.1.10
         version: 0.1.10(@swc/core@1.15.32)
+      '@types/express':
+        specifier: ^5.0.6
+        version: 5.0.6
       '@types/multer':
         specifier: ^2.1.0
         version: 2.1.0

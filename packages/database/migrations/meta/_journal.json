@@ -8,6 +8,13 @@
       "when": 1776828186748,
       "tag": "0000_free_kree",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778596996529,
+      "tag": "0001_breezy_wallop",
+      "breakpoints": true
     }
   ]
 }

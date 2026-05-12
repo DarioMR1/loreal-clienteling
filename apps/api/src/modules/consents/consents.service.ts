@@ -5,6 +5,7 @@ import { consents } from "@loreal/database";
 import type { GrantConsentDto } from "../../dtos/consents.dto";
 import type { SessionUser } from "../../common/types/session";
 import { AuditService } from "../../common/services/audit.service";
+import { ScopeService } from "../../common/services/scope.service";
 
 const CHANNEL_TO_CONSENT: Record<string, string> = {
   whatsapp: "marketing_whatsapp",
@@ -17,9 +18,11 @@ export class ConsentsService {
   constructor(
     @Inject(DATABASE_TOKEN) private db: Database,
     @Inject(AuditService) private auditService: AuditService,
+    @Inject(ScopeService) private scopeService: ScopeService,
   ) {}
 
-  async findByCustomer(customerId: string) {
+  async findByCustomer(customerId: string, user?: SessionUser) {
+    if (user) await this.scopeService.assertCustomerAccess(customerId, user);
     return this.db
       .select()
       .from(consents)
@@ -32,6 +35,8 @@ export class ConsentsService {
   }
 
   async grant(data: GrantConsentDto, user: SessionUser) {
+    await this.scopeService.assertCustomerAccess(data.customerId, user);
+
     const [consent] = await this.db
       .insert(consents)
       .values(data)
@@ -49,6 +54,8 @@ export class ConsentsService {
   }
 
   async revoke(customerId: string, type: string, user: SessionUser) {
+    await this.scopeService.assertCustomerAccess(customerId, user);
+
     const [consent] = await this.db
       .update(consents)
       .set({ revokedAt: new Date() })

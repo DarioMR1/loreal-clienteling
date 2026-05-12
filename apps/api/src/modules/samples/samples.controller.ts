@@ -31,6 +31,7 @@ export class SamplesController {
   }
 
   @Patch("samples/:id/convert")
+  @Roles(["ba", "manager"])
   @ApiParam({ name: "id", type: String })
   markConverted(
     @Param("id") id: string,

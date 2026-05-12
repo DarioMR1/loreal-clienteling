@@ -5,6 +5,7 @@ import { products, productAvailability } from "@loreal/database";
 import type { SessionUser } from "../../common/types/session";
 import { ScopeService } from "../../common/services/scope.service";
 import type { PaginationDto } from "../../dtos/common.dto";
+import type { CreateProductDto, UpdateProductDto } from "../../dtos/products.dto";
 
 @Injectable()
 export class ProductsService {
@@ -46,18 +47,26 @@ export class ProductsService {
     return product;
   }
 
-  async create(data: Record<string, any>) {
+  async create(data: CreateProductDto) {
     const [product] = await this.db
       .insert(products)
-      .values(data as any)
+      .values({
+        ...data,
+        price: String(data.price),
+      })
       .returning();
     return product;
   }
 
-  async update(id: string, data: Record<string, any>) {
+  async update(id: string, data: UpdateProductDto) {
+    const { price, ...rest } = data;
     const [product] = await this.db
       .update(products)
-      .set({ ...data, updatedAt: new Date() } as any)
+      .set({
+        ...rest,
+        ...(price !== undefined ? { price: String(price) } : {}),
+        updatedAt: new Date(),
+      })
       .where(eq(products.id, id))
       .returning();
     if (!product) throw new NotFoundException("Product not found");

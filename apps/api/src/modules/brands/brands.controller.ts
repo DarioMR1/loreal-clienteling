@@ -2,7 +2,7 @@ import { Controller, Get, Post, Patch, Put, Param, Body, Inject } from "@nestjs/
 import { ApiTags, ApiBearerAuth, ApiBody, ApiParam } from "@nestjs/swagger";
 import { Roles, Session } from "@thallesp/nestjs-better-auth";
 import { BrandsService } from "./brands.service";
-import { CreateBrandDto, UpdateBrandDto } from "../../dtos/brands.dto";
+import { CreateBrandDto, UpdateBrandDto, UpsertBrandConfigDto } from "../../dtos/brands.dto";
 import type { UserSession } from "../../common/types/session";
 
 @ApiTags("Brands")
@@ -40,7 +40,8 @@ export class BrandsController {
   @Put(":id/config")
   @Roles(["admin"])
   @ApiParam({ name: "id", type: String })
-  upsertConfig(@Param("id") id: string, @Body() body: Record<string, unknown>) {
+  @ApiBody({ type: UpsertBrandConfigDto })
+  upsertConfig(@Param("id") id: string, @Body() body: UpsertBrandConfigDto) {
     return this.brandsService.upsertConfig(id, body);
   }
 }

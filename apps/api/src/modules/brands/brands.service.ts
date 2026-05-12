@@ -51,7 +51,7 @@ export class BrandsService {
     return brand;
   }
 
-  async upsertConfig(brandId: string, data: Record<string, unknown>) {
+  async upsertConfig(brandId: string, data: Record<string, any>) {
     // Check brand exists
     await this.findOne(brandId);
 

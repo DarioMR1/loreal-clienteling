@@ -24,6 +24,7 @@ export { recommendations } from "./recommendations";
 export { purchases, purchaseItems } from "./purchases";
 export { samples } from "./samples";
 export { appointments } from "./appointments";
+export { appointmentEventTypes } from "./appointment-event-types";
 export { communications } from "./communications";
 export { messageTemplates } from "./message-templates";
 export { consents } from "./consents";

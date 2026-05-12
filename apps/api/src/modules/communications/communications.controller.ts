@@ -24,8 +24,11 @@ export class CommunicationsController {
 
   @Get("customers/:customerId/communications")
   @ApiParam({ name: "customerId", type: String })
-  findByCustomer(@Param("customerId") customerId: string) {
-    return this.communicationsService.findByCustomer(customerId);
+  findByCustomer(
+    @Param("customerId") customerId: string,
+    @Session() session: UserSession,
+  ) {
+    return this.communicationsService.findByCustomer(customerId, session.user);
   }
 
   @Post("communications")

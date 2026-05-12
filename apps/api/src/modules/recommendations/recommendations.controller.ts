@@ -48,6 +48,7 @@ export class RecommendationsController {
   }
 
   @Patch("recommendations/:id/convert")
+  @Roles(["ba", "manager"])
   @ApiParam({ name: "id", type: String })
   markConverted(
     @Param("id") id: string,

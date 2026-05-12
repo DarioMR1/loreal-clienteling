@@ -126,7 +126,7 @@ export class CustomersService {
     if (Object.keys(changes).length > 0) {
       await this.auditService.log(
         user,
-        "customer_viewed",
+        "customer_updated",
         "customer",
         id,
         changes,
