@@ -94,25 +94,34 @@ export function AnalyticsPage({ user }: AnalyticsPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>("dashboard");
   const exportData = useAnalyticsExport();
 
+  const exportType = activeTab === "citas" ? "agenda-report" : activeTab === "clientes" ? "customers" : "customers";
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
         title="Reportes"
         description="Métricas de rendimiento y analítica"
         action={
-          <Button
-            variant="outline"
-            disabled={exportData.isPending}
-            onClick={() =>
-              exportData.mutate({
-                type: activeTab === "citas" ? "agenda-report" : "customers",
-                format: "xlsx",
-              })
-            }
-          >
-            <ExportIcon className="mr-1.5 size-3.5" />
-            {exportData.isPending ? "Exportando..." : "Exportar XLSX"}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={exportData.isPending}
+              onClick={() => exportData.mutate({ type: exportType, format: "csv" })}
+            >
+              <ExportIcon className="mr-1.5 size-3.5" />
+              CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={exportData.isPending}
+              onClick={() => exportData.mutate({ type: exportType, format: "xlsx" })}
+            >
+              <ExportIcon className="mr-1.5 size-3.5" />
+              XLSX
+            </Button>
+          </div>
         }
       />
 
